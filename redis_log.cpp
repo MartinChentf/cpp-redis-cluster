@@ -1,14 +1,15 @@
 #include <stdio.h>
+#include <stdarg.h>
 
 #include "redis_log.h"
 
 void redis_log::log(const char * file_name,int line,const int level,const char * format,...)
 {
-    const char log_tmp[10240] = {0};
+    char log_tmp[10240] = {0};
     va_list ap;
-    va_start (ap, format);
+    va_start(ap, format);
     vsnprintf(log_tmp, sizeof(log_tmp), format, ap);
-    va_end (ap);
+    va_end(ap);
 
     printf("%s[%s:%d] %s\n", get_level_name(level).c_str(), file_name, line, log_tmp);
 }

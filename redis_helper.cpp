@@ -1,4 +1,6 @@
-#include "RedisHelper.h"
+#include "redis_helper.h"
+#include "redis_log.h"
+
 
 static string RedisHelper::generateCommand(string cmd,const char * format,...)
 {

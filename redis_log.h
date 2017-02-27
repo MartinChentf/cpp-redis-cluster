@@ -6,8 +6,8 @@
 class redis_log
 {
 private:
-    redis_log();
-    ~redis_log();
+    redis_log(){}
+    ~redis_log(){}
 
 public:
     static redis_log* get_instance()
@@ -33,9 +33,9 @@ private:
 #define LOG_LEVEL_ERROR     3
 
 #define NORMAL(...)         redis_log::get_instance()->log(__FILE__, __LINE__, LOG_LEVEL_NORMAL, __VA_ARGS__)
-#define DEBUG(...)          redis_log::get_instance()->log(__FILE__, __LINE__, LOG_LEVEL_NORMAL, __VA_ARGS__)
-#define WARN(...)           redis_log::get_instance()->log(__FILE__, __LINE__, LOG_LEVEL_NORMAL, __VA_ARGS__)
-#define ERROR(...)          redis_log::get_instance()->log(__FILE__, __LINE__, LOG_LEVEL_NORMAL, __VA_ARGS__)
+#define DEBUG(...)          redis_log::get_instance()->log(__FILE__, __LINE__, LOG_LEVEL_DEBUG, __VA_ARGS__)
+#define WARN(...)           redis_log::get_instance()->log(__FILE__, __LINE__, LOG_LEVEL_WARN, __VA_ARGS__)
+#define ERROR(...)          redis_log::get_instance()->log(__FILE__, __LINE__, LOG_LEVEL_ERROR, __VA_ARGS__)
 
 
 #endif /* __REDIS_LOG_H__ */

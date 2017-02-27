@@ -15,8 +15,8 @@ public:
 
     bool set(std::string key, std::string value);
     std::string get(std::string key);
-/*    string getrange(string key, int start, int end);
-    llong setrange(string key, int offset, string value);
+    std::string getrange(std::string key, int start, int end);
+/*    llong setrange(string key, int offset, string value);
     string getSet(string key, string value);
     llong getbit(string key, int offset);
     llong setbit(string key, int offset, int value);

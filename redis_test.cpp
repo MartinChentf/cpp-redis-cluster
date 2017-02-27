@@ -12,11 +12,14 @@ int main()
     str1.set("name", "martin");
     cout << str1.get("name") << endl;
 
-    redis_client* predis = new redis_client("10.45.4.201", 7008)
+    redis_client* predis = new redis_client("10.45.4.201", 7008);
     redis_string str2(predis);
+    delete predis;
 
     str2.set("name", "martin");
     cout << str2.get("name") << endl;
+    cout << str2.getrange("name", 0, 3) << endl;
+    cout << str2.get("martin") << endl;
     
     
 }

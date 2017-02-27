@@ -1,12 +1,12 @@
 FINAL_INC=-I/usr/local/include/hiredis
 FINAL_LIBS=-lhiredis
 
-OPTIMIZATION?=-O1
+OPTIMIZATION?=-O3
 DEBUG?=-g -ggdb
 WARNINGS=-Wall -W -Wwrite-strings
 FINAL_CFLAGES= -std=c++11 $(OPTIMIZATION) $(DEBUG) $(WARNINGS)
 
-OBJECT=redis_test.o redis_client.o redis_string.o crc16.o
+OBJECT=redis_test.o redis_client.o redis_string.o redis_log.o crc16.o
 
 redis_test : $(OBJECT)
 	g++ -o $@ $^ $(FINAL_CFLAGES) $(FINAL_LIBS) $(FINAL_INC)
