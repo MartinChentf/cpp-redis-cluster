@@ -2,6 +2,7 @@
 #define __REDIS_STRING_H__
 
 #include <string>
+//#include <boost/shared_ptr.hpp>
 
 class redis_client;
 

@@ -6,10 +6,12 @@ DEBUG?=-g -ggdb
 WARNINGS=-Wall -W -Wwrite-strings
 FINAL_CFLAGES= -std=c++11 $(OPTIMIZATION) $(DEBUG) $(WARNINGS)
 
-redis_test : redis_client.o redis_string.o crc16.o
-	g++ -o redis_test redis_test.cpp redis_client.o redis_string.o crc16.o $(FINAL_CFLAGES) $(FINAL_LIBS) $(FINAL_INC)
+OBJECT=redis_test.o redis_client.o redis_string.o crc16.o
 
-%.o: %.cpp
+redis_test : $(OBJECT)
+	g++ -o $@ $^ $(FINAL_CFLAGES) $(FINAL_LIBS) $(FINAL_INC)
+
+.cpp.o:
 	g++ -c $< $(FINAL_CFLAGES) $(FINAL_LIBS) $(FINAL_INC)
 
 .PHONY : clean

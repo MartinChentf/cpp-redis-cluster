@@ -65,6 +65,7 @@ redis_client::redis_client(const std::string host, uint16_t port)
 redis_client::~redis_client()
 {
     clear();
+    std::cout << "~redis_client:" << m_host << ":" << m_port << std::endl;
 }
 void redis_client::init()
 {
@@ -85,15 +86,21 @@ void redis_client::list_node()
     if (redis_reply->type == REDIS_REPLY_STRING) {
         char* ch = strstr(redis_reply->str, ":");
         m_cluster_mode = (0 == atoi(ch+1)) ? false : true;
+        freeReplyObject(redis_reply);
     }
-    freeReplyObject(redis_reply);
+    else {
+        std::cout << "ERROR: INFO Cluster false" <<std::endl;
+        freeReplyObject(redis_reply);
+        return;
+    }
 
     if (!m_cluster_mode) {
-        return;
+        m_rcon = redis_context;
     }
     else {
         redis_reply = (redisReply*)redisCommand(redis_context, "CLUSTER SLOTS");
         parse_cluster_slots(redis_reply);
+        freeReplyObject(redis_reply);
     }
 }
 
@@ -295,6 +302,11 @@ redisContext* redis_client::get_redis_context_by_slot(int slot)
 
 redisContext* redis_client::get_redis_context_by_key(std::string key)
 {
-    return get_redis_context_by_slot(get_key_slot(key));
+    if (m_cluster_mode) {
+        return get_redis_context_by_slot(get_key_slot(key));
+    }
+    else {
+        return m_rcon;
+    }
 }
 

@@ -52,14 +52,15 @@ private:
                                         redisContext* con = NULL);
 
 
-private:
+private: // for singleone
     std::string m_host;
     uint16_t m_port;
+    redisContext* m_rcon;
 
-private:
+private: // for cluster mode
     bool m_cluster_mode;
     t_cluster_node_map m_nodes;
-    t_slots_list m_slots;                   // slots of master
+    t_slots_list m_slots;       // slots of master
 };
 
 #endif /* __REDIS_H__ */
