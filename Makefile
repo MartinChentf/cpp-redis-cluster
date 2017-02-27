@@ -1,5 +1,5 @@
-FINAL_INC=-I/usr/local/include/hiredis-vip
-FINAL_LIBS=-lhiredis_vip
+FINAL_INC=-I/usr/local/include/hiredis
+FINAL_LIBS=-lhiredis
 
 OPTIMIZATION?=-O1
 DEBUG?=-g -ggdb

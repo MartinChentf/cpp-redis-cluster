@@ -182,8 +182,8 @@ bool redis_client::parse_cluster_slots(redisReply * reply)
                     return false;
                 }
 
-                redisReply* elem_ip = elem_slots->element[0];
-                redisReply* elem_port = elem_slots->element[1];
+                redisReply* elem_ip = elem_node->element[0];
+                redisReply* elem_port = elem_node->element[1];
 
                 if (elem_ip == NULL || elem_port ==NULL ||
                     elem_ip->type != REDIS_REPLY_STRING || 
@@ -195,11 +195,11 @@ bool redis_client::parse_cluster_slots(redisReply * reply)
 
                 // insert new node, if node isn't in map
                 t_cluster_node* p_cluster_node = NULL;
-                t_node_pair node_pair = std::make_pair(elem_ip->str, elem_ip->integer);
+                t_node_pair node_pair = std::make_pair(elem_ip->str, elem_port->integer);
                 t_cluster_node_map_iter it = m_nodes.find(node_pair);
                 if (it == m_nodes.end()) {
                     p_cluster_node =
-                        create_cluster_node(elem_ip->str, elem_ip->integer, true);
+                        create_cluster_node(elem_ip->str, elem_port->integer, true);
                     m_nodes.insert(std::make_pair(node_pair, p_cluster_node));
                 }
                 else {

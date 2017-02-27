@@ -14,6 +14,11 @@ bool redis_string::set(std::string key, std::string value)
 
     redisContext* rcon = m_client->get_redis_context_by_key(key);
 
+    if (rcon == NULL) {
+        std::cout << "Can't get rediscontext by key(" << key << ")" << std::endl;
+        return false;
+    }
+
     redisReply* reply = (redisReply*)redisCommand(rcon, command.c_str());
 
     if (reply->type == REDIS_REPLY_ERROR) {
@@ -33,6 +38,11 @@ std::string redis_string::get(std::string key)
     std::string command = "GET " + key;
 
     redisContext* rcon = m_client->get_redis_context_by_key(key);
+
+    if (rcon == NULL) {
+        std::cout << "Can't get rediscontext by key(" << key << ")" << std::endl;
+        return "";
+    }
 
     redisReply* reply = (redisReply*)redisCommand(rcon, command.c_str());
 
