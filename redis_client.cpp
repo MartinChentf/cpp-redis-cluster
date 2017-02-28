@@ -39,7 +39,7 @@ static unsigned int keyHashSlot(const char *key, size_t keylen) {
     return crc16(key+s+1,e-s-1) & 0x3FFF; // 0x3FFF == 16383
 }
 
-unsigned int get_key_slot(const std::string& key)
+unsigned int redis_client::get_key_slot(const std::string& key)
 {
     if (!key.empty())
     {

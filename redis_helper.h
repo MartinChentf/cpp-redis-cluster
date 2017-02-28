@@ -1,10 +1,11 @@
 #ifndef __REDIS_HELPER_H__
 #define __REDIS_HELPER_H__
 
+#include <string>
+
 class RedisHelper
 {
 public:
-    static std::string generateCommand();
 };
 
 static const char * REPLY_TYPE[] =

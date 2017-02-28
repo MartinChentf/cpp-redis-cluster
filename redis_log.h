@@ -37,5 +37,14 @@ private:
 #define WARN(...)           redis_log::get_instance()->log(__FILE__, __LINE__, LOG_LEVEL_WARN, __VA_ARGS__)
 #define ERROR(...)          redis_log::get_instance()->log(__FILE__, __LINE__, LOG_LEVEL_ERROR, __VA_ARGS__)
 
+#define PRINT_COLOR_NONE        "\033[m"
+#define PRINT_COLOR_BLACK       "\033[30m"
+#define PRINT_COLOR_RED         "\033[31m"
+#define PRINT_COLOR_GREED       "\033[32m"
+#define PRINT_COLOR_YELLOW      "\033[33m"
+#define PRINT_COLOR_BLUE        "\033[34m"
+#define PRINT_COLOR_PURPLE      "\033[35m"
+#define PRINT_COLOR_DARK_GREEN  "\033[36m"
+#define PRINT_COLOR_WHITR       "\033[37m"
 
 #endif /* __REDIS_LOG_H__ */

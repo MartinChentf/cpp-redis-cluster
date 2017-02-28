@@ -18,15 +18,15 @@ std::string redis_log::get_level_name(int level)
 {
     switch(level) {
         case LOG_LEVEL_NORMAL:
-            return std::string("[NORMAL]");
+            return std::string(PRINT_COLOR_GREED "[NORMAL]" PRINT_COLOR_NONE);
         case LOG_LEVEL_DEBUG:
-            return std::string("[ DEBUG]");
+            return std::string(PRINT_COLOR_BLUE "[ DEBUG]" PRINT_COLOR_NONE);
         case LOG_LEVEL_WARN:
-            return std::string("[  WARN]");
+            return std::string(PRINT_COLOR_YELLOW "[  WARN]" PRINT_COLOR_NONE);
         case LOG_LEVEL_ERROR:
-            return std::string("[ ERROR]");
+            return std::string(PRINT_COLOR_RED "[ ERROR]" PRINT_COLOR_NONE);
         default:
-            return std::string("[ (N/A)]");
+            return std::string(PRINT_COLOR_RED "[ (N/A)]" PRINT_COLOR_NONE);
     }
 }
 

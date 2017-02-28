@@ -7,8 +7,6 @@
 
 #include <hiredis.h>
 
-uint16_t crc16(const char *buf, int len);
-
 
 class redis_client
 {
@@ -35,6 +33,8 @@ public:
     redis_client(const std::string host, uint16_t port);
     ~redis_client();
 
+    unsigned int get_key_slot(const std::string& key);
+    redisContext* get_redis_context_by_slot(int slot);
     redisContext* get_redis_context_by_key(std::string key);
 
 private:
@@ -42,10 +42,10 @@ private:
     void list_node();
     redisContext* connect_node(const t_node_pair& node);
     bool parse_cluster_slots(redisReply* reply);
+
     void clear();
     void clear_nodes();
     void clear_slots();
-    redisContext* get_redis_context_by_slot(int slot);
 
     t_cluster_node* create_cluster_node(const std::string host, uint16_t port,
                                         bool master = false,

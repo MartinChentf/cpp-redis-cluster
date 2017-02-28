@@ -2,27 +2,34 @@
 #define __REDIS_STRING_H__
 
 #include <string>
-//#include <boost/shared_ptr.hpp>
+#include <vector>
+#include <map>
+
+#include "redis_command.h"
 
 class redis_client;
 
-class redis_string
+class redis_string : public redis_command
 {
 public:
-    redis_string(redis_client* client):m_client(client){}
+    redis_string(redis_client* client):redis_command(client){}
     ~redis_string(){}
 
 
     bool set(std::string key, std::string value);
     std::string get(std::string key);
+    std::string getSet(std::string key, std::string value);
+
     std::string getrange(std::string key, int start, int end);
-/*    llong setrange(string key, int offset, string value);
-    string getSet(string key, string value);
-    llong getbit(string key, int offset);
-    llong setbit(string key, int offset, int value);
-    vector<string> mget(vector<string>& keys);
-    bool mset(vector<pair<string, string>>& keyValues);
-    bool msetnx(vector<pair<string, string>>& keyValues);
+    long long setrange(std::string key, int offset, std::string value);
+
+    long long getbit(std::string key, int offset);
+    long long setbit(std::string key, int offset, int value);
+
+    bool mget(std::vector<std::string>& keys, std::vector<std::string>& result);
+    bool mget(std::vector<std::string>& keys, std::vector<std::string>* result);
+    std::string mset(std::map<std::string, std::string>& keyValues);
+/*    bool msetnx(vector<pair<string, string>>& keyValues);
     bool setex(string key, llong second, string value);
     bool pSetex(string key, llong millisecond, string value);
     bool setnx(string key, string string value);
@@ -35,7 +42,7 @@ public:
     llong append(string key, string value);*/
 
 private:
-    redis_client* m_client;
+    //redis_client* m_client;
 };
 
 #endif /* __REDIS_STRING_H__ */

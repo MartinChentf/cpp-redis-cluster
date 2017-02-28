@@ -1,133 +1,101 @@
 #include <iostream>
-#include <string.h>
 
 #include "redis_client.h"
 #include "redis_string.h"
 #include "redis_log.h"
-//#include "redis_helper.h"
 
 
 bool redis_string::set(std::string key, std::string value)
 {
-    std::string command = "SET " + key + " " + value;
+    build_command("SET %s %s", key.c_str(), value.c_str());
+    hash_slots(key);
 
-    redisContext* rcon = m_client->get_redis_context_by_key(key);
-
-    if (rcon == NULL) {
-        ERROR("Can't get rediscontext by key(%s)", key.c_str());
-        return false;
-    }
-
-    redisReply* reply = (redisReply*)redisCommand(rcon, command.c_str());
-
-    if (reply->type == REDIS_REPLY_ERROR) {
-        ERROR("Execute command fail! [%s]", command.c_str());
-        return false;
-    }
-    else if (reply->type == REDIS_REPLY_STATUS && strcasecmp(reply->str, "OK") == 0)
-    {
-        NORMAL("Execute command success! [%s]", command.c_str());
-        return true;
-    }
-
-    return true;
+    return check_status();
 }
 
 std::string redis_string::get(std::string key)
 {
-    std::string command = "GET " + key;
+    build_command("GET %s", key.c_str());
+    hash_slots(key);    
 
-    redisContext* rcon = m_client->get_redis_context_by_key(key);
-
-    if (rcon == NULL) {
-        ERROR("Can't get rediscontext by key(%s)", key.c_str());
-        return "";
-    }
-
-    redisReply* reply = (redisReply*)redisCommand(rcon, command.c_str());
-
-    if (reply->type == REDIS_REPLY_ERROR) {
-        ERROR("Execute command fail! [%s]", command.c_str());
-        return "";
-    }
-    else if (reply->type == REDIS_REPLY_STRING) {
-        return reply->str;
-    }
-    else if (reply->type == REDIS_REPLY_NIL) {
-        NORMAL("Get value is nil! Command[%s]", command.c_str());
-        return "";
-    }
-
-    return "";
+    return get_string_or_nil();
 }
 
 
 std::string redis_string::getrange(std::string key,int start,int end)
 {
-    char ch[1024] = {0};
-    snprintf(ch, sizeof(ch)/sizeof(char), "GETRANGE %s %d %d", key.c_str(), start, end);
-    std::string command = ch;
+    build_command("GETRANGE %s %d %d", key.c_str(), start, end);
+    hash_slots(key);
 
-    redisContext* rcon = m_client->get_redis_context_by_key(key);
-
-    if (rcon == NULL) {
-        ERROR("Can't get rediscontext by key(%s)", key.c_str());
-        return "";
-    }
-
-    redisReply* reply = (redisReply*)redisCommand(rcon, command.c_str());
-
-    if (reply->type == REDIS_REPLY_ERROR) {
-        ERROR("Execute command fail! [%s]", command.c_str());
-        return "";
-    }
-    else if (reply->type == REDIS_REPLY_STRING) {
-        return reply->str;
-    }
-    return "";
+    return get_string();
 }
 
-/*llong redis::setrange(string key,int offset,string value)
+long long redis_string::setrange(std::string key,int offset, std::string value)
 {
-    char ch[1024] = {0};
-    snprintf(ch, sizeof(ch)/sizeof(char), "SETRANGE %s %d %s", key.c_str(), offset, value.c_str());
-    string command = ch;
+    build_command("SETRANGE %s %d %s", key.c_str(), offset, value.c_str());
+    hash_slots(key);
 
-    m_reply = (redisReply*)redisCommand(m_rcon, command.c_str());
-
-    if (m_reply->type == REDIS_REPLY_ERROR) {
-        cout << "ERROR:" << m_reply->str << ", command is [" << command << "]" << endl;
-        return false;
-    }
-    else if (m_reply->type == REDIS_REPLY_INTEGER) {
-        return m_reply->integer;
-    }
-    return false;
+    return get_integer64();
 }
 
-string redis::getSet(string key,string value)
+std::string redis_string::getSet(std::string key, std::string value)
 {
-    string command = "GETSET " + key + " " + value;
+    build_command("GETSET %s %s", key.c_str(), value.c_str());
+    hash_slots(key);
 
-    m_reply = (redisReply*)redisCommand(m_rcon, command.c_str());
-
-    if (m_reply->type == REDIS_REPLY_ERROR) {
-        cout << "ERROR:" << m_reply->str << ", command is [" << command << "]" << endl;
-        return "";
-    }
-    else if (m_reply->type == REDIS_REPLY_STRING) {
-        return m_reply->str;
-    }
-    else if (m_reply->type == REDIS_REPLY_NIL) {
-        return "";
-    }
+    return get_string_or_nil();
 }
 
-string redis::getError()
+long long redis_string::getbit(std::string key,int offset)
 {
-    if (m_reply->type == REDIS_REPLY_ERROR) {
-        return m_reply->str;
+    build_command("GETBIT %s %d", key.c_str(), offset);
+    hash_slots(key);
+
+    return get_integer64();
+}
+
+long long redis_string::setbit(std::string key,int offset,int value)
+{
+    build_command("SETBIT %s %d %d", key.c_str(), offset, value);
+    hash_slots(key);
+
+    return get_integer64();
+}
+
+bool redis_string::mget(std::vector<std::string>& keys, std::vector<std::string>& result)
+{
+    return mget(keys, &result);
+}
+
+bool redis_string::mget(std::vector<std::string>& keys, std::vector<std::string>* result)
+{
+    std::string key_list;
+    for (size_t i = 0; i < keys.size(); i++) {
+        key_list += keys[i] + " ";
     }
 
+    build_command("MGET %s", key_list.c_str());
+    if (!keys.empty()) {
+        hash_slots(keys[0]);
+    }
 
-*/
+    return get_array(result);
+}
+
+std::string redis_string::mset(std::map<std::string, std::string>& keyValues)
+{
+    std::string key_value_list;
+    std::map<std::string, std::string>::iterator it = keyValues.begin();
+    for (; it != keyValues.end(); ++it) {
+        key_value_list += it->first + " " + it->second;
+    }
+
+    build_command("MSET %s", key_value_list.c_str());
+    if (!key_value_list.empty()) {
+        hash_slots(keyValues.begin()->first);
+    }
+
+    return get_string();
+}
+
+
