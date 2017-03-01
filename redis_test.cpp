@@ -4,6 +4,7 @@
 #include "redis_client.h"
 #include "redis_string.h"
 #include "redis_log.h"
+#include "redis_server.h"
 
 using namespace std;
 
@@ -50,6 +51,8 @@ void test(redis_client* client)
     }
     cout << endl;
     cout << PRINT_COLOR_PURPLE "-------------------------------------------------------------" PRINT_COLOR_NONE<< endl;
+    redis_server ser(client);
+    ser.flushall();
 }
 
 int main()
