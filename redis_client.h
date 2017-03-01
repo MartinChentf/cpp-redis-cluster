@@ -41,8 +41,10 @@ public:
     redisContext* get_redis_context_by_key(std::string key);
 
 private:
-    void init();
-    void list_node();
+    bool init();
+    bool list_node();
+
+    // 连接指定节点，失败或错误返回空
     redisContext* connect_node(const t_node_pair& node);
     bool parse_cluster_slots(redisReply* reply);
 
@@ -54,12 +56,16 @@ private:
                                         bool master = false,
                                         redisContext* con = NULL);
 
+    redisContext* get_normal_context(); // 遍历所有节点获取一个正常连接的redisContext
+
 private:
     // 保存当前连接节点的host、IP和redisContext信息
     // for both cluster mode and non-cluster-mode
     std::string m_host;
     uint16_t m_port;
     redisContext* m_rcon;
+
+    bool m_binitialization;
 
 private: // for cluster mode
     bool m_cluster_mode;

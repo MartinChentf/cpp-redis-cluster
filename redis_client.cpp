@@ -59,7 +59,11 @@ unsigned int redis_client::get_key_slot(const std::string& key)
 }
 
 redis_client::redis_client(const std::string host, uint16_t port)
-    :m_host(host), m_port(port), m_cluster_mode(false)
+: m_host(host)
+, m_port(port)
+, m_rcon(NULL)
+, m_binitialization(false)
+, m_cluster_mode(false)
 {
     init();
 }
@@ -68,18 +72,20 @@ redis_client::~redis_client()
 {
     clear();
 }
-void redis_client::init()
+bool redis_client::init()
 {
     clear();
 
-    list_node();
+    if (list_node()) {
+        m_binitialization = true;
+    }
 }
 
-void redis_client::list_node()
+bool redis_client::list_node()
 {
     redisContext* redis_context = connect_node(std::make_pair(m_host, m_port));
     if (NULL == redis_context) {
-        return;
+        return false;
     }
     m_rcon = redis_context;
 
@@ -92,37 +98,37 @@ void redis_client::list_node()
     else {
         ERROR("Execute command fail! Command[INFO Cluster]");
         freeReplyObject(redis_reply);
-        return;
+        return false;
     }
 
     if (m_cluster_mode) {
+        // 默认节点为slave节点，在parse_cluster_slots函数中会重新确定节点是否是master节点
+        t_cluster_node* p_cluster_node = create_cluster_node(m_host, m_port, false, m_rcon);
+        t_node_pair node_pair = std::make_pair(m_host, m_port);
+        m_nodes.insert(std::make_pair(node_pair, p_cluster_node));
+
         redis_reply = (redisReply*)redisCommand(m_rcon, "CLUSTER SLOTS");
         parse_cluster_slots(redis_reply);
         freeReplyObject(redis_reply);
     }
+
+    return true;
 }
 
 redisContext* redis_client::connect_node(const t_node_pair& node)
 {
     redisContext* redis_context = redisConnect(node.first.c_str(), node.second);
 
-    if (NULL == redis_context) {
-        WARN("Can't connect to Redis at [%s:%d]", node.first.c_str(), node.second);
+    if (NULL == redis_context || 0 != redis_context->err) {
+        ERROR("Can't connect to Redis at [%s:%d], errstr: %s",
+            node.first.c_str(), node.second,
+            redis_context ? redis_context->errstr : "Can't allocate redis context");
+        redisFree(redis_context);
         return NULL;
     }
     else {
-        if (0 != redis_context->err) {
-            ERROR("Can't connect to Redis at [%s:%d], errstr: %s",
-                node.first.c_str(), node.second, redis_context->errstr);
-            redisFree(redis_context);
-            return NULL;
-        }
-        else {
-            return redis_context;
-        }
+        return redis_context;
     }
-
-    return NULL;
 }
 
 bool redis_client::parse_cluster_slots(redisReply * reply)
@@ -209,12 +215,14 @@ bool redis_client::parse_cluster_slots(redisReply * reply)
                 t_node_pair node_pair = std::make_pair(elem_ip->str, elem_port->integer);
                 t_cluster_node_map_iter it = m_nodes.find(node_pair);
                 if (it == m_nodes.end()) {
-                    p_cluster_node =
-                        create_cluster_node(elem_ip->str, elem_port->integer, true);
+                    p_cluster_node = 
+                        create_cluster_node(elem_ip->str, elem_port->integer,
+                                            idx == 2 ? true : false);
                     m_nodes.insert(std::make_pair(node_pair, p_cluster_node));
                 }
                 else {
                     p_cluster_node = it->second;
+                    p_cluster_node->master = (idx == 2 ? true : false);
                 }
 
                 // this is master
@@ -274,6 +282,54 @@ redis_client::create_cluster_node(const std::string host, uint16_t port,
     node->con = con;
 
     return node;
+}
+
+redisContext* redis_client::get_normal_context()
+{
+    // 尝试连接当前节点
+    redisContext* redis_context = connect_node(std::make_pair(m_host, m_port));
+    if (redis_context) {
+        return redis_context;
+    }
+
+    if (!m_cluster_mode) {
+        return NULL;
+    }
+    else {
+        // 遍历集群，查找可正常连接的节点
+        t_cluster_node_map_iter it = m_nodes.begin();
+        for (; it != m_nodes.end(); ++it) {
+            t_cluster_node* p_cluster_node = it->second;
+            // 如果节点为空或有错误标识，重新连接该节点
+            if (p_cluster_node->con == NULL || p_cluster_node->con->err) {
+                redisFree(p_cluster_node->con); // 释放旧连接
+                redis_context = connect_node(it->first);
+                p_cluster_node->con = redis_context;
+            }
+            else {
+                redis_context = p_cluster_node->con;
+            }
+
+            if (redis_context) { // 找到正常的连接，返回
+                return redis_context;
+            }
+        }
+        // 
+        return NULL;
+    }
+}
+
+redisContext* redis_client::get_redis_context()
+{
+    if (m_rcon == NULL || m_rcon->err) {
+        redisFree(m_rcon);
+        redisContext* redis_context = connect_node(std::make_pair(m_host, m_port));
+        if (m_rcon == NULL) {
+            
+        }
+    }
+return m_rcon;
+
 }
 
 redisContext* 

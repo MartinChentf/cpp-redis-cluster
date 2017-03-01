@@ -1,7 +1,5 @@
 #include <string.h>
 
-#include <boost/lexical_cast.hpp>
-
 #include "redis_command.h"
 #include "redis_client.h"
 #include "redis_helper.h"
@@ -84,6 +82,7 @@ std::string redis_command::parse_reply(redisReply * reply)
 void redis_command::confirm_redis_context()
 {
     if (m_client != NULL) {
+        if (m_rcon == NULL || m_rcon->err)
         m_rcon = m_client->get_redis_context();
     }
 }
