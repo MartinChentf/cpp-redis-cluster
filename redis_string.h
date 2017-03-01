@@ -15,7 +15,7 @@ public:
     redis_string(redis_client* client):redis_command(client){}
     ~redis_string(){}
 
-
+public:
     bool set(std::string key, std::string value);
     std::string get(std::string key);
     std::string getSet(std::string key, std::string value);
@@ -28,7 +28,7 @@ public:
 
     bool mget(std::vector<std::string>& keys, std::vector<std::string>& result);
     bool mget(std::vector<std::string>& keys, std::vector<std::string>* result);
-    std::string mset(std::map<std::string, std::string>& keyValues);
+    bool mset(std::map<std::string, std::string>& keyValues);
 /*    bool msetnx(vector<pair<string, string>>& keyValues);
     bool setex(string key, llong second, string value);
     bool pSetex(string key, llong millisecond, string value);
@@ -40,9 +40,6 @@ public:
     llong decr(string key);
     llong decrBy(string key, int decrement);
     llong append(string key, string value);*/
-
-private:
-    //redis_client* m_client;
 };
 
 #endif /* __REDIS_STRING_H__ */

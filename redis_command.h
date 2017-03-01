@@ -27,10 +27,10 @@ protected:
     long long get_integer64();
     int get_integer32();
     bool get_array(std::vector<std::string>* result);
-    
-    std::string parse_reply(redisReply* reply);
 
 private:
+    std::string parse_reply(redisReply* reply);
+    void confirm_redis_context();   // 确认Client是否已经连接上redis, 可能出现连接失败的情况
 
 private:
     redis_client* m_client;

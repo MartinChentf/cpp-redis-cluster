@@ -82,12 +82,12 @@ bool redis_string::mget(std::vector<std::string>& keys, std::vector<std::string>
     return get_array(result);
 }
 
-std::string redis_string::mset(std::map<std::string, std::string>& keyValues)
+bool redis_string::mset(std::map<std::string, std::string>& keyValues)
 {
     std::string key_value_list;
     std::map<std::string, std::string>::iterator it = keyValues.begin();
     for (; it != keyValues.end(); ++it) {
-        key_value_list += it->first + " " + it->second;
+        key_value_list += it->first + " " + it->second + " ";
     }
 
     build_command("MSET %s", key_value_list.c_str());
@@ -95,7 +95,7 @@ std::string redis_string::mset(std::map<std::string, std::string>& keyValues)
         hash_slots(keyValues.begin()->first);
     }
 
-    return get_string();
+    return check_status();
 }
 
 

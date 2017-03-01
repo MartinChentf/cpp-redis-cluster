@@ -4,7 +4,8 @@ FINAL_LIBS=-lhiredis
 OPTIMIZATION?=-O3
 DEBUG?=-g -ggdb
 WARNINGS=-Wall -W -Wwrite-strings
-FINAL_CFLAGES= -std=c++11 $(OPTIMIZATION) $(DEBUG) $(WARNINGS)
+#CPP11=-std=c++11
+FINAL_CFLAGES= $(CPP11) $(OPTIMIZATION) $(DEBUG) $(WARNINGS)
 
 #OBJECT=redis_test.o redis_client.o redis_string.o redis_log.o redis_command.o crc16.o
 #SOURCE= redis_test.cpp \

@@ -34,6 +34,9 @@ public:
     ~redis_client();
 
     unsigned int get_key_slot(const std::string& key);
+
+    redisContext* get_redis_context() { return m_rcon; }
+    redisContext* get_redis_context(const std::string host, uint16_t port);
     redisContext* get_redis_context_by_slot(int slot);
     redisContext* get_redis_context_by_key(std::string key);
 
@@ -51,8 +54,9 @@ private:
                                         bool master = false,
                                         redisContext* con = NULL);
 
-
-private: // for singleone
+private:
+    // 保存当前连接节点的host、IP和redisContext信息
+    // for both cluster mode and non-cluster-mode
     std::string m_host;
     uint16_t m_port;
     redisContext* m_rcon;

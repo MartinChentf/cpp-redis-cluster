@@ -43,10 +43,10 @@ void test(redis_client* client)
     keys.push_back("red");
     keys.push_back("yellow");
     keys.push_back("blue");
-    cout << "[mget key ...]:" << str.mget(keys, values);
+    cout << "[mget key ...]:" << str.mget(keys, values) << endl;
     vector<string>::iterator it = values.begin();
     for (; it != values.end(); ++ it) {
-        cout << (*it);
+        cout << (*it) << " ";
     }
     cout << endl;
     cout << PRINT_COLOR_PURPLE "-------------------------------------------------------------" PRINT_COLOR_NONE<< endl;

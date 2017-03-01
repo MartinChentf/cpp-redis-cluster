@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string.h>
+#include <stdlib.h>
 
 #include "redis_client.h"
 #include "redis_log.h"
@@ -39,6 +40,9 @@ static unsigned int keyHashSlot(const char *key, size_t keylen) {
     return crc16(key+s+1,e-s-1) & 0x3FFF; // 0x3FFF == 16383
 }
 
+/*
+ * class redis_client
+ */
 unsigned int redis_client::get_key_slot(const std::string& key)
 {
     if (!key.empty())
@@ -54,9 +58,6 @@ unsigned int redis_client::get_key_slot(const std::string& key)
     }
 }
 
-/*
- * class redis_client
- */
 redis_client::redis_client(const std::string host, uint16_t port)
     :m_host(host), m_port(port), m_cluster_mode(false)
 {
@@ -77,12 +78,12 @@ void redis_client::init()
 void redis_client::list_node()
 {
     redisContext* redis_context = connect_node(std::make_pair(m_host, m_port));
-
     if (NULL == redis_context) {
         return;
     }
+    m_rcon = redis_context;
 
-    redisReply* redis_reply = (redisReply*)redisCommand(redis_context, "INFO Cluster");
+    redisReply* redis_reply = (redisReply*)redisCommand(m_rcon, "INFO Cluster");
     if (redis_reply->type == REDIS_REPLY_STRING) {
         char* ch = strstr(redis_reply->str, ":");
         m_cluster_mode = (0 == atoi(ch+1)) ? false : true;
@@ -94,11 +95,8 @@ void redis_client::list_node()
         return;
     }
 
-    if (!m_cluster_mode) {
-        m_rcon = redis_context;
-    }
-    else {
-        redis_reply = (redisReply*)redisCommand(redis_context, "CLUSTER SLOTS");
+    if (m_cluster_mode) {
+        redis_reply = (redisReply*)redisCommand(m_rcon, "CLUSTER SLOTS");
         parse_cluster_slots(redis_reply);
         freeReplyObject(redis_reply);
     }
@@ -229,9 +227,6 @@ bool redis_client::parse_cluster_slots(redisReply * reply)
         m_slots.push_front(slots);
     }
 
-    m_slots.sort([](t_cluster_slots* s1, t_cluster_slots* s2)
-                 {return s1->begin < s2->begin;});
-
     return true;
 }
 
@@ -243,6 +238,10 @@ void redis_client::clear()
 
 void redis_client::clear_nodes()
 {
+    if (!m_cluster_mode) {
+        redisFree(m_rcon);
+    }
+
     t_cluster_node_map_iter it = m_nodes.begin();
     for (; it != m_nodes.end(); ++it) {
         t_cluster_node* node = it->second;
@@ -277,6 +276,42 @@ redis_client::create_cluster_node(const std::string host, uint16_t port,
     return node;
 }
 
+redisContext* 
+redis_client::get_redis_context(const std::string host, uint16_t port)
+{
+    if (m_cluster_mode) {
+        t_cluster_node_map_iter it = m_nodes.find(std::make_pair(host, port));
+        if (it == m_nodes.end()) {
+            ERROR("%s:%d isn't in cluster!", host.c_str(), port);
+            return NULL;
+        }
+        else {
+            t_cluster_node* node = it->second;
+            if (node->con == NULL) {                
+                redisContext* redis_context =
+                    connect_node(std::make_pair(node->host, node->port));
+                node->con = redis_context;
+            }
+
+            if (node->con != NULL) {
+                m_host = node->host;
+                m_port = node->port;
+                m_rcon = node->con;
+            }
+
+            return m_rcon;
+        }
+    }
+    else { // single-one
+        if (host == m_host && port == m_port) {
+            return m_rcon;
+        }
+        else {
+            return NULL;
+        }
+    }
+}
+
 redisContext* redis_client::get_redis_context_by_slot(int slot)
 {
     if (!m_cluster_mode) {
@@ -290,16 +325,17 @@ redisContext* redis_client::get_redis_context_by_slot(int slot)
             }
 
             t_cluster_node* node = (*it)->node;
-
-            if (node->con != NULL) {
-                return node->con;
-            }
-            else {                
+            if (node->con == NULL) {
                 redisContext* redis_context =
                     connect_node(std::make_pair(node->host, node->port));
                 node->con = redis_context;
-                return node->con;
             }
+            if (node->con != NULL) {
+                m_host = node->host;
+                m_port = node->port;
+                m_rcon = node->con;
+            }
+            return node->con;
         }
 
         return NULL;

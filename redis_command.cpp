@@ -1,5 +1,7 @@
 #include <string.h>
 
+#include <boost/lexical_cast.hpp>
+
 #include "redis_command.h"
 #include "redis_client.h"
 #include "redis_helper.h"
@@ -13,6 +15,14 @@ void redis_command::set_client(redis_client * client)
 {
     if (client != NULL) {
         m_client = client;
+    }
+}
+
+void redis_command::hash_slots(std::string key)
+{
+    if (m_client != NULL) {
+        m_slot = m_client->get_key_slot(key);
+        m_rcon = m_client->get_redis_context_by_slot(m_slot);
     }
 }
 
@@ -30,19 +40,14 @@ std::string redis_command::build_command(const char * format,...)
     return m_command;
 }
 
-void redis_command::hash_slots(std::string key)
-{
-    if (m_client != NULL) {
-        m_slot = m_client->get_key_slot(key);
-        m_rcon = m_client->get_redis_context_by_slot(m_slot);
-    }
-}
-
 redisReply* redis_command::run_command()
 {
     if (m_rcon == NULL) {
-        ERROR("redisContext is NULL");
-        return NULL;
+        confirm_redis_context();
+        if (m_rcon == NULL) {
+            ERROR("redisContext is NULL");
+            return NULL;
+        }
     }
 
     redisReply* reply = (redisReply*)redisCommand(m_rcon, m_command.c_str());
@@ -68,11 +73,18 @@ std::string redis_command::parse_reply(redisReply * reply)
         case REDIS_REPLY_ERROR:
             return result + ", errstr: " + reply->str;
         case REDIS_REPLY_INTEGER:
-            return result + ", integer: " + std::to_string(reply->integer);
+            return result + ", integer: " + redis_helper::to_string(reply->integer);
         case REDIS_REPLY_ARRAY:
-            return result + ", array elements:" + std::to_string(reply->elements);
+            return result + ", array elements:" + redis_helper::to_string(reply->elements);
         default:
             return "Unkonw type";
+    }
+}
+
+void redis_command::confirm_redis_context()
+{
+    if (m_client != NULL) {
+        m_rcon = m_client->get_redis_context();
     }
 }
 
@@ -83,9 +95,11 @@ bool redis_command::check_status()
     redisReply* reply = run_command();
 
     if (reply == NULL || reply->type == REDIS_REPLY_ERROR) {
-        ERROR("Execute command fail! [%s], %s", parse_reply(reply).c_str());
+        ERROR("Execute command fail! [%s], %s",
+            m_command.c_str(), parse_reply(reply).c_str());
     }
-    else if (reply->type == REDIS_REPLY_STATUS && strcasecmp(reply->str, "OK") == 0) {
+    else if (reply->type == REDIS_REPLY_STATUS &&
+             strcasecmp(reply->str, "OK") == 0) {
         NORMAL("Execute command success! [%s]", m_command.c_str());
         bret = true;
     }
@@ -104,7 +118,8 @@ std::string redis_command::get_string()
     redisReply* reply = run_command();
 
     if (reply == NULL || reply->type == REDIS_REPLY_ERROR) {
-        ERROR("Execute command fail! [%s], %s", parse_reply(reply).c_str());
+        ERROR("Execute command fail! [%s], %s",
+            m_command.c_str(), parse_reply(reply).c_str());
     }
     else if (reply->type == REDIS_REPLY_STRING) {
         NORMAL("Execute command success! [%s]", m_command.c_str());
@@ -125,7 +140,8 @@ std::string redis_command::get_string_or_nil()
     redisReply* reply = run_command();
 
     if (reply == NULL || reply->type == REDIS_REPLY_ERROR) {
-        ERROR("Execute command fail! [%s], %s", parse_reply(reply).c_str());
+        ERROR("Execute command fail! [%s], %s",
+            m_command.c_str(), parse_reply(reply).c_str());
     }
     else if (reply->type == REDIS_REPLY_STRING) {
         NORMAL("Execute command success! [%s]", m_command.c_str());
@@ -149,7 +165,8 @@ long long redis_command::get_integer64()
     redisReply* reply = run_command();
 
     if (reply == NULL || reply->type == REDIS_REPLY_ERROR) {
-        ERROR("Execute command fail! [%s], %s", parse_reply(reply).c_str());
+        ERROR("Execute command fail! [%s], %s",
+            m_command.c_str(), parse_reply(reply).c_str());
     }
     else if (reply->type == REDIS_REPLY_INTEGER) {
         NORMAL("Execute command success! [%s]", m_command.c_str());
@@ -175,7 +192,8 @@ bool redis_command::get_array(std::vector<std::string> * result)
     redisReply* reply = run_command();
 
     if (reply == NULL || reply->type == REDIS_REPLY_ERROR) {
-        ERROR("Execute command fail! [%s], %s", parse_reply(reply).c_str());
+        ERROR("Execute command fail! [%s], %s",
+            m_command.c_str(), parse_reply(reply).c_str());
     }
     else if (reply->type == REDIS_REPLY_ARRAY) {
         NORMAL("Execute command success! [%s]", m_command.c_str());
