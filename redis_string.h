@@ -29,11 +29,12 @@ public:
     bool mget(std::vector<std::string>& keys, std::vector<std::string>& result);
     bool mget(std::vector<std::string>& keys, std::vector<std::string>* result);
     bool mset(std::map<std::string, std::string>& keyValues);
-/*    bool msetnx(vector<pair<string, string>>& keyValues);
-    bool setex(string key, llong second, string value);
-    bool pSetex(string key, llong millisecond, string value);
-    bool setnx(string key, string string value);
-    llong strlen(string key);
+    bool msetnx(std::map<std::string, std::string>& keyValues);
+
+    bool setnx(std::string key, std::string value);
+    bool setex(std::string key, long long second, std::string value);
+    bool psetex(std::string key, long long millisecond, std::string value);
+/*    llong strlen(string key);
     llong incr(string key);
     llong incrBy(string key, int increment);
     string incrByFloat(string key, float increment);

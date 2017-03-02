@@ -34,16 +34,17 @@ void test(redis_client* client)
     cout << PRINT_COLOR_PURPLE "-------------------------------------------------------------" PRINT_COLOR_NONE<< endl;
 
     map<string, string> key_value;
-    key_value["red"] = "redd";
-    key_value["green"] = "green";
-    key_value["blue"] = "blue";
+    string colorkey("{color}:");
+    key_value[colorkey + "red"] = "redd";
+    key_value[colorkey + "green"] = "green";
+    key_value[colorkey + "blue"] = "blue";
     cout << "[mset key value ...]:" << str.mset(key_value) << endl;
 
     vector<string> keys;
     vector<string> values;
-    keys.push_back("red");
-    keys.push_back("yellow");
-    keys.push_back("blue");
+    keys.push_back(colorkey + "red");
+    keys.push_back(colorkey + "yellow");
+    keys.push_back(colorkey + "blue");
     cout << "[mget key ...]:" << str.mget(keys, values) << endl;
     vector<string>::iterator it = values.begin();
     for (; it != values.end(); ++ it) {
@@ -57,18 +58,13 @@ void test(redis_client* client)
 
 int main()
 {
-#if 1
+#if 0
     redis_client redis1("10.45.4.201", 7000);
     redis_client redis2("10.45.4.201", 7008);
 #else
     redis_client redis1("192.168.199.131", 10000);
     redis_client redis2("192.168.199.131", 10006);
 #endif
-
-    /*redis_server ser(&redis1);
-    ser.flushall();
-    ser.flushall();
-    return 0;*/
 
     test(&redis1);
     test(&redis2);

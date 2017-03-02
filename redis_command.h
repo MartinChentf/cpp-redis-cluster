@@ -22,6 +22,7 @@ protected:
     redisReply* run_command();
 
     bool check_status();
+    bool check_status_or_nil();
     std::string get_string();
     std::string get_string_or_nil();
     long long get_integer64();

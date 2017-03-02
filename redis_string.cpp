@@ -98,4 +98,43 @@ bool redis_string::mset(std::map<std::string, std::string>& keyValues)
     return check_status();
 }
 
+bool redis_string::msetnx(std::map<std::string, std::string>& keyValues)
+{
+    std::string key_value_list;
+    std::map<std::string, std::string>::iterator it = keyValues.begin();
+    for (; it != keyValues.end(); ++it) {
+        key_value_list += it->first + " " + it->second + " ";
+    }
+
+    build_command("MSETNX %s", key_value_list.c_str());
+    if (!key_value_list.empty()) {
+        hash_slots(keyValues.begin()->first);
+    }
+
+    return (get_integer64() == 1 ? true : false);
+}
+
+bool redis_string::setnx(std::string key, std::string value)
+{
+    build_command("SET %s %s NX", key.c_str(), value.c_str());
+    hash_slots(key);
+
+    return check_status_or_nil();
+}
+
+bool redis_string::setex(std::string key, long long second, std::string value)
+{
+    build_command("SET %s %s EX %d", key.c_str(), value.c_str(), second);
+    hash_slots(key);
+
+    return check_status();
+}
+
+bool redis_string::psetex(std::string key, long long millisecond, std::string value)
+{
+    build_command("SET %s %s PX %d", key.c_str(), value.c_str(), millisecond);
+    hash_slots(key);
+
+    return check_status();
+}
 
