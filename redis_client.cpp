@@ -78,6 +78,10 @@ bool redis_client::init()
 
     if (list_node()) {
         m_binitialization = true;
+        return true;
+    }
+    else {
+        return false;
     }
 }
 
@@ -284,52 +288,106 @@ redis_client::create_cluster_node(const std::string host, uint16_t port,
     return node;
 }
 
+bool redis_client::is_normal_context(redisContext * rcon)
+{
+    // 如果给定redisContext不可用，则释放掉
+    if(rcon == NULL || rcon->err) {
+        redisFree(rcon);
+        rcon = NULL;
+        return false;
+    }
+    return true;
+}
+
 redisContext* redis_client::get_normal_context()
 {
-    // 尝试连接当前节点
-    redisContext* redis_context = connect_node(std::make_pair(m_host, m_port));
-    if (redis_context) {
-        return redis_context;
+    if (m_cluster_mode) { // 集群模式
+        return get_normal_context_with_cluster_mode();
     }
+    else { // 单点模式
+        return get_normal_context_with_singleton_mode();
+    }
+}
 
+redisContext* redis_client::get_normal_context_with_cluster_mode()
+{
     if (!m_cluster_mode) {
+        WARN("This is in singleton mode!");
         return NULL;
     }
-    else {
-        // 遍历集群，查找可正常连接的节点
-        t_cluster_node_map_iter it = m_nodes.begin();
-        for (; it != m_nodes.end(); ++it) {
-            t_cluster_node* p_cluster_node = it->second;
-            // 如果节点为空或有错误标识，重新连接该节点
-            if (p_cluster_node->con == NULL || p_cluster_node->con->err) {
-                redisFree(p_cluster_node->con); // 释放旧连接
-                redis_context = connect_node(it->first);
+
+    if (is_normal_context(m_rcon)) { // 1.当前连接有效，返回当前连接
+        return m_rcon;
+    }
+
+    // 2.当前连接无效时，尝试重新连接当前节点
+    redisContext* redis_context = connect_node(std::make_pair(m_host, m_port));
+    // 3.重新连接成功时，保存新的连接并返回该连接
+    if (is_normal_context(redis_context)) {
+        m_rcon = redis_context;
+        t_cluster_node_map_iter it = m_nodes.find(std::make_pair(m_host, m_port));
+        if (it != m_nodes.end()) { // 保存新的连接
+            it->second->con = m_rcon;
+        }
+        else { // 正常情况，不应该走到该分支
+            ERROR("%s:%d isn't in cluster!", m_host.c_str(), m_port);
+        }
+        return m_rcon;
+    }
+
+    // 4.重新连接失败时，遍历集群，查找连接有效的节点
+    t_cluster_node_map_iter it = m_nodes.begin();
+    for (; it != m_nodes.end(); ++it) {
+        t_cluster_node* p_cluster_node = it->second;
+        // 5.若该连接无效，尝试重新连接
+        // PS:重新连接依然可能出现链接无效的情况
+        if (!is_normal_context(p_cluster_node->con)) {
+            redis_context = connect_node(it->first);
+            if (is_normal_context(redis_context)) {
                 p_cluster_node->con = redis_context;
             }
-            else {
-                redis_context = p_cluster_node->con;
-            }
-
-            if (redis_context) { // 找到正常的连接，返回
-                return redis_context;
-            }
         }
-        // 
+
+        // 6.如果连接成功，更新当前节点信息，并返回
+        if (p_cluster_node->con) {
+            m_host = p_cluster_node->host;
+            m_port = p_cluster_node->port;
+            m_rcon = p_cluster_node->con;
+            
+            return m_rcon;
+        }
+    }
+
+    // 7.所有节点都无法正常连接时，返回空
+    ERROR("All cluster node can't connect!");
+    return NULL;
+}
+
+redisContext* redis_client::get_normal_context_with_singleton_mode()
+{
+    if (m_cluster_mode) {
+        WARN("This is in cluster mode!");
         return NULL;
+    }
+
+    if (is_normal_context(m_rcon)) { // 1.当前连接有效，返回当前连接
+        return m_rcon;
+    }
+    else { // 2.当前连接无效时，尝试重新连接当前节点
+        redisContext* redis_context = connect_node(std::make_pair(m_host, m_port));
+        if (is_normal_context(redis_context)) {
+            m_rcon = redis_context;
+        }
+        else { // 正常情况，不应该走到该分支
+            m_rcon = NULL;
+        }
+        return m_rcon;
     }
 }
 
 redisContext* redis_client::get_redis_context()
 {
-    if (m_rcon == NULL || m_rcon->err) {
-        redisFree(m_rcon);
-        redisContext* redis_context = connect_node(std::make_pair(m_host, m_port));
-        if (m_rcon == NULL) {
-            
-        }
-    }
-return m_rcon;
-
+    return get_normal_context();
 }
 
 redisContext* 

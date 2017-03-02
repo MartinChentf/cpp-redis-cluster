@@ -30,6 +30,8 @@ protected:
 
 private:
     std::string parse_reply(redisReply* reply);
+
+    bool is_normal_context(); // 判断当前连接是否有效
     void confirm_redis_context();   // 确认Client是否已经连接上redis, 可能出现连接失败的情况
 
 private:

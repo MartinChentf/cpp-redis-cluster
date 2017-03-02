@@ -35,7 +35,7 @@ public:
 
     unsigned int get_key_slot(const std::string& key);
 
-    redisContext* get_redis_context() { return m_rcon; }
+    redisContext* get_redis_context();
     redisContext* get_redis_context(const std::string host, uint16_t port);
     redisContext* get_redis_context_by_slot(int slot);
     redisContext* get_redis_context_by_key(std::string key);
@@ -56,11 +56,15 @@ private:
                                         bool master = false,
                                         redisContext* con = NULL);
 
+    // 判断给定redisContext是否可用，如果不可用则释放掉该redisContext
+    bool is_normal_context(redisContext* rcon);
     redisContext* get_normal_context(); // 遍历所有节点获取一个正常连接的redisContext
+    redisContext* get_normal_context_with_cluster_mode();
+    redisContext* get_normal_context_with_singleton_mode();
 
 private:
     // 保存当前连接节点的host、IP和redisContext信息
-    // for both cluster mode and non-cluster-mode
+    // for both cluster mode and singleton mode
     std::string m_host;
     uint16_t m_port;
     redisContext* m_rcon;

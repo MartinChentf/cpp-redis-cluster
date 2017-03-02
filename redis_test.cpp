@@ -57,13 +57,18 @@ void test(redis_client* client)
 
 int main()
 {
-#if 0
+#if 1
     redis_client redis1("10.45.4.201", 7000);
     redis_client redis2("10.45.4.201", 7008);
 #else
     redis_client redis1("192.168.199.131", 10000);
     redis_client redis2("192.168.199.131", 10006);
 #endif
+
+    /*redis_server ser(&redis1);
+    ser.flushall();
+    ser.flushall();
+    return 0;*/
 
     test(&redis1);
     test(&redis2);

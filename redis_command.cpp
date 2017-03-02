@@ -7,7 +7,11 @@
 
 
 redis_command::redis_command(redis_client * client)
-: m_client(client){}
+: m_client(client)
+, m_rcon(NULL)
+, m_command("")
+, m_slot(0)
+{}
 
 void redis_command::set_client(redis_client * client)
 {
@@ -38,14 +42,33 @@ std::string redis_command::build_command(const char * format,...)
     return m_command;
 }
 
+bool redis_command::is_normal_context()
+{
+    if (m_rcon == NULL || m_rcon->err) {
+        return false;
+    }
+    return true;
+}
+
+void redis_command::confirm_redis_context()
+{
+    if (m_client != NULL) {
+        if (!is_normal_context()) {
+            m_rcon = m_client->get_redis_context();
+        }
+    }
+    else {
+        m_rcon = NULL;
+    }
+}
+
 redisReply* redis_command::run_command()
 {
-    if (m_rcon == NULL) {
-        confirm_redis_context();
-        if (m_rcon == NULL) {
-            ERROR("redisContext is NULL");
-            return NULL;
-        }
+    confirm_redis_context();
+    if (!is_normal_context()) {
+        ERROR("redisContext is abnormal, Error: %s",
+            m_rcon ? m_rcon->errstr : "redisContext is NULL");
+        return NULL;
     }
 
     redisReply* reply = (redisReply*)redisCommand(m_rcon, m_command.c_str());
@@ -76,14 +99,6 @@ std::string redis_command::parse_reply(redisReply * reply)
             return result + ", array elements:" + redis_helper::to_string(reply->elements);
         default:
             return "Unkonw type";
-    }
-}
-
-void redis_command::confirm_redis_context()
-{
-    if (m_client != NULL) {
-        if (m_rcon == NULL || m_rcon->err)
-        m_rcon = m_client->get_redis_context();
     }
 }
 

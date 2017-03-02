@@ -1,7 +1,7 @@
 FINAL_INC=-I/usr/local/include/hiredis
 FINAL_LIBS=-lhiredis
 
-OPTIMIZATION?=-O3
+OPTIMIZATION?=-O1
 DEBUG?=-g -ggdb
 WARNINGS=-Wall -W -Wwrite-strings
 #CPP11=-std=c++11
@@ -28,6 +28,6 @@ redis_test : $(OBJECT)
 .PHONY : clean
 
 clean :
-	rm -f redis_test *.o *.gch core.*
+	rm -fv redis_test *.o *.gch core.*
 
 
