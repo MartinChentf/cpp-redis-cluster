@@ -1,11 +1,8 @@
-#include <iostream>
-
 #include "redis_client.h"
 #include "redis_string.h"
-#include "redis_log.h"
 
 
-const char* redis_string::BITOP_STR[SIZE_BITOP] = { "AND", "OR", "NOT", "XOR" };
+const char* redis_string::BITOP_STR[redis_string::SIZE_BITOP] = { "AND", "OR", "NOT", "XOR" };
 
 bool redis_string::set(std::string key, std::string value)
 {
