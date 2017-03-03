@@ -58,7 +58,7 @@ void test(redis_client* client)
 
 int main()
 {
-#if 0
+#if 1
     redis_client redis1("10.45.4.201", 7000);
     redis_client redis2("10.45.4.201", 7008);
 #else

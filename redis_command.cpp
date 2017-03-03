@@ -86,19 +86,19 @@ std::string redis_command::parse_reply(redisReply * reply)
     result += REPLY_TYPE[reply->type];
     switch(reply->type) {
         case REDIS_REPLY_STATUS:
-            return result + ", status: " + reply->str;
+            return result + ", Status: " + reply->str;
         case REDIS_REPLY_NIL:
             return result;
         case REDIS_REPLY_STRING:
-            return result + ", string: " + reply->str;
+            return result + ", String: " + reply->str;
         case REDIS_REPLY_ERROR:
-            return result + ", errstr: " + reply->str;
+            return result + ", Errstr: " + reply->str;
         case REDIS_REPLY_INTEGER:
-            return result + ", integer: " + redis_helper::to_string(reply->integer);
+            return result + ", Integer: " + redis_helper::to_string(reply->integer);
         case REDIS_REPLY_ARRAY:
-            return result + ", array elements:" + redis_helper::to_string(reply->elements);
+            return result + ", Array Elements:" + redis_helper::to_string(reply->elements);
         default:
-            return "Unkonw type";
+            return "Unkonw Type";
     }
 }
 

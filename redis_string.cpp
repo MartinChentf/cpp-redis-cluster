@@ -5,6 +5,8 @@
 #include "redis_log.h"
 
 
+const char* redis_string::BITOP_STR[SIZE_BITOP] = { "AND", "OR", "NOT", "XOR" };
+
 bool redis_string::set(std::string key, std::string value)
 {
     build_command("SET %s %s", key.c_str(), value.c_str());
@@ -21,6 +23,29 @@ std::string redis_string::get(std::string key)
     return get_string_or_nil();
 }
 
+bool redis_string::setnx(std::string key, std::string value)
+{
+    build_command("SET %s %s NX", key.c_str(), value.c_str());
+    hash_slots(key);
+
+    return check_status_or_nil();
+}
+
+bool redis_string::setex(std::string key, long long second, std::string value)
+{
+    build_command("SET %s %s EX %d", key.c_str(), value.c_str(), second);
+    hash_slots(key);
+
+    return check_status();
+}
+
+bool redis_string::psetex(std::string key, long long millisecond, std::string value)
+{
+    build_command("SET %s %s PX %d", key.c_str(), value.c_str(), millisecond);
+    hash_slots(key);
+
+    return check_status();
+}
 
 std::string redis_string::getrange(std::string key,int start,int end)
 {
@@ -54,9 +79,43 @@ long long redis_string::getbit(std::string key,int offset)
     return get_integer64();
 }
 
-long long redis_string::setbit(std::string key,int offset,int value)
+long long redis_string::setbit(std::string key, int offset, bool value)
 {
     build_command("SETBIT %s %d %d", key.c_str(), offset, value);
+    hash_slots(key);
+
+    return get_integer64();
+}
+
+long long redis_string::bitconut(std::string key)
+{
+    return bitconut(key, 0, -1);
+}
+
+long long redis_string::bitconut(std::string key, int start, int end)
+{
+    build_command("BITCOUNT %s %d %d", key.c_str(), start, end);
+    hash_slots(key);
+
+    return get_integer64();
+}
+
+long long redis_string::bitop(BITOP op, std::string dest_key, std::vector<std::string>& src_keys)
+{
+    std::string key_list;
+    for (size_t i = 0; i < src_keys.size(); i++) {
+        key_list += src_keys[i] + " ";
+    }
+
+    build_command("BITOP %s %s %s", BITOP_STR[op], dest_key.c_str(), key_list.c_str());
+    hash_slots(dest_key);
+
+    return get_integer64();
+}
+
+long long redis_string::bitpos(std::string key,bool value,int start /*= 0*/,int end /*= -1*/)
+{
+    build_command("BITPOS %s %d %d %d", key.c_str(), value, start, end);
     hash_slots(key);
 
     return get_integer64();
@@ -114,27 +173,59 @@ bool redis_string::msetnx(std::map<std::string, std::string>& keyValues)
     return (get_integer64() == 1 ? true : false);
 }
 
-bool redis_string::setnx(std::string key, std::string value)
+long long redis_string::incr(std::string key)
 {
-    build_command("SET %s %s NX", key.c_str(), value.c_str());
+    build_command("INCR %s", key.c_str());
     hash_slots(key);
 
-    return check_status_or_nil();
+    return get_integer64();
 }
 
-bool redis_string::setex(std::string key, long long second, std::string value)
+long long redis_string::incrBy(std::string key, int increment)
 {
-    build_command("SET %s %s EX %d", key.c_str(), value.c_str(), second);
+    build_command("INCRBY %s %d", key.c_str(), increment);
     hash_slots(key);
 
-    return check_status();
+    return get_integer64();
 }
 
-bool redis_string::psetex(std::string key, long long millisecond, std::string value)
+std::string redis_string::incrByFloat(std::string key, double increment)
 {
-    build_command("SET %s %s PX %d", key.c_str(), value.c_str(), millisecond);
+    build_command("INCRBYFLOAT %s %lf", key.c_str(), increment);
     hash_slots(key);
 
-    return check_status();
+    return get_string();
+}
+
+long long redis_string::decr(std::string key)
+{
+    build_command("DECR %s", key.c_str());
+    hash_slots(key);
+
+    return get_integer64();
+}
+
+long long redis_string::decrBy(std::string key, int decrement)
+{
+    build_command("DECRBY %s %d", key.c_str(), decrement);
+    hash_slots(key);
+
+    return get_integer64();
+}
+
+long long redis_string::append(std::string key, std::string value)
+{
+    build_command("APPEND %s %s", key.c_str(), value.c_str());
+    hash_slots(key);
+
+    return get_integer64();
+}
+
+long long redis_string::strlen(std::string key)
+{
+    build_command("STRLEN %s", key.c_str());
+    hash_slots(key);
+
+    return get_integer64();
 }
 
