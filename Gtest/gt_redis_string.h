@@ -17,7 +17,7 @@ public:
         delete m_pClient;
         m_pClient = NULL;
     }
-//private:
+
     static redis_client* m_pClient;
 };
 
