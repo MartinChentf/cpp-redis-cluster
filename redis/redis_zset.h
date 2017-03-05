@@ -14,7 +14,9 @@ public:
 public:
     long long zadd(const std::string key, std::map<double, std::string>& score_mems);
     long long zcard(const std::string key);
-    
+    long long zcount(const std::string key, double min, double max);
+    long long zcount(const std::string key, std::string min, std::string max);
+    double zincrby(const std::string key, double increment, std::string member);
 };
 
 #endif /* __REDIS_ZSET_H__ */
