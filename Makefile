@@ -12,11 +12,11 @@ WARNINGS=-Wall -W -Wwrite-strings
 export CPPFLAGS= $(OPTIMIZATION) $(DEBUG) $(WARNINGS)
 
 # Directory
-export HOME = $(PWD)
-export BIN_DIR = $(PWD)/bin
-export EXAMPLE_DIR = $(PWD)/example
-export REDIS_DIR = $(PWD)/redis
-export GTEST_DIR = $(PWD)/Gtest
+HOME = $(PWD)
+BIN_DIR = $(PWD)/bin
+EXAMPLE_DIR = $(PWD)/example
+REDIS_DIR = $(PWD)/redis
+GTEST_DIR = $(PWD)/Gtest
 
 # include and library
 export HIREDIS_INCS = -I/usr/local/include/hiredis -I$(REDIS_DIR)
@@ -70,8 +70,8 @@ GENERATE:
 .PHONY : all gtest clean
 
 clean :
-	@make -C redis clean
-	@make -C example clean
-	@make -C Gtest clean
+	@make -C $(REDIS_DIR) clean
+	@make -C $(EXAMPLE_DIR) clean
+	@make -C $(GTEST_DIR) clean
 	@$(RM) -rv $(BIN_DIR)
 

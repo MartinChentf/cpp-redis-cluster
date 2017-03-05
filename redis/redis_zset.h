@@ -13,6 +13,7 @@ public:
 
 public:
     long long zadd(const std::string key, std::map<double, std::string>& score_mems);
+    long long zcard(const std::string key);
     
 };
 
