@@ -1,5 +1,5 @@
 # Redis Client Makefile
-# Copyright (C) 2010-2011 chen tengfei <chentf1836@163.com>
+# Copyright (C) 2017-2018 chen tengfei <chentf1836@163.com>
 
 # Compile Command
 export CXX = g++
