@@ -30,3 +30,8 @@ std::string redis_log::get_level_name(int level)
     }
 }
 
+void LogAssertError(const char * exp)
+{
+    ERROR("ASSERT(%s)", exp);
+}
+

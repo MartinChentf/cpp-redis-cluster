@@ -1,6 +1,7 @@
 #ifndef __REDIS_LOG_H__
 #define __REDIS_LOG_H__
 
+#include <assert.h>
 #include <string>
 
 class redis_log
@@ -17,7 +18,6 @@ public:
     }
 
     void log(const char* file_name, int line, const int level, const char* format, ...);
-    
 
 private:
     // ½ûÖ¹¿½±´ºÍ¸³Öµ
@@ -46,5 +46,12 @@ private:
 #define PRINT_COLOR_PURPLE      "\033[35m"
 #define PRINT_COLOR_DARK_GREEN  "\033[36m"
 #define PRINT_COLOR_WHITR       "\033[37m"
+
+void LogAssertError(const char * exp);
+#ifdef NDEBUG
+#define ASSERT(exp) ((exp) ? (void)0 : LogAssertError(#exp))
+#else
+#define ASSERT(exp) assert(exp)
+#endif
 
 #endif /* __REDIS_LOG_H__ */

@@ -28,6 +28,7 @@ protected:
     long long get_integer64();
     int get_integer32();
     bool get_array(std::vector<std::string>* result);
+    bool get_cursor_array(int& cursor, std::vector<std::string>* result);
 
 private:
     std::string parse_reply(redisReply* reply);

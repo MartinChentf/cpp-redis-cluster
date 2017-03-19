@@ -1,4 +1,5 @@
 #include <string.h>
+#include <stdlib.h>
 
 #include "redis_command.h"
 #include "redis_client.h"
@@ -240,6 +241,44 @@ bool redis_command::get_array(std::vector<std::string> * result)
         NORMAL("Execute command success! [%s]", m_command.c_str());
         for (size_t i = 0; i < reply->elements; i ++) {
             redisReply* elem = reply->element[i];
+            if (elem->type == REDIS_REPLY_STRING) {
+                result->push_back(elem->str);
+            }
+            else {
+                result->push_back("");
+            }
+        }
+        bret = true;
+    }
+    else {
+        WARN("Unexpected reply: %s", parse_reply(reply).c_str());
+    }
+
+    return bret;
+}
+
+bool redis_command::get_cursor_array(int& cursor, std::vector<std::string>* result)
+{
+    bool bret = false;
+
+    redisReply* reply = run_command();
+
+    if (reply == NULL || reply->type == REDIS_REPLY_ERROR) {
+        ERROR("Execute command fail! [%s], %s",
+            m_command.c_str(), parse_reply(reply).c_str());
+    }
+    else if (reply->type == REDIS_REPLY_ARRAY) {
+        if (reply->elements != 2) {
+            ERROR("Execute command fail! [%s], array elements != 2", m_command.c_str());
+        }
+        NORMAL("Execute command success! [%s]", m_command.c_str());
+
+        if (reply->element[0]->type == REDIS_REPLY_STRING) {
+            cursor = atol(reply->element[0]->str);
+        }
+        redisReply* array = reply->element[1];
+        for (size_t i = 0; i < array->elements; i ++) {
+            redisReply* elem = array->element[i];
             if (elem->type == REDIS_REPLY_STRING) {
                 result->push_back(elem->str);
             }
