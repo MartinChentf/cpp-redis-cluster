@@ -16,7 +16,7 @@ HOME = $(PWD)
 BIN_DIR = $(PWD)/bin
 EXAMPLE_DIR = $(PWD)/example
 REDIS_DIR = $(PWD)/redis
-GTEST_DIR = $(PWD)/Gtest
+GTEST_DIR = $(PWD)/gtest
 
 # include and library
 export HIREDIS_INCS = -I/usr/local/include/hiredis -I$(REDIS_DIR)
