@@ -1,5 +1,6 @@
 #include "redis_client.h"
 #include "redis_list.h"
+#include "redis_helper.h"
 
 std::string redis_list::lpop(std::string key)
 {
@@ -11,11 +12,7 @@ std::string redis_list::lpop(std::string key)
 
 long long redis_list::lpush(std::string key, std::vector<std::string>& values)
 {
-    std::string value_list("");
-    for (size_t i = 0; i < values.size(); i ++) {
-        value_list += values[i] + " ";
-    }
-
+    std::string value_list = redis_helper::join(values);
     build_command("LPUSH %s %s", key.c_str(), value_list.c_str());
     hash_slots(key);
 
@@ -40,11 +37,7 @@ std::string redis_list::rpop(std::string key)
 
 long long redis_list::rpush(std::string key, std::vector<std::string>& values)
 {
-    std::string value_list("");
-    for (size_t i = 0; i < values.size(); i ++) {
-        value_list += values[i] + " ";
-    }
-
+    std::string value_list = redis_helper::join(values);
     build_command("RPUSH %s %s", key.c_str(), value_list.c_str());
     hash_slots(key);
 

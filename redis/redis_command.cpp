@@ -202,7 +202,7 @@ std::string redis_command::get_string_or_nil()
 
 long long redis_command::get_integer64()
 {
-    long long llret = 0;
+    long long llret = -1;
 
     redisReply* reply = run_command();
 

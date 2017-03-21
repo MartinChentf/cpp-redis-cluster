@@ -1,14 +1,11 @@
 #include "redis_client.h"
 #include "redis_hash.h"
 #include "redis_log.h"
+#include "redis_helper.h"
 
 long long redis_hash::hdel(std::string key, std::vector<std::string>& fields)
 {
-    std::string field_list("");
-    for (size_t i = 0; i < fields.size(); i ++) {
-        field_list += fields[i] + " ";
-    }
-
+    std::string field_list = redis_helper::join(fields);
     build_command("HDEL %s %s", key.c_str(), field_list.c_str());
     hash_slots(key);
 
@@ -82,11 +79,7 @@ long long redis_hash::hlen(std::string key)
 
 bool redis_hash::hmget(std::string key, std::vector<std::string>& fields, std::vector<std::string>& result)
 {
-    std::string field_list("");
-    for (size_t i = 0; i < fields.size(); i ++) {
-        field_list += fields[i] + " ";
-    }
-
+    std::string field_list = redis_helper::join(fields);
     build_command("HMGET %s %s", key.c_str(), field_list.c_str());
     hash_slots(key);
 
@@ -95,12 +88,7 @@ bool redis_hash::hmget(std::string key, std::vector<std::string>& fields, std::v
 
 bool redis_hash::hmset(std::string key, std::map<std::string, std::string>& field_values)
 {
-    std::string key_val;
-    for (t_field_value_map_iter it = field_values.begin();
-         it != field_values.end(); ++ it)
-    {
-        key_val += it->first + " " + it->second;
-    }
+    std::string key_val = redis_helper::join(field_values);
     build_command("HMSET %s %s", key.c_str(), key_val.c_str());
     hash_slots(key);
 

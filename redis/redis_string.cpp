@@ -1,5 +1,6 @@
 #include "redis_client.h"
 #include "redis_string.h"
+#include "redis_helper.h"
 
 
 const char* redis_string::BITOP_STR[redis_string::SIZE_BITOP] = { "AND", "OR", "NOT", "XOR" };
@@ -99,11 +100,7 @@ long long redis_string::bitconut(std::string key, int start, int end)
 
 long long redis_string::bitop(BITOP op, std::string dest_key, std::vector<std::string>& src_keys)
 {
-    std::string key_list;
-    for (size_t i = 0; i < src_keys.size(); i++) {
-        key_list += src_keys[i] + " ";
-    }
-
+    std::string key_list = redis_helper::join(src_keys);
     build_command("BITOP %s %s %s", BITOP_STR[op], dest_key.c_str(), key_list.c_str());
     hash_slots(dest_key);
 
@@ -125,11 +122,7 @@ bool redis_string::mget(std::vector<std::string>& keys, std::vector<std::string>
 
 bool redis_string::mget(std::vector<std::string>& keys, std::vector<std::string>* result)
 {
-    std::string key_list;
-    for (size_t i = 0; i < keys.size(); i++) {
-        key_list += keys[i] + " ";
-    }
-
+    std::string key_list = redis_helper::join(keys);
     build_command("MGET %s", key_list.c_str());
     if (!keys.empty()) {
         hash_slots(keys[0]);
@@ -140,12 +133,7 @@ bool redis_string::mget(std::vector<std::string>& keys, std::vector<std::string>
 
 bool redis_string::mset(std::map<std::string, std::string>& keyValues)
 {
-    std::string key_value_list;
-    std::map<std::string, std::string>::iterator it = keyValues.begin();
-    for (; it != keyValues.end(); ++it) {
-        key_value_list += it->first + " " + it->second + " ";
-    }
-
+    std::string key_value_list = redis_helper::join(keyValues);
     build_command("MSET %s", key_value_list.c_str());
     if (!key_value_list.empty()) {
         hash_slots(keyValues.begin()->first);
@@ -156,12 +144,7 @@ bool redis_string::mset(std::map<std::string, std::string>& keyValues)
 
 bool redis_string::msetnx(std::map<std::string, std::string>& keyValues)
 {
-    std::string key_value_list;
-    std::map<std::string, std::string>::iterator it = keyValues.begin();
-    for (; it != keyValues.end(); ++it) {
-        key_value_list += it->first + " " + it->second + " ";
-    }
-
+    std::string key_value_list = redis_helper::join(keyValues);
     build_command("MSETNX %s", key_value_list.c_str());
     if (!key_value_list.empty()) {
         hash_slots(keyValues.begin()->first);
