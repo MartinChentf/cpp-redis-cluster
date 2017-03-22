@@ -142,7 +142,7 @@ bool redis_command::check_status_or_nil()
         bret = true;
     }
     else if (reply->type == REDIS_REPLY_NIL) {
-        NORMAL("Reply is nil! [%s]");
+        NORMAL("Execute command success! [%s], Reply is nil!", m_command.c_str());
         bret = true;
     }
     else {
@@ -190,7 +190,7 @@ std::string redis_command::get_string_or_nil()
         ret_str = reply->str;
     }
     else if (reply->type == REDIS_REPLY_NIL) {
-        NORMAL("Reply is nil! [%s]", m_command.c_str());
+        NORMAL("Execute command success! [%s], Reply is nil!", m_command.c_str());
     }
     else {
         WARN("Unexpected reply: %s", parse_reply(reply).c_str());

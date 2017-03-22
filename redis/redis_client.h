@@ -40,6 +40,8 @@ public:
     redisContext* get_redis_context_by_slot(int slot);
     redisContext* get_redis_context_by_key(std::string key);
 
+    bool is_cluster() { return m_cluster_mode; }
+
 private:
     bool init();
     bool list_node();

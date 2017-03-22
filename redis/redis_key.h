@@ -15,13 +15,14 @@ public:
 public:
     /**
      * 删除指定的一个或一组keys, 忽略不存在的key
-     * @param  key {const std::vector<std::string>&}[IN] 指定的一组keys
+     * @param [IN] key {const std::vector<std::string>&} 指定的一组keys
      * @return {int} 返回实际删除的key的个数, 如下:
      *   0: 未删除任何key
      *  >0: 实际删除的key的个数, 该值可能小于输入key的个数
      *  -1: 出错
      */
     int del(const std::vector<std::string>& keys);
+    int del(const std::string key);
 };
 
 #endif

@@ -5,7 +5,7 @@
 
 const char* redis_string::BITOP_STR[redis_string::SIZE_BITOP] = { "AND", "OR", "NOT", "XOR" };
 
-bool redis_string::set(std::string key, std::string value)
+bool redis_string::set(const std::string& key, const std::string& value)
 {
     build_command("SET %s %s", key.c_str(), value.c_str());
     hash_slots(key);
@@ -13,7 +13,7 @@ bool redis_string::set(std::string key, std::string value)
     return check_status();
 }
 
-std::string redis_string::get(std::string key)
+std::string redis_string::get(const std::string& key)
 {
     build_command("GET %s", key.c_str());
     hash_slots(key);    
@@ -21,7 +21,7 @@ std::string redis_string::get(std::string key)
     return get_string_or_nil();
 }
 
-bool redis_string::setnx(std::string key, std::string value)
+bool redis_string::setnx(const std::string& key, const std::string& value)
 {
     build_command("SET %s %s NX", key.c_str(), value.c_str());
     hash_slots(key);
@@ -29,7 +29,7 @@ bool redis_string::setnx(std::string key, std::string value)
     return check_status_or_nil();
 }
 
-bool redis_string::setex(std::string key, long long second, std::string value)
+bool redis_string::setex(const std::string& key, long long second, const std::string& value)
 {
     build_command("SET %s %s EX %d", key.c_str(), value.c_str(), second);
     hash_slots(key);
@@ -37,7 +37,7 @@ bool redis_string::setex(std::string key, long long second, std::string value)
     return check_status();
 }
 
-bool redis_string::psetex(std::string key, long long millisecond, std::string value)
+bool redis_string::psetex(const std::string& key, long long millisecond, const std::string& value)
 {
     build_command("SET %s %s PX %d", key.c_str(), value.c_str(), millisecond);
     hash_slots(key);
@@ -45,7 +45,7 @@ bool redis_string::psetex(std::string key, long long millisecond, std::string va
     return check_status();
 }
 
-std::string redis_string::getrange(std::string key,int start,int end)
+std::string redis_string::getrange(const std::string& key,int start,int end)
 {
     build_command("GETRANGE %s %d %d", key.c_str(), start, end);
     hash_slots(key);
@@ -53,7 +53,7 @@ std::string redis_string::getrange(std::string key,int start,int end)
     return get_string();
 }
 
-long long redis_string::setrange(std::string key,int offset, std::string value)
+long long redis_string::setrange(const std::string& key, int offset, const std::string& value)
 {
     build_command("SETRANGE %s %d %s", key.c_str(), offset, value.c_str());
     hash_slots(key);
@@ -61,7 +61,7 @@ long long redis_string::setrange(std::string key,int offset, std::string value)
     return get_integer64();
 }
 
-std::string redis_string::getSet(std::string key, std::string value)
+std::string redis_string::getSet(const std::string& key, const std::string& value)
 {
     build_command("GETSET %s %s", key.c_str(), value.c_str());
     hash_slots(key);
