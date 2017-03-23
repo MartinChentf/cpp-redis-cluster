@@ -69,28 +69,28 @@ std::string redis_string::getSet(const std::string& key, const std::string& valu
     return get_string_or_nil();
 }
 
-long long redis_string::getbit(std::string key,int offset)
+int redis_string::getbit(const std::string& key,int offset)
 {
     build_command("GETBIT %s %d", key.c_str(), offset);
     hash_slots(key);
 
-    return get_integer64();
+    return get_integer32();
 }
 
-long long redis_string::setbit(std::string key, int offset, bool value)
+int redis_string::setbit(const std::string& key, int offset, bool value)
 {
     build_command("SETBIT %s %d %d", key.c_str(), offset, value);
     hash_slots(key);
 
-    return get_integer64();
+    return get_integer32();
 }
 
-long long redis_string::bitconut(std::string key)
+long long redis_string::bitconut(const std::string& key)
 {
     return bitconut(key, 0, -1);
 }
 
-long long redis_string::bitconut(std::string key, int start, int end)
+long long redis_string::bitconut(const std::string& key, int start, int end)
 {
     build_command("BITCOUNT %s %d %d", key.c_str(), start, end);
     hash_slots(key);
@@ -98,7 +98,7 @@ long long redis_string::bitconut(std::string key, int start, int end)
     return get_integer64();
 }
 
-long long redis_string::bitop(BITOP op, std::string dest_key, std::vector<std::string>& src_keys)
+long long redis_string::bitop(BITOP op, const std::string& dest_key, const std::vector<std::string>& src_keys)
 {
     std::string key_list = redis_helper::join(src_keys);
     build_command("BITOP %s %s %s", BITOP_STR[op], dest_key.c_str(), key_list.c_str());
@@ -107,9 +107,9 @@ long long redis_string::bitop(BITOP op, std::string dest_key, std::vector<std::s
     return get_integer64();
 }
 
-long long redis_string::bitpos(std::string key,bool value,int start /*= 0*/,int end /*= -1*/)
+long long redis_string::bitpos(const std::string& key,bool value,int start /*= 0*/,int end /*= -1*/)
 {
-    build_command("BITPOS %s %d %d %d", key.c_str(), value, start, end);
+    build_command("BITPOS %s %d %d %d", key.c_str(), (value?1:0), start, end);
     hash_slots(key);
 
     return get_integer64();
