@@ -23,10 +23,11 @@ protected:
 
     bool check_status();
     bool check_status_or_nil();
-    std::string get_string();
+    std::string get_string(bool* success = NULL);
     std::string get_string_or_nil();
-    long long get_integer64();
-    int get_integer32();
+    long long get_integer64(bool* success = NULL);
+    int get_integer32(bool* success = NULL);
+    bool get_array(std::vector<std::string*>* result);
     bool get_array(std::vector<std::string>* result);
     bool get_cursor_array(int& cursor, std::vector<std::string>* result);
 

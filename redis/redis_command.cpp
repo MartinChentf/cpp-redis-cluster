@@ -103,6 +103,7 @@ std::string redis_command::parse_reply(redisReply * reply)
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////
 bool redis_command::check_status()
 {
     bool bret = false;
@@ -153,7 +154,7 @@ bool redis_command::check_status_or_nil()
     return bret;
 }
 
-std::string redis_command::get_string()
+std::string redis_command::get_string(bool * success /*= NULL*/)
 {
     std::string ret_str("");
 
@@ -162,13 +163,16 @@ std::string redis_command::get_string()
     if (reply == NULL || reply->type == REDIS_REPLY_ERROR) {
         ERROR("Execute command fail! [%s], %s",
             m_command.c_str(), parse_reply(reply).c_str());
+        SAFE_ASSIGN(success, false);
     }
     else if (reply->type == REDIS_REPLY_STRING) {
         NORMAL("Execute command success! [%s]", m_command.c_str());
         ret_str = reply->str;
+        SAFE_ASSIGN(success, true);
     }
     else {
         WARN("Unexpected reply: %s", parse_reply(reply).c_str());
+        SAFE_ASSIGN(success, false);
     }
 
     freeReplyObject(reply);
@@ -200,7 +204,7 @@ std::string redis_command::get_string_or_nil()
     return ret_str;
 }
 
-long long redis_command::get_integer64()
+long long redis_command::get_integer64(bool * success /*= NULL*/)
 {
     long long llret = -1;
 
@@ -209,22 +213,57 @@ long long redis_command::get_integer64()
     if (reply == NULL || reply->type == REDIS_REPLY_ERROR) {
         ERROR("Execute command fail! [%s], %s",
             m_command.c_str(), parse_reply(reply).c_str());
+        SAFE_ASSIGN(success, false);
     }
     else if (reply->type == REDIS_REPLY_INTEGER) {
         NORMAL("Execute command success! [%s]", m_command.c_str());
         llret = reply->integer;
+        SAFE_ASSIGN(success, true);
     }
     else {
         WARN("Unexpected reply: %s", parse_reply(reply).c_str());
+        SAFE_ASSIGN(success, false);
     }
 
     freeReplyObject(reply);
     return llret;
 }
 
-int redis_command::get_integer32()
+int redis_command::get_integer32(bool * success /*= NULL*/)
 {
-    return get_integer64();
+    return get_integer64(success);
+}
+
+bool redis_command::get_array(std::vector<std::string*> * result)
+{
+    bool bret = false;
+
+    redisReply* reply = run_command();
+
+    if (reply == NULL || reply->type == REDIS_REPLY_ERROR) {
+        ERROR("Execute command fail! [%s], %s",
+            m_command.c_str(), parse_reply(reply).c_str());
+    }
+    else if (reply->type == REDIS_REPLY_ARRAY) {
+        NORMAL("Execute command success! [%s]", m_command.c_str());
+        if (result != NULL) {
+            for (size_t i = 0; i < reply->elements; i ++) {
+                redisReply* elem = reply->element[i];
+                if (elem->type == REDIS_REPLY_STRING) {
+                    result->push_back(new std::string(elem->str));
+                }
+                else {
+                    result->push_back(NULL);
+                }
+            }
+        }
+        bret = true;
+    }
+    else {
+        WARN("Unexpected reply: %s", parse_reply(reply).c_str());
+    }
+
+    return bret;
 }
 
 bool redis_command::get_array(std::vector<std::string> * result)
@@ -239,13 +278,15 @@ bool redis_command::get_array(std::vector<std::string> * result)
     }
     else if (reply->type == REDIS_REPLY_ARRAY) {
         NORMAL("Execute command success! [%s]", m_command.c_str());
-        for (size_t i = 0; i < reply->elements; i ++) {
-            redisReply* elem = reply->element[i];
-            if (elem->type == REDIS_REPLY_STRING) {
-                result->push_back(elem->str);
-            }
-            else {
-                result->push_back("");
+        if (result != NULL) {
+            for (size_t i = 0; i < reply->elements; i ++) {
+                redisReply* elem = reply->element[i];
+                if (elem->type == REDIS_REPLY_STRING) {
+                    result->push_back(elem->str);
+                }
+                else {
+                    result->push_back("");
+                }
             }
         }
         bret = true;
@@ -276,14 +317,16 @@ bool redis_command::get_cursor_array(int& cursor, std::vector<std::string>* resu
         if (reply->element[0]->type == REDIS_REPLY_STRING) {
             cursor = atol(reply->element[0]->str);
         }
-        redisReply* array = reply->element[1];
-        for (size_t i = 0; i < array->elements; i ++) {
-            redisReply* elem = array->element[i];
-            if (elem->type == REDIS_REPLY_STRING) {
-                result->push_back(elem->str);
-            }
-            else {
-                result->push_back("");
+        if (result) {
+            redisReply* array = reply->element[1];
+            for (size_t i = 0; i < array->elements; i ++) {
+                redisReply* elem = array->element[i];
+                if (elem->type == REDIS_REPLY_STRING) {
+                    result->push_back(elem->str);
+                }
+                else {
+                    result->push_back("");
+                }
             }
         }
         bret = true;

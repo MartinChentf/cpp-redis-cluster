@@ -165,7 +165,10 @@ public:
      *   >=0: 保存到dest_key的字节长度
      *    -1: 出错
      */
-    long long bitop(BITOP op, const std::string& dest_key, const std::vector<std::string>& src_keys);
+    long long bitop(BITOP op, const std::string& dest_key,
+                    const std::vector<std::string>& src_keys);
+    long long bitop(BITOP op, const std::string& dest_key,
+                    const std::string& src_key); // 单src_key的版本
 
     /**
      * @description
@@ -183,19 +186,126 @@ public:
      */
     long long bitpos(const std::string& key, bool value, int start = 0, int end = -1);
 
-    bool mget(std::vector<std::string>& keys, std::vector<std::string>& result);
-    bool mget(std::vector<std::string>& keys, std::vector<std::string>* result);
-    bool mset(std::map<std::string, std::string>& keyValues);
-    bool msetnx(std::map<std::string, std::string>& keyValues);
+    /**
+     * @description
+     *   返回所有指定的key所关联的value, 如果key所关联的值不是string类型或key值不存在返回空.
+     * @param [IN] keys {const std::vector<std::string>&}
+     *   一组字符串对象的key
+     * @param [OUT] result {std::vector<std::string*>&}
+     *   keys所关联的value, 需要调用者手动释放内存
+     * @return {bool} 返回true表示执行成功, 该调用不会失败
+     */
+    bool mget(const std::vector<std::string>& keys, std::vector<std::string*>& result);
+    bool mget(const std::vector<std::string>& keys, std::vector<std::string*>* result);
 
-    long long incr(std::string key);
-    long long incrBy(std::string key, int increment);
-    std::string incrByFloat(std::string key, double increment);
-    long long decr(std::string key);
-    long long decrBy(std::string key, int decrement);
+    /**
+     * @description
+     *   把key关联到对应的value上, 会覆盖原有的value值, 行为和set类似.
+     * @param [IN] keyValues {const std::map<std::string, std::string>&} 键值对
+     * @return {bool} 返回true表示执行成功, 该调用不会失败
+     */
+    bool mset(const std::map<std::string, std::string>& keyValues);
 
-    long long append(std::string key, std::string value);
-    long long strlen(std::string key);
+    /**
+     * @description
+     *   把key关联到对应的value上, 只要有一个key存在, 整个msetnx都不会执行.
+     * @param [IN] keyValues {const std::map<std::string, std::string>&} 键值对
+     * @return {bool} 返回true表示执行成功, 该调用不会失败
+     */
+    bool msetnx(const std::map<std::string, std::string>& keyValues);
+
+    /**
+     * @description
+     *   对存储在指定key的数值执行加1操作. 如果key不存在, 自增前将key的值设为0
+     * @param [IN] key {const std::string&} 指定自增的key
+     * @param [OUT] result {long long*} 非空时存储自增结果
+     * @return {bool} 表示自增操作是否成功, 如下:
+     *    true: 操作成功
+     *   false: key的value类型错误或者是不能表示成数字的字符串
+     */
+    bool incr(const std::string& key, long long* result = NULL);
+
+    /**
+     * @description
+     *   对存储在指定key的数值增加increment.
+     *   如果key不存在, 自增前将key的值设为0
+     * @param [IN] key {const std::string&} 指定自增的key
+     * @param [IN] increment {long long} 增量值, <0表示负增长
+     * @param [OUT] result {long long*} 非空时存储自增结果
+     * @return {bool} 表示自增操作是否成功, 如下:
+     *    true: 操作成功
+     *   false: key的value类型错误(non-string)或者是不能表示成数字的字符串
+     */
+    bool incrby(const std::string& key, long long increment,
+                long long* result = NULL);
+
+    /**
+     * @description
+     *   对存储在指定key的浮点数数值增加increment.
+     *   如果key不存在, 自增前将key的值设为0
+     * @param [IN] key {const std::string&} 指定自增的key
+     * @param [IN] increment {double} 增量值, <0表示负增长
+     * @param [OUT] result {long long*} 非空时存储自增结果
+     * @return {bool} 表示自增操作是否成功, 如下:
+     *    true: 操作成功
+     *   false: key的value类型错误(non-string)
+     *          或者是不能解析成双精度浮点值的字符串(超出精度范围)
+     */
+    bool incrbyfloat(const std::string& key, double increment,
+                     std::string* result = NULL);
+
+    /**
+     * @description
+     *   对存储在指定key的数值执行减1操作. 如果key不存在, 自减前将key的值设为0
+     * @param [IN] key {const std::string&} 指定自减的key
+     * @param [OUT] result {long long*} 非空时存储自减结果
+     * @return {bool} 表示自减操作是否成功, 如下:
+     *    true: 操作成功
+     *   false: key的value类型错误(non-string)或者是不能表示成数字的字符串
+     */
+    bool decr(const std::string& key, long long* result = NULL);
+
+    /**
+     * @description
+     *   对存储在指定key的数值减去increment. 如果key不存在, 自减前将key的值设为0
+     * @param [IN] key {const std::string&} 指定自减的key
+     * @param [IN] increment {long long} 增量值, <0表示增加
+     * @param [OUT] result {long long*} 非空时存储自减结果
+     * @return {bool} 表示自减操作是否成功, 如下:
+     *    true: 操作成功
+     *   false: key的value类型错误(non-string)或者是不能表示成数字的字符串
+     */
+    bool decrby(const std::string& key, long long decrement,
+                long long* result = NULL);
+
+    /**
+     * @description
+     *   如果key已经存在, 并且值为字符串, 那么这个命令会把value追加到原来值的结尾.
+     *   如果key不存在, 那么它将首先创建一个空字符串的key, 再执行追加操作
+     * @param [IN] key {const std::string&} 指定追加字符串的key
+     * @param [IN] value {const std::string&} 追加的字符串值
+     * @param [OUT] result {long long*} 非空时存储追加后字符串的长度
+     * @return {bool} 表示自减操作是否成功, 如下:
+     *    true: 操作成功
+     *   false: key的value类型错误(non-string)
+     */
+    bool append(const std::string& key, const std::string& value,
+                long long* result = NULL);
+
+    /**
+     * @description
+     *   返回key关联的string的长度, 如果key不存在, 返回0
+     * @param [IN] key {const std::string&} 指定字符串的key
+     * @param [OUT] result {long long*} 非空时存储追加后字符串的长度
+     * @return {bool} 表示自减操作是否成功, 如下:
+     *    true: 操作成功
+     *   false: key的value类型错误(non-string)
+     */
+    bool strlen(const std::string& key, long long* result = NULL);
+
+private:
+    bool incoper(const char* cmd, const std::string& key,
+                 long long* inc, long long* result);
 };
 
 #endif /* __REDIS_STRING_H__ */

@@ -22,7 +22,7 @@ public:
      *  -1: ³ö´í
      */
     int del(const std::vector<std::string>& keys);
-    int del(const std::string key);
+    int del(const std::string& key);
 };
 
 #endif

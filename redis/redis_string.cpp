@@ -107,6 +107,14 @@ long long redis_string::bitop(BITOP op, const std::string& dest_key, const std::
     return get_integer64();
 }
 
+long long redis_string::bitop(BITOP op, const std::string& dest_key, const std::string& src_keys)
+{
+    std::vector<std::string> str;
+    str.push_back(src_keys);
+
+    return bitop(op, dest_key, str);
+}
+
 long long redis_string::bitpos(const std::string& key,bool value,int start /*= 0*/,int end /*= -1*/)
 {
     build_command("BITPOS %s %d %d %d", key.c_str(), (value?1:0), start, end);
@@ -115,12 +123,12 @@ long long redis_string::bitpos(const std::string& key,bool value,int start /*= 0
     return get_integer64();
 }
 
-bool redis_string::mget(std::vector<std::string>& keys, std::vector<std::string>& result)
+bool redis_string::mget(const std::vector<std::string>& keys, std::vector<std::string*>& result)
 {
     return mget(keys, &result);
 }
 
-bool redis_string::mget(std::vector<std::string>& keys, std::vector<std::string>* result)
+bool redis_string::mget(const std::vector<std::string>& keys, std::vector<std::string*>* result)
 {
     std::string key_list = redis_helper::join(keys);
     build_command("MGET %s", key_list.c_str());
@@ -131,7 +139,7 @@ bool redis_string::mget(std::vector<std::string>& keys, std::vector<std::string>
     return get_array(result);
 }
 
-bool redis_string::mset(std::map<std::string, std::string>& keyValues)
+bool redis_string::mset(const std::map<std::string, std::string>& keyValues)
 {
     std::string key_value_list = redis_helper::join(keyValues);
     build_command("MSET %s", key_value_list.c_str());
@@ -142,7 +150,7 @@ bool redis_string::mset(std::map<std::string, std::string>& keyValues)
     return check_status();
 }
 
-bool redis_string::msetnx(std::map<std::string, std::string>& keyValues)
+bool redis_string::msetnx(const std::map<std::string, std::string>& keyValues)
 {
     std::string key_value_list = redis_helper::join(keyValues);
     build_command("MSETNX %s", key_value_list.c_str());
@@ -153,59 +161,75 @@ bool redis_string::msetnx(std::map<std::string, std::string>& keyValues)
     return (get_integer64() == 1 ? true : false);
 }
 
-long long redis_string::incr(std::string key)
+bool redis_string::incr(const std::string& key,long long * result /*= NULL*/)
 {
-    build_command("INCR %s", key.c_str());
-    hash_slots(key);
-
-    return get_integer64();
+    return incoper("INCR", key, NULL, result);
 }
 
-long long redis_string::incrBy(std::string key, int increment)
+bool redis_string::incrby(const std::string& key,
+                          long long increment,
+                          long long * result /*= NULL*/)
 {
-    build_command("INCRBY %s %d", key.c_str(), increment);
-    hash_slots(key);
-
-    return get_integer64();
+    return incoper("INCRBY", key, &increment, result);
 }
 
-std::string redis_string::incrByFloat(std::string key, double increment)
+bool redis_string::incrbyfloat(const std::string & key,
+                                      double increment,
+                                      std::string * result /*= NULL*/)
 {
     build_command("INCRBYFLOAT %s %lf", key.c_str(), increment);
     hash_slots(key);
 
-    return get_string();
+    bool success;
+    SAFE_ASSIGN_FUNC(result, get_string(&success));
+    return success;
 }
 
-long long redis_string::decr(std::string key)
+bool redis_string::decr(const std::string & key,long long * result /*= NULL*/)
 {
-    build_command("DECR %s", key.c_str());
+    return incoper("DECR", key, NULL, result);
+}
+
+bool redis_string::decrby(const std::string & key,
+                          long long decrement,
+                          long long * result /*= NULL*/)
+{
+    return incoper("DECRBY", key, &decrement, result);
+}
+
+bool redis_string::incoper(const char * cmd,const std::string & key,
+                           long long * inc,long long * result)
+{
+    if (inc != NULL)
+        build_command("%s %s %d", cmd, key.c_str(), inc);
+    else
+        build_command("%s %s", cmd, key.c_str());
+
     hash_slots(key);
 
-    return get_integer64();
+    bool success;
+    SAFE_ASSIGN_FUNC(result, get_integer64(&success));
+    return success;
 }
 
-long long redis_string::decrBy(std::string key, int decrement)
-{
-    build_command("DECRBY %s %d", key.c_str(), decrement);
-    hash_slots(key);
-
-    return get_integer64();
-}
-
-long long redis_string::append(std::string key, std::string value)
+bool redis_string::append(const std::string & key,const std::string & value,
+                          long long * result /*= NULL*/)
 {
     build_command("APPEND %s %s", key.c_str(), value.c_str());
     hash_slots(key);
 
-    return get_integer64();
+    bool success;
+    SAFE_ASSIGN_FUNC(result, get_integer64(&success));
+    return success;
 }
 
-long long redis_string::strlen(std::string key)
+bool redis_string::strlen(const std::string & key,long long * result /*= NULL*/)
 {
     build_command("STRLEN %s", key.c_str());
     hash_slots(key);
 
-    return get_integer64();
+    bool success;
+    SAFE_ASSIGN_FUNC(result, get_integer64(&success));
+    return success;
 }
 

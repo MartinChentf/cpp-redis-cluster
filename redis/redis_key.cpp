@@ -13,7 +13,7 @@ int redis_key::del(const std::vector<std::string>& keys)
     return get_integer32();
 }
 
-int redis_key::del(const std::string key)
+int redis_key::del(const std::string& key)
 {
     std::vector<std::string> str;
     str.push_back(key);

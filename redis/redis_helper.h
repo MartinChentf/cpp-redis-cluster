@@ -51,4 +51,8 @@ static const char * const REPLY_TYPE[] =
     "REDIS_REPLY_ERROR"     // 6
 };
 
+#define SAFE_ASSIGN(p, val) if (p) (*p) = (val)
+
+#define SAFE_ASSIGN_FUNC(p, func) if (p) (*p) = (func); else (void)(func)
+
 #endif /* __REDIS_HELPER_H__ */

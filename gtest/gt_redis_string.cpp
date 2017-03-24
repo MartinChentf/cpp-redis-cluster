@@ -120,3 +120,56 @@ TEST_F(redis_string_test, bitop_AND) {
     redis_string_test::m_pKey->del("{foo}:2");
 }
 
+TEST_F(redis_string_test, bitop_OR) {
+    std::vector<std::string> keys;
+    keys.push_back("{foo}:1");
+    keys.push_back("{foo}:2");
+    redis_string_test::m_pStr->set("{foo}:1", "\xf0\x38\x72\x66\x54");
+    redis_string_test::m_pStr->set("{foo}:2", "\x43\x2c\x41\x66\x14\x0f");
+
+    EXPECT_EQ(6, redis_string_test::m_pStr->bitop(redis_string::OR, "foo", keys));
+    EXPECT_EQ(std::string("\xf3\x3c\x73\x66\x54\x0f"), redis_string_test::m_pStr->get("foo")); // out of range
+
+    redis_string_test::m_pKey->del("{foo}:1");
+    redis_string_test::m_pKey->del("{foo}:2");
+}
+
+TEST_F(redis_string_test, bitop_NOT) {
+    /*std::vector<std::string> keys;
+    keys.push_back("{foo}:1");
+    keys.push_back("{foo}:2");
+    redis_string_test::m_pStr->set("{foo}:1", "\xf0\x38\x72\x66\x54");
+    redis_string_test::m_pStr->set("{foo}:2", "\x43\x2c\x41\x66\x14\x0f");*/
+    redis_string_test::m_pStr->set("{foo}:1", "\xf0\x38\x72\x66\x54");
+
+    EXPECT_EQ(5, redis_string_test::m_pStr->bitop(redis_string::NOT, "foo", "{foo}:1"));
+    EXPECT_EQ(std::string("\x0f\xc7\x8d\x99\xab"), redis_string_test::m_pStr->get("foo")); // out of range
+    redis_string_test::m_pKey->del("foo1");
+
+    /*redis_string_test::m_pKey->del("{foo}:1");
+    redis_string_test::m_pKey->del("{foo}:2");*/
+}
+
+TEST_F(redis_string_test, bitop_XOR) {
+    std::vector<std::string> keys;
+    keys.push_back("{foo}:1");
+    keys.push_back("{foo}:2");
+    redis_string_test::m_pStr->set("{foo}:1", "\xf0\x38\x72\x66\x54");
+    redis_string_test::m_pStr->set("{foo}:2", "\x43\x2c\x41\x66\x14\x0f");
+
+    EXPECT_EQ(6, redis_string_test::m_pStr->bitop(redis_string::XOR, "foo", keys));
+    EXPECT_EQ(std::string("\xb3\x14\x33\x00\x40\x0f"), redis_string_test::m_pStr->get("foo")); // out of range
+
+    redis_string_test::m_pKey->del("{foo}:1");
+    redis_string_test::m_pKey->del("{foo}:2");
+}
+
+TEST_F(redis_string_test, bitpos) {
+    redis_string_test::m_pStr->set("foo", "\xf0\x38\x72\x66\x54");
+
+    EXPECT_EQ(4, redis_string_test::m_pStr->bitpos("foo", 0));
+    EXPECT_EQ(0, redis_string_test::m_pStr->bitpos("foo", 1));
+    EXPECT_EQ(8, redis_string_test::m_pStr->bitpos("foo", 0, 1));
+    EXPECT_EQ(17, redis_string_test::m_pStr->bitpos("foo", 1, 2, 3));
+}
+
