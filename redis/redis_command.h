@@ -22,11 +22,19 @@ protected:
     redisReply* run_command();
 
     bool check_status();
-    bool check_status_or_nil();
+    int check_status_or_nil();
+
     std::string get_string(bool* success = NULL);
-    std::string get_string_or_nil();
+    bool get_string(std::string* result);
+    bool get_string(std::string& result);
+    std::string get_string_or_nil(bool* success = NULL);
+    bool get_string_or_nil(std::string* result);
+
     long long get_integer64(bool* success = NULL);
+    bool get_integer64(long long& result);
+    bool get_integer64(long long* result);
     int get_integer32(bool* success = NULL);
+
     bool get_array(std::vector<std::string*>* result);
     bool get_array(std::vector<std::string>* result);
     bool get_cursor_array(int& cursor, std::vector<std::string>* result);

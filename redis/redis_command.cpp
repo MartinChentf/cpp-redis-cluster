@@ -95,15 +95,17 @@ std::string redis_command::parse_reply(redisReply * reply)
         case REDIS_REPLY_ERROR:
             return result + ", Errstr: " + reply->str;
         case REDIS_REPLY_INTEGER:
-            return result + ", Integer: " + redis_helper::to_string(reply->integer);
+            return result + ", Integer: "
+                    + redis_helper::to_string(reply->integer);
         case REDIS_REPLY_ARRAY:
-            return result + ", Array Elements:" + redis_helper::to_string(reply->elements);
+            return result + ", Array Elements:"
+                    + redis_helper::to_string(reply->elements);
         default:
             return "Unkonw Type";
     }
 }
 
-///////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 bool redis_command::check_status()
 {
     bool bret = false;
@@ -127,9 +129,9 @@ bool redis_command::check_status()
     return bret;
 }
 
-bool redis_command::check_status_or_nil()
+int redis_command::check_status_or_nil()
 {
-    bool bret = false;
+    int iret = -1;
 
     redisReply* reply = run_command();
 
@@ -140,18 +142,19 @@ bool redis_command::check_status_or_nil()
     else if (reply->type == REDIS_REPLY_STATUS &&
              strcasecmp(reply->str, "OK") == 0) {
         NORMAL("Execute command success! [%s]", m_command.c_str());
-        bret = true;
+        iret = 1;
     }
     else if (reply->type == REDIS_REPLY_NIL) {
-        NORMAL("Execute command success! [%s], Reply is nil!", m_command.c_str());
-        bret = true;
+        NORMAL("Execute command success! [%s], Reply is nil!",
+            m_command.c_str());
+        iret = 0;
     }
     else {
         WARN("Unexpected reply: %s", parse_reply(reply).c_str());
     }
 
     freeReplyObject(reply);
-    return bret;
+    return iret;
 }
 
 std::string redis_command::get_string(bool * success /*= NULL*/)
@@ -179,7 +182,21 @@ std::string redis_command::get_string(bool * success /*= NULL*/)
     return ret_str;
 }
 
-std::string redis_command::get_string_or_nil()
+bool redis_command::get_string(std::string * result)
+{
+    bool success;
+    SAFE_ASSIGN_FUNC(result, get_string(&success));
+    return success;
+}
+
+bool redis_command::get_string(std::string & result)
+{
+    bool success;
+    result = get_string(&success);
+    return success;
+}
+
+std::string redis_command::get_string_or_nil(bool * success /*= NULL*/)
 {
     std::string ret_str("");
 
@@ -188,20 +205,32 @@ std::string redis_command::get_string_or_nil()
     if (reply == NULL || reply->type == REDIS_REPLY_ERROR) {
         ERROR("Execute command fail! [%s], %s",
             m_command.c_str(), parse_reply(reply).c_str());
+        SAFE_ASSIGN(success, false);
     }
     else if (reply->type == REDIS_REPLY_STRING) {
         NORMAL("Execute command success! [%s]", m_command.c_str());
         ret_str = reply->str;
+        SAFE_ASSIGN(success, true);
     }
     else if (reply->type == REDIS_REPLY_NIL) {
-        NORMAL("Execute command success! [%s], Reply is nil!", m_command.c_str());
+        NORMAL("Execute command success! [%s], Reply is nil!",
+            m_command.c_str());
+        SAFE_ASSIGN(success, true);
     }
     else {
         WARN("Unexpected reply: %s", parse_reply(reply).c_str());
+        SAFE_ASSIGN(success, false);
     }
 
     freeReplyObject(reply);
     return ret_str;
+}
+
+bool redis_command::get_string_or_nil(std::string * result /*= NULL*/)
+{
+    bool success;
+    SAFE_ASSIGN_FUNC(result, get_string_or_nil(&success));
+    return success;
 }
 
 long long redis_command::get_integer64(bool * success /*= NULL*/)
@@ -227,6 +256,20 @@ long long redis_command::get_integer64(bool * success /*= NULL*/)
 
     freeReplyObject(reply);
     return llret;
+}
+
+bool redis_command::get_integer64(long long & result)
+{
+    bool success;
+    result = get_integer64(&success);
+    return success;
+}
+
+bool redis_command::get_integer64(long long * result)
+{
+    bool success;
+    SAFE_ASSIGN_FUNC(result, get_integer64(&success));
+    return success;
 }
 
 int redis_command::get_integer32(bool * success /*= NULL*/)
@@ -298,7 +341,8 @@ bool redis_command::get_array(std::vector<std::string> * result)
     return bret;
 }
 
-bool redis_command::get_cursor_array(int& cursor, std::vector<std::string>* result)
+bool redis_command::get_cursor_array(int& cursor,
+                                     std::vector<std::string>* result)
 {
     bool bret = false;
 
@@ -310,7 +354,8 @@ bool redis_command::get_cursor_array(int& cursor, std::vector<std::string>* resu
     }
     else if (reply->type == REDIS_REPLY_ARRAY) {
         if (reply->elements != 2) {
-            ERROR("Execute command fail! [%s], array elements != 2", m_command.c_str());
+            ERROR("Execute command fail! [%s], array elements != 2",
+                m_command.c_str());
         }
         NORMAL("Execute command success! [%s]", m_command.c_str());
 
