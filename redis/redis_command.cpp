@@ -226,11 +226,33 @@ std::string redis_command::get_string_or_nil(bool * success /*= NULL*/)
     return ret_str;
 }
 
-bool redis_command::get_string_or_nil(std::string * result /*= NULL*/)
+int redis_command::get_string_or_nil(std::string& result)
 {
-    bool success;
-    SAFE_ASSIGN_FUNC(result, get_string_or_nil(&success));
-    return success;
+    int iret = -1;
+
+    redisReply* reply = run_command();
+
+    if (reply == NULL || reply->type == REDIS_REPLY_ERROR) {
+        ERROR("Execute command fail! [%s], %s",
+            m_command.c_str(), parse_reply(reply).c_str());
+    }
+    else if (reply->type == REDIS_REPLY_STRING) {
+        NORMAL("Execute command success! [%s]", m_command.c_str());
+        result = std::string(reply->str);
+        iret = 1;
+    }
+    else if (reply->type == REDIS_REPLY_NIL) {
+        NORMAL("Execute command success! [%s], Reply is nil!",
+            m_command.c_str());
+        result = "";
+        iret = 0;
+    }
+    else {
+        WARN("Unexpected reply: %s", parse_reply(reply).c_str());
+    }
+
+    freeReplyObject(reply);
+    return iret;
 }
 
 long long redis_command::get_integer64(bool * success /*= NULL*/)

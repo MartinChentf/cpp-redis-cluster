@@ -28,7 +28,7 @@ protected:
     bool get_string(std::string* result);
     bool get_string(std::string& result);
     std::string get_string_or_nil(bool* success = NULL);
-    bool get_string_or_nil(std::string* result);
+    int get_string_or_nil(std::string& result);
 
     long long get_integer64(bool* success = NULL);
     bool get_integer64(long long& result);

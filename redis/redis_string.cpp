@@ -6,22 +6,22 @@
 const char* redis_string::BITOP_STR[redis_string::SIZE_BITOP]
     = { "AND", "OR", "NOT", "XOR" };
 
-bool redis_string::get(const std::string& key, std::string& result)
+int redis_string::get(const std::string& key, std::string& result)
 {
     build_command("GET %s", key.c_str());
     hash_slots(key);    
 
-    return get_string_or_nil(&result);
+    return get_string_or_nil(result);
 }
 
-bool redis_string::getSet(const std::string& key,
+int redis_string::getSet(const std::string& key,
                           const std::string& value,
                           std::string& result)
 {
     build_command("GETSET %s %s", key.c_str(), value.c_str());
     hash_slots(key);
 
-    return get_string_or_nil(&result);
+    return get_string_or_nil(result);
 }
 
 bool redis_string::set(const std::string& key, const std::string& value)

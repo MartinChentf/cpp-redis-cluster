@@ -27,9 +27,9 @@ TEST_F(redis_helper_test, join_vector)
 TEST_F(redis_helper_test, join_map)
 {
     std::map<std::string, std::string> map;
-    map["name"] = "martin";
-    map["age"] = "27";
-    map["height"] = "183";
+    map["foo1"] = "11";
+    map["foo2"] = "22";
+    map["foo3"] = "33";
 
-    EXPECT_EQ(std::string("age:27,height:183,name:martin"), redis_helper::join(map, ":", ","));
+    EXPECT_EQ(std::string("foo1:11,foo2:22,foo3:33"), redis_helper::join(map, ":", ","));
 }

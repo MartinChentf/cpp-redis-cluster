@@ -32,21 +32,28 @@ public:
      *   返回key所关联的字符串的值
      * @param [IN] key {const std::string&} 字符串对象的key
      * @param [OUT] result {std::string&}
-     *   返回key所关联的字符串值, 如果key不存在返回空字符串
-     * @return {bool} 操作是否成功, false表示出错或key非字符串对象
+     *   返回key所关联的字符串值, 如果key不存在返回空字符串. 此时需要根据返回值
+     *   判断是否key是否存在
+     * @return {int} 返回操作结果, 返回值如下:
+     *   1: key存在, 并成功返回所关联的字符串值
+     *   0: key不存在, 返回空字符串
+     *  -1: 出错或key非字符串对象
      */
-    bool get(const std::string& key, std::string& result);
+    int get(const std::string& key, std::string& result);
 
     /**
      * @description
      *   将key关联的字符串值设置为value，并返回key所关联的旧值
      * @param [IN] key {const std::string&} 字符串对象的key
      * @param [IN] value {const std::string&} key所关联的字符串新值
-     * @param [OUT] result {std::string&}
-     *   key所关联的字符串旧值，如果key不存在返回空字符串
-     * @return {bool} 操作是否成功, false表示出错或key非字符串对象
+     * @param [OUT] result {std::string&} key所关联的字符串旧值，如果key不存在返
+     *   回空字符串. 此时需要根据返回值判断是否key是否存在
+     * @return {int} 返回操作结果, 返回值如下:
+     *   1: key存在, 并成功返回所关联的字符串值
+     *   0: key不存在, 返回空字符串
+     *  -1: 出错或key非字符串对象
      */
-     bool getSet(const std::string& key, const std::string& value,
+     int getSet(const std::string& key, const std::string& value,
                 std::string& result);
 
     /**
@@ -255,7 +262,8 @@ public:
      * @param [OUT] result {long long*} 非空时存储自增结果
      * @return {bool} 表示自增操作是否成功, 如下:
      *    true: 操作成功
-     *   false: key的value类型错误或者是不能表示成数字的字符串
+     *   false: 1) key的value类型错误(non-string)
+     *          2) key的value不能表示成数字的字符串
      */
     bool incr(const std::string& key, long long* result = NULL);
 
@@ -268,7 +276,8 @@ public:
      * @param [OUT] result {long long*} 非空时存储自增结果
      * @return {bool} 表示自增操作是否成功, 如下:
      *    true: 操作成功
-     *   false: key的value类型错误(non-string)或者是不能表示成数字的字符串
+     *   false: 1) key的value类型错误(non-string)
+     *          2) key的value不能表示成数字的字符串
      */
     bool incrby(const std::string& key, long long increment,
                 long long* result = NULL);
@@ -282,8 +291,8 @@ public:
      * @param [OUT] result {long long*} 非空时存储自增结果
      * @return {bool} 表示自增操作是否成功, 如下:
      *    true: 操作成功
-     *   false: key的value类型错误(non-string)
-     *          或者是不能解析成双精度浮点值的字符串(超出精度范围)
+     *   false: 1) key的value类型错误(non-string)
+     *          2) key的value不能解析成双精度浮点值的字符串
      */
     bool incrbyfloat(const std::string& key, double increment,
                      std::string* result = NULL);
@@ -295,7 +304,8 @@ public:
      * @param [OUT] result {long long*} 非空时存储自减结果
      * @return {bool} 表示自减操作是否成功, 如下:
      *    true: 操作成功
-     *   false: key的value类型错误(non-string)或者是不能表示成数字的字符串
+     *   false: 1) key的value类型错误(non-string)
+     *          2) key的value不能表示成数字的字符串
      */
     bool decr(const std::string& key, long long* result = NULL);
 
@@ -307,7 +317,8 @@ public:
      * @param [OUT] result {long long*} 非空时存储自减结果
      * @return {bool} 表示自减操作是否成功, 如下:
      *    true: 操作成功
-     *   false: key的value类型错误(non-string)或者是不能表示成数字的字符串
+     *   false: 1) key的value类型错误(non-string)
+     *          2) key的value不能表示成数字的字符串
      */
     bool decrby(const std::string& key, long long decrement,
                 long long* result = NULL);
