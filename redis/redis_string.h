@@ -227,7 +227,7 @@ public:
     /**
      * @description
      *   返回所有指定的key所关联的value, 如果key所关联的值不是string类型
-     *   或key值不存在返回空.
+     *   或key值不存在对应位置为空指针.
      * @param [IN] keys {const std::vector<std::string>&}
      *   一组字符串对象的key
      * @param [OUT] result {std::vector<std::string*>&}

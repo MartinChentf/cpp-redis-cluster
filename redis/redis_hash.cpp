@@ -30,7 +30,7 @@ int redis_hash::hget(const std::string& key, const std::string& field,
     return get_string_or_nil(result);
 }
 
-bool redis_hash::hgetall(const std::string key,
+bool redis_hash::hgetall(const std::string& key,
                          std::map<std::string, std::string>& result)
 {
     build_command("HGETALL %s", key.c_str());
@@ -57,8 +57,8 @@ bool redis_hash::hincrby(const std::string& key, const std::string& field,
     return get_integer64(result);
 }
 
-bool redis_hash::hincrbyfloat(const std::string key,
-                              const std::string field,
+bool redis_hash::hincrbyfloat(const std::string& key,
+                              const std::string& field,
                               double increment,
                               std::string* result /*= NULL*/)
 {
@@ -69,7 +69,7 @@ bool redis_hash::hincrbyfloat(const std::string key,
     return get_string(result);
 }
 
-bool redis_hash::hkeys(std::string key, std::vector<std::string>& result)
+bool redis_hash::hkeys(const std::string& key, std::vector<std::string>& result)
 {
     build_command("HKEYS %s", key.c_str());
     hash_slots(key);
@@ -77,7 +77,7 @@ bool redis_hash::hkeys(std::string key, std::vector<std::string>& result)
     return get_array(&result);
 }
 
-long long redis_hash::hlen(std::string key)
+long long redis_hash::hlen(const std::string& key)
 {
     build_command("HLEN %s", key.c_str());
     hash_slots(key);
@@ -85,7 +85,9 @@ long long redis_hash::hlen(std::string key)
     return get_integer64();
 }
 
-bool redis_hash::hmget(std::string key, std::vector<std::string>& fields, std::vector<std::string>& result)
+bool redis_hash::hmget(const std::string& key,
+                       const std::vector<std::string>& fields,
+                       std::vector<std::string*>& result)
 {
     std::string field_list = redis_helper::join(fields);
     build_command("HMGET %s %s", key.c_str(), field_list.c_str());
@@ -94,7 +96,8 @@ bool redis_hash::hmget(std::string key, std::vector<std::string>& fields, std::v
     return get_array(&result);
 }
 
-bool redis_hash::hmset(std::string key, std::map<std::string, std::string>& field_values)
+bool redis_hash::hmset(const std::string& key,
+                       const std::map<std::string, std::string>& field_values)
 {
     std::string key_val = redis_helper::join(field_values);
     build_command("HMSET %s %s", key.c_str(), key_val.c_str());
@@ -103,7 +106,8 @@ bool redis_hash::hmset(std::string key, std::map<std::string, std::string>& fiel
     return check_status();
 }
 
-bool redis_hash::hscan(std::string key, int& cursor, std::map<std::string,std::string>& result)
+bool redis_hash::hscan(const std::string& key, int& cursor,
+                       std::map<std::string,std::string>& result)
 {
     build_command("HSCAN %s %d", key.c_str(), cursor);
     hash_slots(key);
@@ -120,23 +124,25 @@ bool redis_hash::hscan(std::string key, int& cursor, std::map<std::string,std::s
     return bret;
 }
 
-bool redis_hash::hset(std::string key, std::string field, std::string value)
+int redis_hash::hset(const std::string& key, const std::string& field,
+                     const std::string& value)
 {
     build_command("HSET %s %s %s", key.c_str(), field.c_str(), value.c_str());
     hash_slots(key);
 
-    return get_integer64() ? true : false;
+    return get_integer32();
 }
 
-bool redis_hash::hsetnx(std::string key, std::string field, std::string value)
+int redis_hash::hsetnx(const std::string& key, const std::string& field,
+                       const std::string& value)
 {
     build_command("HSETNX %s %s %s", key.c_str(), field.c_str(), value.c_str());
     hash_slots(key);
 
-    return get_integer64() ? true : false;
+    return get_integer32();
 }
 
-long long redis_hash::hstrlen(std::string key, std::string field)
+long long redis_hash::hstrlen(const std::string& key, const std::string& field)
 {
     build_command("HSTRLEN %s %s", key.c_str(), field.c_str());
     hash_slots(key);
@@ -144,7 +150,7 @@ long long redis_hash::hstrlen(std::string key, std::string field)
     return get_integer64();
 }
 
-bool redis_hash::hvals(std::string key, std::vector<std::string>& result)
+bool redis_hash::hvals(const std::string& key, std::vector<std::string>& result)
 {
     build_command("HVALS %s", key.c_str());
     hash_slots(key);
