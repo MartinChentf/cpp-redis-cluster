@@ -37,7 +37,7 @@ protected:
 
     bool get_array(std::vector<std::string*>* result);
     bool get_array(std::vector<std::string>* result);
-    bool get_cursor_array(int& cursor, std::vector<std::string>* result);
+    int get_cursor_array(std::vector<std::string>* result);
 
 private:
     std::string parse_reply(redisReply* reply);

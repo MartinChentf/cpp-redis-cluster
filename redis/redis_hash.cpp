@@ -106,14 +106,19 @@ bool redis_hash::hmset(const std::string& key,
     return check_status();
 }
 
-bool redis_hash::hscan(const std::string& key, int& cursor,
-                       std::map<std::string,std::string>& result)
+int redis_hash::hscan(const std::string& key, int cursor,
+                      std::map<std::string,std::string>& result,
+                      const char* pattern /*= NULL*/, int count /*= 10*/)
 {
-    build_command("HSCAN %s %d", key.c_str(), cursor);
+    std::string match("MATCH ");
+    match += pattern?pattern:"";
+
+    build_command("HSCAN %s %d %s %d", key.c_str(), cursor,
+                  pattern?match.c_str():"", count);
     hash_slots(key);
 
     std::vector<std::string> key_val;
-    bool bret = get_cursor_array(cursor, &key_val);
+    cursor = get_cursor_array(&key_val);
 
     ASSERT(key_val.size() % 2 == 0);
     for (size_t i = 0; i < key_val.size(); i += 2)
@@ -121,7 +126,7 @@ bool redis_hash::hscan(const std::string& key, int& cursor,
         result[key_val[i]] = key_val[i + 1];
     }
 
-    return bret;
+    return cursor;
 }
 
 int redis_hash::hset(const std::string& key, const std::string& field,

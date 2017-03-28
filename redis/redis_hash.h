@@ -156,21 +156,22 @@ public:
 
     /**
      * @description
-     *   基于游标的迭代器, 每次返回key关联的哈希集中一定数量的域值对集合. 第一次
-     *   迭代使用0作为游标. 每次迭代返回下一次迭代的新游标, 当返回的游标为0时表
-     *   示迭代结束
+     *   用于迭代key关联的哈希集中的键值对
      * @param [IN] key {const std::string&} 哈希集对象的key
-     * @param [IN/OUT] cursor {int&}
-     *    IN: 本次迭代的游标值
-     *   OUT: 用于下一次迭代的新游标
-     * @param [OUT] result {std::map<std::string, std::string>&}
-     *   本次迭代返回的域值对集合
-     * @return {bool} 表示操作是否成功, 返回值如下:
-     *    true: 操作成功
-     *   false: key的value类型错误(non-hash)
+     * @param [IN] cursor {int} 游标值, 第一次迭代使用0作为游标.
+     * @param [OUT] result {std::map<std::string, std::string>&} 存储结果集, 内
+     *   部以追加方式将本次遍历结果添加进该对象中, 为防止因总结果集过大导致该数
+     *   组溢出, 用户可在调用本函数前后清理该对象.
+     * @param [IN] pattern {const char*} glob风格的模式参数, 非空时有效
+     * @param [IN] count {int} 限定结果集元素的数量, 默认值:10
+     * @return {int} 下一个游标位置, 返回值如下:
+     *   >0: 下一个游标位置
+     *    0: 遍历结束
+     *   -1: key的value类型错误(non-hash)
      */
-    bool hscan(const std::string& key, int& cursor,
-               std::map<std::string, std::string>& result);
+    int hscan(const std::string& key, int cursor,
+              std::map<std::string, std::string>& result,
+              const char* pattern = NULL, int count = 10);
 
     /**
      * @description
