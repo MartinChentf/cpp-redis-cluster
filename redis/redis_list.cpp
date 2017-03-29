@@ -72,7 +72,8 @@ bool redis_list::lrange(const std::string& key, int start, int stop,
     return get_array(&result);
 }
 
-long long redis_list::lrem(std::string key, int count, std::string value)
+long long redis_list::lrem(const std::string& key, int count,
+                           const std::string& value)
 {
     build_command("LREM %s %d %s", key.c_str(), count, value.c_str());
     hash_slots(key);
@@ -80,7 +81,8 @@ long long redis_list::lrem(std::string key, int count, std::string value)
     return get_integer64();
 }
 
-bool redis_list::lset(std::string key, int index, std::string value)
+bool redis_list::lset(const std::string& key, int index,
+                      const std::string& value)
 {
     build_command("LSET %s %d %s", key.c_str(), index, value.c_str());
     hash_slots(key);
@@ -88,7 +90,7 @@ bool redis_list::lset(std::string key, int index, std::string value)
     return check_status();
 }
 
-bool redis_list::ltrim(std::string key, int start, int stop)
+bool redis_list::ltrim(const std::string& key, int start, int stop)
 {
     build_command("LTRIM %s %d %d", key.c_str(), start, stop);
     hash_slots(key);
@@ -96,15 +98,25 @@ bool redis_list::ltrim(std::string key, int start, int stop)
     return check_status();
 }
 
-std::string redis_list::rpop(std::string key)
+int redis_list::rpop(const std::string& key, std::string& result)
 {
     build_command("RPOP %s", key.c_str());
     hash_slots(key);
 
-    return get_string_or_nil();
+    return get_string_or_nil(result);
 }
 
-long long redis_list::rpush(std::string key, std::vector<std::string>& values)
+int redis_list::rpoplpush(const std::string& src, const std::string& dest,
+                          std::string& result)
+{
+    build_command("RPOPLPUSH %s %s", src.c_str(), dest.c_str());
+    hash_slots(src);
+
+    return get_string_or_nil(result);
+}
+
+long long redis_list::rpush(const std::string& key,
+                            const std::vector<std::string>& values)
 {
     std::string value_list = redis_helper::join(values);
     build_command("RPUSH %s %s", key.c_str(), value_list.c_str());
@@ -113,19 +125,11 @@ long long redis_list::rpush(std::string key, std::vector<std::string>& values)
     return get_integer64();
 }
 
-long long redis_list::rpushx(std::string key,std::string value)
+long long redis_list::rpushx(const std::string& key, const std::string& value)
 {
     build_command("RPUSHX %s %s", key.c_str(), value.c_str());
     hash_slots(key);
 
     return get_integer64();
-}
-
-std::string redis_list::rpoplpush(std::string src, std::string dest)
-{
-    build_command("RPOPLPUSH %s %s", src.c_str(), dest.c_str());
-    hash_slots(src);
-
-    return get_string_or_nil();
 }
 
