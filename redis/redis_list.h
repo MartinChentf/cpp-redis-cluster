@@ -15,9 +15,65 @@ public:
     ~redis_list(){}
 
 public:    
-    //blpop
-    //brpop
-    std::string brpoplpush(std::string src, std::string dest, long long timeout);
+    /**
+     * @description
+     *   blpop函数是阻塞式列表的弹出原语. 它是lpop函数的阻塞版本.
+     *   1) 当给定的所有列表没有任何元素的时候, 连接将被blpop函数阻塞, 直到别的
+     *      客户端向这些列表中的任意一个列表push元素或者超时. 当timeout为0时, 表
+     *      示无限期阻塞
+     *   2) 如果给定的列表中至少有一个非空列表, 则弹出第一个非空列表的头部元素.
+     * @param [IN] keys {const std::vector<std::string>&} 给定弹出元素的列表组
+     * @param [IN] timeout {long long} 超时时间
+     * @param [OUT] result {std::map<std::string, std::string>&}
+     *   存储弹出元素的key以及对应的元素
+     * @return {int} 返回操作结果, 返回值如下:
+     *    1: 操作成功
+     *    0: 超时
+     *   -1: 1) src或dest的value类型错误(non-list)
+     *       2) 其他错误
+     * @author chen.tengfei
+     * @date 2017-03-29
+     */
+    int blpop(const std::vector<std::string>& keys, long long timeout,
+              std::map<std::string, std::string>& result);
+
+    /**
+     * @description
+     *   brpop函数是阻塞式列表的弹出原语. 它是rpop函数的阻塞版本. 具体行为与
+     *   blpop函数类似, 除了brpop函数是从列表尾部弹出元素.
+     * @param [IN] keys {const std::vector<std::string>&} 给定弹出元素的列表组
+     * @param [IN] timeout {long long} 超时时间
+     * @param [OUT] result {std::map<std::string, std::string>&}
+     *   存储弹出元素的key以及对应的元素
+     * @return {int} 返回操作结果, 返回值如下:
+     *    1: 操作成功
+     *    0: 超时
+     *   -1: 1) src或dest的value类型错误(non-list)
+     *       2) 其他错误
+     * @author chen.tengfei
+     * @date 2017-03-29
+     */
+    int brpop(const std::vector<std::string>& keys, long long timeout,
+              std::map<std::string, std::string>& result);
+    /**
+     * @description
+     *   brpoplpush函数是rpoplpush函数的阻塞版本. 当src包含元素时, 行为和
+     *   rpoplpush函数一样. 当src为空时, redis将会阻塞该连接, 直到别的客户端向
+     *   src中push元素或者超时. 
+     * @param [IN] src {const std::string&} 列表对象的src
+     * @param [IN] dest {const std::string&} 列表对象的dest
+     * @param [IN] timeout {long long} 超时时间
+     * @param [OUT] result {std::string&} 存储弹出的元素
+     * @return {int} 返回操作结果, 返回值如下:
+     *    1: 操作成功
+     *    0: 超时
+     *   -1: 1) src或dest的value类型错误(non-list)
+     *       2) 其他错误
+     * @author chen.tengfei
+     * @date 2017-03-29
+     */
+    int brpoplpush(const std::string& src, const std::string& dest,
+                   long long timeout, std::string& result);
     /**
      * @description
      *   返回key关联的列表中下标为index的元素. index为基于0的下标, 可为负数, 
@@ -179,6 +235,7 @@ public:
      *   回列表末尾元素并将该元素移到列表头部.
      * @param [IN] src {const std::string&} 列表对象的src
      * @param [IN] dest {const std::string&} 列表对象的dest
+     * @param [OUT] result {std::string&} 存储弹出的元素
      * @return {int} 返回操作结果, 返回值如下:
      *    1: 操作成功
      *    0: src不存在

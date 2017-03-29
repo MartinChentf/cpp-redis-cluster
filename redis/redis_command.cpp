@@ -363,6 +363,43 @@ bool redis_command::get_array(std::vector<std::string> * result)
     return bret;
 }
 
+int redis_command::get_array_or_nil(std::vector<std::string>* result)
+{
+    int iret = -1;
+
+    redisReply* reply = run_command();
+
+    if (reply == NULL || reply->type == REDIS_REPLY_ERROR) {
+        ERROR("Execute command fail! [%s], %s",
+            m_command.c_str(), parse_reply(reply).c_str());
+    }
+    else if (reply->type == REDIS_REPLY_ARRAY) {
+        NORMAL("Execute command success! [%s]", m_command.c_str());
+        if (result != NULL) {
+            for (size_t i = 0; i < reply->elements; i ++) {
+                redisReply* elem = reply->element[i];
+                if (elem->type == REDIS_REPLY_STRING) {
+                    result->push_back(elem->str);
+                }
+                else {
+                    result->push_back("");
+                }
+            }
+        }
+        iret = true;
+    }
+    else if (reply->type == REDIS_REPLY_NIL) {
+        NORMAL("Execute command success! [%s], Reply is nil!",
+            m_command.c_str());
+        iret = 0;
+    }
+    else {
+        WARN("Unexpected reply: %s", parse_reply(reply).c_str());
+    }
+
+    return iret;
+}
+
 int redis_command::get_cursor_array(std::vector<std::string>* result)
 {
     int cursor = -1;
