@@ -60,8 +60,8 @@ public:
      *   brpoplpush函数是rpoplpush函数的阻塞版本. 当src包含元素时, 行为和
      *   rpoplpush函数一样. 当src为空时, redis将会阻塞该连接, 直到别的客户端向
      *   src中push元素或者超时. 
-     * @param [IN] src {const std::string&} 列表对象的src
-     * @param [IN] dest {const std::string&} 列表对象的dest
+     * @param [IN] src {const std::string&} 源列表对象的键值
+     * @param [IN] dest {const std::string&} 目的列表对象的键值
      * @param [IN] timeout {long long} 超时时间
      * @param [OUT] result {std::string&} 存储弹出的元素
      * @return {int} 返回操作结果, 返回值如下:
