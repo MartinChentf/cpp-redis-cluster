@@ -37,7 +37,7 @@ bool redis_hash::hgetall(const std::string& key,
     hash_slots(key);
 
     std::vector<std::string> key_val;
-    bool bret = get_array(&key_val);
+    bool bret = get_array(key_val);
 
     ASSERT(key_val.size() % 2 == 0);
     for (size_t i = 0; i < key_val.size(); i += 2)
@@ -74,7 +74,7 @@ bool redis_hash::hkeys(const std::string& key, std::vector<std::string>& result)
     build_command("HKEYS %s", key.c_str());
     hash_slots(key);
 
-    return get_array(&result);
+    return get_array(result);
 }
 
 long long redis_hash::hlen(const std::string& key)
@@ -93,7 +93,7 @@ bool redis_hash::hmget(const std::string& key,
     build_command("HMGET %s %s", key.c_str(), field_list.c_str());
     hash_slots(key);
 
-    return get_array(&result);
+    return get_array(result);
 }
 
 bool redis_hash::hmset(const std::string& key,
@@ -160,6 +160,6 @@ bool redis_hash::hvals(const std::string& key, std::vector<std::string>& result)
     build_command("HVALS %s", key.c_str());
     hash_slots(key);
 
-    return get_array(&result);
+    return get_array(result);
 }
 

@@ -35,9 +35,9 @@ protected:
     bool get_integer64(long long* result);
     int get_integer32(bool* success = NULL);
 
-    bool get_array(std::vector<std::string*>* result);
-    bool get_array(std::vector<std::string>* result);
-    int get_array_or_nil(std::vector<std::string>* result);
+    bool get_array(std::vector<std::string*>& result);
+    bool get_array(std::vector<std::string>& result);
+    int get_array_or_nil(std::vector<std::string>& result);
     int get_cursor_array(std::vector<std::string>* result);
 
 private:

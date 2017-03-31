@@ -12,7 +12,7 @@ int redis_list::blpop(const std::vector<std::string>& keys, long long timeout,
     }
 
     std::vector<std::string> vec;
-    int iret = get_array_or_nil(&vec);
+    int iret = get_array_or_nil(vec);
 
     if (vec.size() != 2) {
         iret = -1;
@@ -35,7 +35,7 @@ int redis_list::brpop(const std::vector<std::string>& keys, long long timeout,
     }
 
     std::vector<std::string> vec;
-    int iret = get_array_or_nil(&vec);
+    int iret = get_array_or_nil(vec);
 
     if (vec.size() != 2) {
         iret = -1;
@@ -116,7 +116,7 @@ bool redis_list::lrange(const std::string& key, int start, int stop,
     build_command("LRANGE %s %d %d", key.c_str(), start, stop);
     hash_slots(key);
 
-    return get_array(&result);
+    return get_array(result);
 }
 
 long long redis_list::lrem(const std::string& key, int count,

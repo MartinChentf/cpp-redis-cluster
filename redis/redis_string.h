@@ -236,8 +236,6 @@ public:
      */
     bool mget(const std::vector<std::string>& keys,
               std::vector<std::string*>& result);
-    bool mget(const std::vector<std::string>& keys,
-              std::vector<std::string*>* result);
 
     /**
      * @description
@@ -245,7 +243,7 @@ public:
      * @param [IN] keyValues {const std::map<std::string, std::string>&} 键值对
      * @return {bool} 返回true表示执行成功, 该调用不会失败
      */
-    bool mset(const std::map<std::string, std::string>& keyValues);
+    bool mset(const std::map<std::string, std::string>& key_values);
 
     /**
      * @description
@@ -253,7 +251,7 @@ public:
      * @param [IN] keyValues {const std::map<std::string, std::string>&} 键值对
      * @return {bool} 返回true表示执行成功, 该调用不会失败
      */
-    bool msetnx(const std::map<std::string, std::string>& keyValues);
+    bool msetnx(const std::map<std::string, std::string>& key_values);
 
     /**
      * @description

@@ -299,7 +299,7 @@ int redis_command::get_integer32(bool * success /*= NULL*/)
     return get_integer64(success);
 }
 
-bool redis_command::get_array(std::vector<std::string*> * result)
+bool redis_command::get_array(std::vector<std::string*>& result)
 {
     bool bret = false;
 
@@ -311,15 +311,13 @@ bool redis_command::get_array(std::vector<std::string*> * result)
     }
     else if (reply->type == REDIS_REPLY_ARRAY) {
         NORMAL("Execute command success! [%s]", m_command.c_str());
-        if (result != NULL) {
-            for (size_t i = 0; i < reply->elements; i ++) {
-                redisReply* elem = reply->element[i];
-                if (elem->type == REDIS_REPLY_STRING) {
-                    result->push_back(new std::string(elem->str));
-                }
-                else {
-                    result->push_back(NULL);
-                }
+        for (size_t i = 0; i < reply->elements; i ++) {
+            redisReply* elem = reply->element[i];
+            if (elem->type == REDIS_REPLY_STRING) {
+                result.push_back(new std::string(elem->str));
+            }
+            else {
+                result.push_back(NULL);
             }
         }
         bret = true;
@@ -331,7 +329,7 @@ bool redis_command::get_array(std::vector<std::string*> * result)
     return bret;
 }
 
-bool redis_command::get_array(std::vector<std::string> * result)
+bool redis_command::get_array(std::vector<std::string>& result)
 {
     bool bret = false;
 
@@ -343,15 +341,13 @@ bool redis_command::get_array(std::vector<std::string> * result)
     }
     else if (reply->type == REDIS_REPLY_ARRAY) {
         NORMAL("Execute command success! [%s]", m_command.c_str());
-        if (result != NULL) {
-            for (size_t i = 0; i < reply->elements; i ++) {
-                redisReply* elem = reply->element[i];
-                if (elem->type == REDIS_REPLY_STRING) {
-                    result->push_back(elem->str);
-                }
-                else {
-                    result->push_back("");
-                }
+        for (size_t i = 0; i < reply->elements; i ++) {
+            redisReply* elem = reply->element[i];
+            if (elem->type == REDIS_REPLY_STRING) {
+                result.push_back(elem->str);
+            }
+            else {
+                result.push_back("");
             }
         }
         bret = true;
@@ -363,7 +359,7 @@ bool redis_command::get_array(std::vector<std::string> * result)
     return bret;
 }
 
-int redis_command::get_array_or_nil(std::vector<std::string>* result)
+int redis_command::get_array_or_nil(std::vector<std::string>& result)
 {
     int iret = -1;
 
@@ -375,18 +371,16 @@ int redis_command::get_array_or_nil(std::vector<std::string>* result)
     }
     else if (reply->type == REDIS_REPLY_ARRAY) {
         NORMAL("Execute command success! [%s]", m_command.c_str());
-        if (result != NULL) {
-            for (size_t i = 0; i < reply->elements; i ++) {
-                redisReply* elem = reply->element[i];
-                if (elem->type == REDIS_REPLY_STRING) {
-                    result->push_back(elem->str);
-                }
-                else {
-                    result->push_back("");
-                }
+        for (size_t i = 0; i < reply->elements; i ++) {
+            redisReply* elem = reply->element[i];
+            if (elem->type == REDIS_REPLY_STRING) {
+                result.push_back(elem->str);
+            }
+            else {
+                result.push_back("");
             }
         }
-        iret = true;
+        iret = reply->elements;
     }
     else if (reply->type == REDIS_REPLY_NIL) {
         NORMAL("Execute command success! [%s], Reply is nil!",

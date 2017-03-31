@@ -149,12 +149,6 @@ long long redis_string::bitpos(const std::string& key,bool value,
 bool redis_string::mget(const std::vector<std::string>& keys,
                         std::vector<std::string*>& result)
 {
-    return mget(keys, &result);
-}
-
-bool redis_string::mget(const std::vector<std::string>& keys,
-                        std::vector<std::string*>* result)
-{
     std::string key_list = redis_helper::join(keys);
     build_command("MGET %s", key_list.c_str());
     if (!keys.empty()) {
@@ -164,23 +158,23 @@ bool redis_string::mget(const std::vector<std::string>& keys,
     return get_array(result);
 }
 
-bool redis_string::mset(const std::map<std::string, std::string>& keyValues)
+bool redis_string::mset(const std::map<std::string, std::string>& key_values)
 {
-    std::string key_value_list = redis_helper::join(keyValues);
+    std::string key_value_list = redis_helper::join(key_values);
     build_command("MSET %s", key_value_list.c_str());
     if (!key_value_list.empty()) {
-        hash_slots(keyValues.begin()->first);
+        hash_slots(key_values.begin()->first);
     }
 
     return check_status();
 }
 
-bool redis_string::msetnx(const std::map<std::string, std::string>& keyValues)
+bool redis_string::msetnx(const std::map<std::string, std::string>& key_values)
 {
-    std::string key_value_list = redis_helper::join(keyValues);
+    std::string key_value_list = redis_helper::join(key_values);
     build_command("MSETNX %s", key_value_list.c_str());
     if (!key_value_list.empty()) {
-        hash_slots(keyValues.begin()->first);
+        hash_slots(key_values.begin()->first);
     }
 
     return (get_integer64() >= 1 ? true : false);
