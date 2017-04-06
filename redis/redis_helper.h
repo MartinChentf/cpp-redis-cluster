@@ -20,24 +20,50 @@ public:
         return ss.str();
     }
 
+    static std::string to_string(std::string str) { return str; }
+
     /**
-     * 把给定的字符串列表拼装成单个字符串
-     * @param  [IN] list {const std::vector<std::string>&} 字符串列表
+     * 把给定的列表拼装成单个字符串
+     * @param  [IN] list {const std::vector<T>&} 给定的列表
      * @param  [IN] separator {const std::string} 分隔符, 默认值为空格
      * @return {std::string} 拼装后的字符串
      */
-    static std::string join(const std::vector<std::string>& list, const std::string& separator = " ");
+     template<typename T>
+    static std::string join(const std::vector<T>& list,
+                            const std::string& separator = " ") {
+        std::string str("");
+        for (size_t i = 0; i < list.size(); i++) {
+            str += to_string(list[i])
+                   + ((i<list.size()-1) ? separator : "");
+        }
+    
+        return str;
+    }
 
     /**
      * 把给定的map的键值对拼装成单个字符串
-     * @param  [IN] map {const std::map<std::string, std::string>&} 给定的map
-     * @param  [IN] separator_key_value {const std::string&} 键和值之间的分隔符, 默认为空格
-     * @param  [IN] separator {const std::string&} 键值对之间的分隔符, 默认值为空格
+     * @param  [IN] map {const std::map<K V>&} 给定的map
+     * @param  [IN] separator_key_value {const std::string&}
+     *   键和值之间的分隔符, 默认为空格
+     * @param  [IN] separator {const std::string&}
+     *   键值对之间的分隔符, 默认值为空格
      * @return {std::string} 拼装后的字符串
      */
-    static std::string join(const std::map<std::string, std::string>& map,
+    template<typename K, typename V>
+    static std::string join(const std::map<K, V>& map,
                             const std::string& separator_key_value = " ",
-                            const std::string& separator = " ");
+                            const std::string& separator = " ") {
+        std::string str("");
+        typename std::map<K,V>::const_iterator it = map.begin();
+        typename std::map<K,V>::const_iterator last = map.end();
+        last--;
+        for (; it != map.end(); ++it) {
+            str += to_string(it->first) + separator_key_value
+                   + to_string(it->second) + ((it != last) ? separator : "");
+        }
+
+        return str;
+    }
 };
 
 static const char * const REPLY_TYPE[] =
