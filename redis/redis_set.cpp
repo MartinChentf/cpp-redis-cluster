@@ -155,11 +155,14 @@ int redis_set::sscan(const std::string& key, int cursor,
                      const char* pattern /*= NULL*/,
                      int count /*= 10*/)
 {
-    std::string match("MATCH ");
-    match += pattern?pattern:"";
+    std::string match("");
+    if (pattern) {
+        match += "MATCH ";
+        match += pattern;
+    }
 
-    build_command("SSCAN %s %d %s %d", key.c_str(), cursor,
-                  pattern?match.c_str():"", count);
+    build_command("SSCAN %s %d %s %d", key.c_str(),
+                  cursor, match.c_str(), count);
     hash_slots(key);
 
     return get_cursor_array(&result);

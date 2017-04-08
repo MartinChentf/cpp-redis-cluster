@@ -34,6 +34,8 @@ protected:
     bool get_integer64(long long& result);
     bool get_integer64(long long* result);
     int get_integer32(bool* success = NULL);
+    long long get_integer64_or_nil(bool * success = NULL);
+    int get_integer32_or_nil(bool * success = NULL);
 
     bool get_array(std::vector<std::string*>& result);
     bool get_array(std::vector<std::string>& result);

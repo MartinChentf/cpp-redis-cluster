@@ -201,8 +201,8 @@ public:
     /**
      * @description
      *   修剪key关联的列表使其只包含[start, stop]指定范围内的元素. 如果start大于
-     *   列表末尾下标或者start > stop, 结果将空列表. 这将造成key被删除. 如果stop
-     *   大于列表下标, 则会被当做列表末尾下标
+     *   列表末尾下标或者start > stop, 结果将为空列表. 这将造成key被删除. 如果
+     *   stop大于列表下标, 则会被当做列表末尾下标
      * @param [IN] key {const std::string&} 列表对象的key
      * @param [IN] start {int} 起始下标
      * @param [IN] stop {int} 结束下标

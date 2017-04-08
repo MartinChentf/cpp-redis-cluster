@@ -42,7 +42,7 @@ public:
 
     /**
      * 把给定的map的键值对拼装成单个字符串
-     * @param  [IN] map {const std::map<K V>&} 给定的map
+     * @param  [IN] map {const std::map<K, V>&} 给定的map
      * @param  [IN] separator_key_value {const std::string&}
      *   键和值之间的分隔符, 默认为空格
      * @param  [IN] separator {const std::string&}
@@ -80,5 +80,7 @@ static const char * const REPLY_TYPE[] =
 #define SAFE_ASSIGN(p, val) if (p) (*p) = (val)
 
 #define SAFE_ASSIGN_FUNC(p, func) if (p) (*p) = (func); else (void)(func)
+
+#define TO_STRING(a) redis_helper::to_string(a)
 
 #endif /* __REDIS_HELPER_H__ */

@@ -250,7 +250,8 @@ public:
      * @author chen.tengfei
      * @date 2017-03-31
      */
-    long long srem(const std::string& key, const std::vector<std::string>& member);
+    long long srem(const std::string& key,
+                   const std::vector<std::string>& member);
 
     /**
      * @description

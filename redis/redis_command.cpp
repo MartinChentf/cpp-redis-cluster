@@ -299,6 +299,42 @@ int redis_command::get_integer32(bool * success /*= NULL*/)
     return get_integer64(success);
 }
 
+long long redis_command::get_integer64_or_nil(bool * success /*= NULL*/)
+{
+    long long llret = -1;
+
+    redisReply* reply = run_command();
+
+    if (reply == NULL || reply->type == REDIS_REPLY_ERROR) {
+        ERROR("Execute command fail! [%s], %s",
+            m_command.c_str(), parse_reply(reply).c_str());
+        SAFE_ASSIGN(success, false);
+    }
+    else if (reply->type == REDIS_REPLY_INTEGER) {
+        NORMAL("Execute command success! [%s]", m_command.c_str());
+        llret = reply->integer;
+        SAFE_ASSIGN(success, true);
+    }
+    else if (reply->type == REDIS_REPLY_NIL) {
+        NORMAL("Execute command success! [%s], Reply is nil!",
+            m_command.c_str());
+        llret = 0;
+        SAFE_ASSIGN(success, true);
+    }
+    else {
+        WARN("Unexpected reply: %s", parse_reply(reply).c_str());
+        SAFE_ASSIGN(success, false);
+    }
+
+    freeReplyObject(reply);
+    return llret;
+}
+
+int redis_command::get_integer32_or_nil(bool * success /*= NULL*/)
+{
+    return get_integer64_or_nil(success);
+}
+
 bool redis_command::get_array(std::vector<std::string*>& result)
 {
     bool bret = false;
