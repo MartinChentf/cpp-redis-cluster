@@ -96,10 +96,10 @@ std::string redis_command::parse_reply(redisReply * reply)
             return result + ", Errstr: " + reply->str;
         case REDIS_REPLY_INTEGER:
             return result + ", Integer: "
-                    + redis_helper::to_string(reply->integer);
+                    + TO_STRING(reply->integer);
         case REDIS_REPLY_ARRAY:
             return result + ", Array Elements:"
-                    + redis_helper::to_string(reply->elements);
+                    + TO_STRING(reply->elements);
         default:
             return "Unkonw Type";
     }
