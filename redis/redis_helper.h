@@ -40,6 +40,19 @@ public:
         return str;
     }
 
+     template<typename T>
+    static std::string join(const std::vector<T*>& list,
+                            const std::string& separator = " ") {
+        std::string str("");
+        for (size_t i = 0; i < list.size(); i++) {
+            str += list[i] ? to_string(*list[i]) : ""
+                   + ((i<list.size()-1) ? separator : "");
+        }
+    
+        return str;
+    }
+
+
     /**
      * 把给定的map的键值对拼装成单个字符串
      * @param  [IN] map {const std::map<K, V>&} 给定的map

@@ -218,7 +218,7 @@ bool redis_string::incoper(const char * cmd,const std::string & key,
                            long long * inc,long long * result)
 {
     if (inc != NULL)
-        build_command("%s %s %d", cmd, key.c_str(), inc);
+        build_command("%s %s %d", cmd, key.c_str(), *inc);
     else
         build_command("%s %s", cmd, key.c_str());
 

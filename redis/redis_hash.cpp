@@ -116,7 +116,7 @@ int redis_hash::hscan(const std::string& key, int cursor,
         match += pattern;
     }
 
-    build_command("HSCAN %s %d %s %d", key.c_str(),
+    build_command("HSCAN %s %d %s COUNT %d", key.c_str(),
                   cursor, match.c_str(), count);
     hash_slots(key);
 

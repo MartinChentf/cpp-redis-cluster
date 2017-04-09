@@ -249,7 +249,9 @@ public:
      * @description
      *   把key关联到对应的value上, 只要有一个key存在, 整个msetnx都不会执行.
      * @param [IN] keyValues {const std::map<std::string, std::string>&} 键值对
-     * @return {bool} 返回true表示执行成功, 该调用不会失败
+     * @return {bool} 返回操作是否成功, 该调用不会失败
+     *    true: 表示所有的key被设置成功
+     *   false: 没有key被设置(已经有存在的key)
      */
     bool msetnx(const std::map<std::string, std::string>& key_values);
 
@@ -258,7 +260,7 @@ public:
      *   对存储在指定key的数值执行加1操作. 如果key不存在, 自增前将key的值设为0
      * @param [IN] key {const std::string&} 指定自增的key
      * @param [OUT] result {long long*} 非空时存储自增结果
-     * @return {bool} 表示自增操作是否成功, 如下:
+     * @return {bool} 表示自增操作是否成功, 返回值如下:
      *    true: 操作成功
      *   false: 1) key的value类型错误(non-string)
      *          2) key的value不能表示成数字的字符串
@@ -272,7 +274,7 @@ public:
      * @param [IN] key {const std::string&} 指定自增的key
      * @param [IN] increment {long long} 增量值, <0表示负增长
      * @param [OUT] result {long long*} 非空时存储自增结果
-     * @return {bool} 表示自增操作是否成功, 如下:
+     * @return {bool} 表示自增操作是否成功, 返回值如下:
      *    true: 操作成功
      *   false: 1) key的value类型错误(non-string)
      *          2) key的value不能表示成数字的字符串
@@ -287,7 +289,7 @@ public:
      * @param [IN] key {const std::string&} 指定自增的key
      * @param [IN] increment {double} 增量值, <0表示负增长
      * @param [OUT] result {long long*} 非空时存储自增结果
-     * @return {bool} 表示自增操作是否成功, 如下:
+     * @return {bool} 表示自增操作是否成功, 返回值如下:
      *    true: 操作成功
      *   false: 1) key的value类型错误(non-string)
      *          2) key的value不能解析成双精度浮点值的字符串
@@ -300,7 +302,7 @@ public:
      *   对存储在指定key的数值执行减1操作. 如果key不存在, 自减前将key的值设为0
      * @param [IN] key {const std::string&} 指定自减的key
      * @param [OUT] result {long long*} 非空时存储自减结果
-     * @return {bool} 表示自减操作是否成功, 如下:
+     * @return {bool} 表示自减操作是否成功, 返回值如下:
      *    true: 操作成功
      *   false: 1) key的value类型错误(non-string)
      *          2) key的value不能表示成数字的字符串
@@ -313,7 +315,7 @@ public:
      * @param [IN] key {const std::string&} 指定自减的key
      * @param [IN] increment {long long} 增量值, <0表示增加
      * @param [OUT] result {long long*} 非空时存储自减结果
-     * @return {bool} 表示自减操作是否成功, 如下:
+     * @return {bool} 表示自减操作是否成功, 返回值如下:
      *    true: 操作成功
      *   false: 1) key的value类型错误(non-string)
      *          2) key的value不能表示成数字的字符串
@@ -328,7 +330,7 @@ public:
      * @param [IN] key {const std::string&} 指定追加字符串的key
      * @param [IN] value {const std::string&} 追加的字符串值
      * @param [OUT] length {long long*} 非空时存储追加后字符串的长度
-     * @return {bool} 表示自减操作是否成功, 如下:
+     * @return {bool} 表示操作是否成功, 返回值如下:
      *    true: 操作成功
      *   false: key的value类型错误(non-string)
      */
@@ -340,7 +342,7 @@ public:
      *   返回key关联的string的长度, 如果key不存在, 返回0
      * @param [IN] key {const std::string&} 指定字符串的key
      * @param [OUT] length {long long&} 返回字符串的长度
-     * @return {bool} 操作是否成功, 如下:
+     * @return {bool} 操作是否成功, 返回值如下:
      *    true: 操作成功
      *   false: key的value类型错误(non-string)
      */
