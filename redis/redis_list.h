@@ -29,7 +29,7 @@ public:
      * @return {int} 返回操作结果, 返回值如下:
      *    1: 操作成功
      *    0: 超时
-     *   -1: 1) src或dest的value类型错误(non-list)
+     *   -1: 1) keys的value类型错误(non-list)
      *       2) 其他错误
      * @author chen.tengfei
      * @date 2017-03-29
@@ -48,7 +48,7 @@ public:
      * @return {int} 返回操作结果, 返回值如下:
      *    1: 操作成功
      *    0: 超时
-     *   -1: 1) src或dest的value类型错误(non-list)
+     *   -1: 1) keys的value类型错误(non-list)
      *       2) 其他错误
      * @author chen.tengfei
      * @date 2017-03-29
@@ -148,6 +148,7 @@ public:
      * @param [IN] value {const std::string&} 新元素
      * @return {long long} 返回操作结果, 返回值如下:
      *   >0: 插入新元素后, 当前列表元素个数
+     *    0: key不存在
      *   -1: 出错或key的value类型错误(non-list)
      */
     long long lpushx(const std::string& key, const std::string& value);
@@ -155,7 +156,9 @@ public:
     /**
      * @description
      *   返回key关联的列表中[start, end](闭区间)范围内的元素. start和end为基于0
-     *   的下标, 可为负数, -1表示最后一个元素, -2表示倒数第二个元素
+     *   的下标, 可为负数, -1表示最后一个元素, -2表示倒数第二个元素. 如果start大
+     *   于列表末尾下标或者start > stop, 结果将为空列表. 如果stop大于列表下标,则
+     *   会被当做列表末尾下标.
      * @param [IN] key {const std::string&} 列表对象的key
      * @param [IN] start {int} 起始下标
      * @param [IN] end {int} 结束下标
@@ -188,11 +191,12 @@ public:
      *   设置key关联的列表中下标index处的值为value. index取值请参考lindex函数.
      * @param [IN] key {const std::string&} 列表对象的key
      * @param [IN] index {int} 元素下标
-     * @param [IN] value {const std::string&} 新的元素
+     * @param [IN] value {const std::string&} 新的元素值
      * @return {bool} 返回操作结果, 返回值如下:
      *    true: 设置新值成功
      *   false: 1) key的value类型错误(non-list)
      *          2) index越界
+     *          3) key不存在
      * @author chen.tengfei
      * @date 2017-03-29
      */

@@ -6,7 +6,7 @@ int redis_list::blpop(const std::vector<std::string>& keys, long long timeout,
                       std::map<std::string,std::string>& result)
 {
     std::string key_list = redis_helper::join(keys);
-    build_command("BLPOP %s %s %d", key_list.c_str(), timeout);
+    build_command("BLPOP %s %d", key_list.c_str(), timeout);
     if (keys.size()) {
         hash_slots(keys[0]);
     }
@@ -14,12 +14,12 @@ int redis_list::blpop(const std::vector<std::string>& keys, long long timeout,
     std::vector<std::string> vec;
     int iret = get_array_or_nil(vec);
 
-    if (vec.size() != 2) {
-        iret = -1;
-    }
-
-    if (iret > 0) {
+    if (iret == 2) { // 如果等于2, 返回值为1
         result[vec[0]] = vec[1];
+        iret = 1;
+    }
+    else if (iret > 0) { // 如果是大于0的其他值, 返回值为-1
+        iret = -1;
     }
 
     return iret;
@@ -29,7 +29,7 @@ int redis_list::brpop(const std::vector<std::string>& keys, long long timeout,
                       std::map<std::string,std::string>& result)
 {
     std::string key_list = redis_helper::join(keys);
-    build_command("BRPOP %s %s %d", key_list.c_str(), timeout);
+    build_command("BRPOP %s %d", key_list.c_str(), timeout);
     if (keys.size()) {
         hash_slots(keys[0]);
     }
@@ -37,12 +37,12 @@ int redis_list::brpop(const std::vector<std::string>& keys, long long timeout,
     std::vector<std::string> vec;
     int iret = get_array_or_nil(vec);
 
-    if (vec.size() != 2) {
-        iret = -1;
-    }
-
-    if (iret > 0) {
+    if (iret == 2) { // 如果等于2, 返回值为1
         result[vec[0]] = vec[1];
+        iret = 1;
+    }
+    else if (iret > 0) { // 如果是大于0的其他值, 返回值为-1
+        iret = -1;
     }
 
     return iret;
@@ -59,7 +59,7 @@ int redis_list::brpoplpush(const std::string& src, const std::string& dest,
 
 int redis_list::lindex(const std::string& key, int index, std::string& result)
 {
-    build_command("LINDEX %s %s", key.c_str(), index);
+    build_command("LINDEX %s %d", key.c_str(), index);
     hash_slots(key);
 
     return get_string_or_nil(result);
