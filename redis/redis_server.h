@@ -13,6 +13,7 @@ public:
     ~redis_server(){}
 
 public:
+    bool bgrewriteaof();
     bool flushall();
 };
 

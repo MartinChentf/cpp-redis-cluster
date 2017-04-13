@@ -52,7 +52,6 @@ public:
         return str;
     }
 
-
     /**
      * 把给定的map的键值对拼装成单个字符串
      * @param  [IN] map {const std::map<K, V>&} 给定的map

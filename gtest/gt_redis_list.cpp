@@ -2,6 +2,7 @@
 
 #include "gtest/gtest.h"
 #include "gt_redis_list.h"
+#include "gt_common.h"
 
 #include "redis_client.h"
 #include "redis_list.h"
@@ -15,7 +16,8 @@ redis_list* redis_list_test::m_pList = NULL;
 redis_key* redis_list_test::m_pKey = NULL;
 
 void redis_list_test::SetUpTestCase() {
-    m_pClient = new redis_client("192.168.199.131", 10000);
+    m_pClient = new redis_client(gt_component::Instance().get_host(),
+                                 gt_component::Instance().get_port());
     m_pList = new redis_list(m_pClient);
     m_pKey = new redis_key(m_pClient);
     m_pStr = new redis_string(m_pClient);
@@ -516,7 +518,9 @@ void* other_client(void*)
 {
     sleep(5);
     
-    redis_client* pClient = new redis_client("192.168.199.131", 10000);
+    redis_client* pClient =
+        new redis_client(gt_component::Instance().get_host(),
+                         gt_component::Instance().get_port());
     redis_list* pList = new redis_list(pClient);
 
     std::vector<std::string> values;

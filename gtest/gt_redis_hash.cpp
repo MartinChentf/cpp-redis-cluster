@@ -1,5 +1,6 @@
 #include "gtest/gtest.h"
 #include "gt_redis_hash.h"
+#include "gt_common.h"
 
 #include "redis_client.h"
 #include "redis_hash.h"
@@ -13,7 +14,8 @@ redis_hash* redis_hash_test::m_pHash= NULL;
 redis_key* redis_hash_test::m_pKey = NULL;
 
 void redis_hash_test::SetUpTestCase() {
-    m_pClient = new redis_client("192.168.199.131", 10000);
+    m_pClient = new redis_client(gt_component::Instance().get_host(),
+                                 gt_component::Instance().get_port());
     m_pHash = new redis_hash(m_pClient);
     m_pKey = new redis_key(m_pClient);
     m_pStr = new redis_string(m_pClient);

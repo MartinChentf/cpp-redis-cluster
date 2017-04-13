@@ -1,6 +1,7 @@
 #ifndef __REDIS_H__
 #define __REDIS_H__
 
+#include <stdint.h>
 #include <string>
 #include <map>
 #include <list>

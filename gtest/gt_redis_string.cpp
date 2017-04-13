@@ -2,6 +2,7 @@
 
 #include "gtest/gtest.h"
 #include "gt_redis_string.h"
+#include "gt_common.h"
 
 #include "redis_client.h"
 #include "redis_string.h"
@@ -12,7 +13,8 @@ redis_string* redis_string_test::m_pStr = NULL;
 redis_key* redis_string_test::m_pKey = NULL;
 
 void redis_string_test::SetUpTestCase() {
-    m_pClient = new redis_client("192.168.199.131", 10000);
+    m_pClient = new redis_client(gt_component::Instance().get_host(),
+                                 gt_component::Instance().get_port());
     m_pStr = new redis_string(m_pClient);
     m_pKey = new redis_key(m_pClient);
 }
