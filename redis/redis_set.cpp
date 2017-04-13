@@ -89,9 +89,9 @@ int redis_set::sismember(const std::string& key, const std::string& member)
     return get_integer32();
 }
 
-int redis_set::smember(const std::string& key, std::vector<std::string>& result)
+int redis_set::smembers(const std::string& key, std::vector<std::string>& result)
 {
-    build_command("SMEMBER %s", key.c_str());
+    build_command("SMEMBERS %s", key.c_str());
     hash_slots(key);
 
     return get_array_or_nil(result);

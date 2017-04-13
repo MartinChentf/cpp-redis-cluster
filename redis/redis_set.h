@@ -140,7 +140,7 @@ public:
 
     /**
      * @description
-     *   返回key关联的集合的所有成员. 效果和只有一个key值的sinter函数一样.
+     *   获取key关联的集合的所有成员. 效果和只有一个key值的sinter函数一样.
      * @param [IN] key {const std::string&} 集合对象的key
      * @param [OUT] result {std::vector<std::string>&} 存放返回结果
      * @return {int} 返回操作结果, 返回值如下:
@@ -150,7 +150,7 @@ public:
      * @author chen.tengfei
      * @date 2017-03-31
      */
-    int smember(const std::string& key, std::vector<std::string>& result);
+    int smembers(const std::string& key, std::vector<std::string>& result);
 
     /**
      * @description
