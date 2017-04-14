@@ -36,7 +36,7 @@ GTEST_SRC = $(wildcard $(GTEST_DIR)/*.cpp)
 GTEST_OBJ = $(patsubst %.cpp, %.o, $(GTEST_SRC))
 
 
-all: check_dir $(EXAMPLE_DIR) $(EXAMPLE)
+all: check_dir $(EXAMPLE_DIR) $(EXAMPLE) ACCOMPLISH
 
 $(REDIS_DIR): COMPLIE
 	@make -C $@ 
@@ -49,7 +49,7 @@ $(EXAMPLE): GENERATE
 
 
 # gtest
-gtest: check_dir $(GTEST_DIR) $(GTEST_BIN)
+gtest: check_dir $(GTEST_DIR) $(GTEST_BIN) ACCOMPLISH
 
 $(GTEST_DIR): COMPLIE $(REDIS_DIR)
 	@make -C $@
@@ -66,6 +66,10 @@ COMPLIE:
 
 GENERATE:
 	@echo ===== generate binary =====
+
+ACCOMPLISH:
+	@echo ===== accomplish =====
+	@echo please see ./bin
 
 .PHONY : all gtest clean
 

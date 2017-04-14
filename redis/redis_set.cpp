@@ -89,7 +89,8 @@ int redis_set::sismember(const std::string& key, const std::string& member)
     return get_integer32();
 }
 
-int redis_set::smembers(const std::string& key, std::vector<std::string>& result)
+int redis_set::smembers(const std::string& key,
+                        std::vector<std::string>& result)
 {
     build_command("SMEMBERS %s", key.c_str());
     hash_slots(key);
@@ -161,7 +162,7 @@ int redis_set::sscan(const std::string& key, int cursor,
         match += pattern;
     }
 
-    build_command("SSCAN %s %d %s %d", key.c_str(),
+    build_command("SSCAN %s %d %s COUNT %d", key.c_str(),
                   cursor, match.c_str(), count);
     hash_slots(key);
 
