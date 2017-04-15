@@ -2,6 +2,7 @@
 #define __REDIS_ZSET_H__
 
 #include <string>
+#include <vector>
 #include <map>
 
 #include "redis_command.h"
@@ -24,7 +25,8 @@ public:
      *   4) 分数支持双精度64位浮点数
      *   5) 有序集合按照分数递增排序, 如果两个元素分数, 则按照元素的字典顺序排序
      * @param [IN] key {const std::string&} 有序集合对象的key
-     * @param [IN] score_mems {const std::map<std::string, double>&} 元素/分数对
+     * @param [IN] member_score
+     *   {const std::vector<std::pair<std::string, double>>&} 元素/分数对
      * @param [IN] nx_or_xx {int} 是否使用NX或XX标志, 默认值为0, 取值范围如下:
      *    1: 使用XX标志, 只更新已经存在于有序集合中的元素的分数, 不增加新元素
      *    0: 禁用NX/XX标志
@@ -39,27 +41,27 @@ public:
      * @date 2017-03-31
      */
     long long zadd(const std::string& key,
-                   const std::map<std::string, double>& score_mems,
-                   int nx_or_xx = 0, bool is_change = false);
+            const std::vector< std::pair<std::string, double> >& member_score,
+            int nx_or_xx = 0, bool is_change = false);
 
     long long zadd_nx(const std::string& key,
-                      const std::map<std::string, double>& score_mems,
-                      bool is_change = false);
+            const std::vector< std::pair<std::string, double> >& member_score,
+            bool is_change = false);
 
     long long zadd_xx(const std::string& key,
-                      const std::map<std::string, double>& score_mems,
-                      bool is_change = false);
+            const std::vector< std::pair<std::string, double> >& member_score,
+            bool is_change = false);
 
     long long zadd_ch(const std::string& key,
-                      const std::map<std::string, double>& score_mems,
-                      int nx_or_xx = 0);
+            const std::vector< std::pair<std::string, double> >& member_score,
+            int nx_or_xx = 0);
 
     /**
      * @description
      *   对key关联的有序集合中指定的元素member的分数值进行累加. 行为和zincrby函
      *   数一样.
      * @param [IN] key {const std::string&} 有序集合对象的key
-     * @param [IN] score {double} 输入: 累加的分数, 输出: 累加后的分数
+     * @param [IN] score {double} 累加的分数
      * @param [IN] member {const std::string&} 需要累加的成员
      * @param [OUT] result {std::string&} 存储累加结果
      * @return {bool} 返回操作结果, 返回值如下:
@@ -90,11 +92,34 @@ public:
      * @param [IN] key {const std::string&} 有序集合对象的key.
      * @param [IN] min {double} 分数区间下限.
      * @pzrzm [IN] max {double} 分数区间上限.
-     * @return {long long} 返回指定分数范围的元素个数.
+     * @return {long long} 返回指定分数范围的元素个数, 返回值如下:
+     *   >=0: 指定分数范围的元素个数
+     *    -1: 出错或key的value类型错误(non-sortedset)
      * @author chen.tengfei
      * @date 2017-04-05
      */
     long long zcount(const std::string& key, double min, double max);
+
+    /**
+     * @description
+     *   返回key关联的有序集合中, 分数值在[min, max](闭区间)范围内的元素个数.
+     *   1) min和max可以使用-inf和+inf. 这样可以在不知道有序集合最低和最高分数值
+     *      的情况下使用本函数.
+     *   2) 默认情况下, 分数区间的取值使用闭区间, 可以在分数值前面加上'('符号来
+     *      使用开区间.
+     * @param [IN] key {const std::string&} 有序集合对象的key.
+     * @param [IN] min {const std::string&} 分数区间下限.
+     * @pzrzm [IN] max {const std::string&} 分数区间上限.
+     * @return {long long} 返回指定分数范围的元素个数, 返回值如下:
+     *   >=0: 指定分数范围的元素个数
+     *    -1: 出错或key的value类型错误(non-sortedset)
+     * @param [IN/OUT] name {type} 
+     * @return {type} 
+     * @author chen.tengfei
+     * @date 2017-04-15
+     */
+    long long zcount(const std::string& key, const std::string& min,
+                     const std::string& max);
 
     /**
      * @description
@@ -193,7 +218,8 @@ public:
      * @param [IN] key {const std::string&} 有序集合对象的key.
      * @param [IN] start {int} 起始下标
      * @param [IN] stop {int} 结束下标
-     * @param [OUT] result {std::map<std::string, double>&} 存储返回的结果集
+     * @param [OUT] result {std::vector<std::pair<std::string, double>>&}
+     *   存储返回的结果集
      * @return {int} 返回结果集大小, 返回值如下:
      *   >=0: 结果集大小
      *    -1: 出错或key的value类型错误(non-sortedset)
@@ -201,7 +227,7 @@ public:
      * @date 2017-04-08
      */
     int zrange_with_scores(const std::string& key, int start, int stop,
-                           std::map<std::string, double>& result);
+        std::vector< std::pair<std::string, double> >& result);
 
     /**
      * @description
@@ -270,7 +296,7 @@ public:
      * @param [IN] min {const std::string&} 分数区间下限.
      * @pzrzm [IN] max {const std::string&} 分数区间上限.
      * @param [OUT] result {std::vector<std::string>&} 存储结果集
-     * @param [IN] offset {int} 从结果集中选取的下标起始值, 取值范围:
+     * @param [IN] offset {int} 从结果集中选取的下标起始值(基于0), 取值范围:
      *   >=0: 结果集中的下标值
      *    -1: 结果集不分片, 默认值
      * @paran [IN] count {int} 从结果集offset指定的位置开始选取的元素数量
@@ -293,7 +319,8 @@ public:
      * @param [IN] key {const std::string&} 有序集合对象的key.
      * @param [IN] min {double} 分数区间下限.
      * @pzrzm [IN] max {double} 分数区间上限.
-     * @param [OUT] result {std::map<std::string, double>&} 存储结果集
+     * @param [OUT] result {std::vector<std::pair<std::string, double>>&}
+     *   存储结果集
      * @param [IN] offset {int} 从结果集中选取的下标起始值, 取值范围:
      *   >=0: 结果集中的下标值
      *    -1: 结果集不分片, 默认值
@@ -307,7 +334,8 @@ public:
      * @date 2017-04-08
      */
     int zrangebyscore_with_scores(const std::string& key,
-        double min, double max, std::map<std::string, double>& result,
+        double min, double max,
+        std::vector< std::pair<std::string, double> >& result,
         int offset = -1, int count = 0);
 
     /**
@@ -321,7 +349,8 @@ public:
      * @param [IN] key {const std::string&} 有序集合对象的key.
      * @param [IN] min {const std::string&} 分数区间下限.
      * @pzrzm [IN] max {const std::string&} 分数区间上限.
-     * @param [OUT] result {std::map<std::string, double>&} 存储结果集
+     * @param [OUT] result {std::vector<std::pair<std::string, double>>&}
+     *   存储结果集
      * @param [IN] offset {int} 从结果集中选取的下标起始值, 取值范围:
      *   >=0: 结果集中的下标值
      *    -1: 结果集不分片, 默认值
@@ -336,7 +365,8 @@ public:
      */
     int zrangebyscore_with_scores(const std::string& key,
         const std::string& min, const std::string& max,
-        std::map<std::string, double>& result, int offset = -1, int count = 0);
+        std::vector< std::pair<std::string, double> >& result,
+        int offset = -1, int count = 0);
 
     /**
      * @description
@@ -453,7 +483,8 @@ public:
      * @date 2017-04-08
      */
     int zrevrange_with_scores(const std::string& key,
-        int start, int stop, std::map<std::string, double>& result);
+        int start, int stop,
+        std::vector< std::pair<std::string, double> >& result);
 
     /**
      * @description
@@ -497,7 +528,8 @@ public:
      * @date 2017-04-08
      */
     int zrevrangebyscore_with_scores(const std::string& key,
-        double min, double max, std::map<std::string, double>& result,
+        double min, double max,
+        std::vector< std::pair<std::string, double> >& result,
         int offset = -1, int count = 0);
 
     /**
@@ -509,7 +541,8 @@ public:
      */
     int zrevrangebyscore_with_scores(const std::string& key,
         const std::string& min, const std::string& max,
-        std::map<std::string, double>& result, int offset = -1, int count = 0);
+        std::vector< std::pair<std::string, double> >& result,
+        int offset = -1, int count = 0);
 
     /**
      * @description
@@ -531,9 +564,9 @@ public:
      *   用于迭代key关联的有序集合中的键值对
      * @param [IN] key {const std::string&} 有序集合对象的key
      * @param [IN] cursor {int} 游标值, 第一次迭代使用0作为游标.
-     * @param [OUT] result {std::map<std::string, double>&} 存储结果集, 内部以追
-     *   加方式将本次遍历结果添加进该对象中, 为防止因总结果集过大导致该数组溢出,
-     *   用户可在调用本函数前后清理该对象.
+     * @param [OUT] result {std::vector< std::pair<std::string, double> >&}
+     *   存储结果集, 内部以追加方式将本次遍历结果添加进该对象中, 为防止因总结果
+     *   集过大导致该数组溢出,用户可在调用本函数前后清理该对象.
      * @param [IN] pattern {const char*} glob风格的模式参数, 非空时有效
      * @param [IN] count {int} 限定结果集元素的数量, 默认值:10
      * @return {int} 下一个游标位置, 返回值如下:
@@ -544,7 +577,7 @@ public:
      * @date 2017-04-08
      */
     int zscan(const std::string& key, int cursor,
-              std::map<std::string, double>& result,
+              std::vector< std::pair<std::string, double> >& result,
               const char* pattern = NULL, int count = 10);
 
     /**
@@ -577,7 +610,11 @@ private:
     // 把元素/分数组成的列表转换成元素/分数键值对输出, 并返回键值对个数
     // 如果列表中元素不是成对出现, 则返回-1
     int parse_element_score(const std::vector<std::string>& in,
-                            std::map<std::string, double>& out);
+                            std::vector< std::pair<std::string, double> >& out);
+
+    // 把成员/分数对转换成"score1 member1 score2 member2 ..."的字符串
+    std::string join(
+        const std::vector< std::pair<std::string, double> >& member_score);
 };
 
 #endif /* __REDIS_ZSET_H__ */

@@ -22,6 +22,12 @@ public:
 
     static std::string to_string(std::string str) { return str; }
 
+    template<typename T, typename U>
+    static std::string to_string(std::pair<T, U> pair,
+                                 const std::string& separator = ":") {
+        return to_string(pair.first) + separator + to_string(pair.second);
+    }
+
     /**
      * 把给定的列表拼装成单个字符串
      * @param  [IN] list {const std::vector<T>&} 给定的列表
