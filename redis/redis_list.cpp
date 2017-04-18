@@ -1,4 +1,3 @@
-#include "redis_client.h"
 #include "redis_list.h"
 #include "redis_helper.h"
 

@@ -3,10 +3,9 @@
 
 #include <vector>
 #include <string>
+#include <map>
 
 #include "redis_command.h"
-
-class redis_client;
 
 class redis_list : public redis_command
 {

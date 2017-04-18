@@ -7,8 +7,6 @@
 
 #include "redis_command.h"
 
-class redis_client;
-
 class redis_hash : public redis_command
 {
 public:

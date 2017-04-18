@@ -64,6 +64,7 @@ redis_client::redis_client(const std::string host, uint16_t port)
 , m_rcon(NULL)
 , m_binitialization(false)
 , m_cluster_mode(false)
+, m_socket(NULL)
 {
     init();
 }
@@ -75,6 +76,9 @@ redis_client::~redis_client()
 bool redis_client::init()
 {
     clear();
+
+    m_socket = new socket_client();
+    m_socket->connect_socket(m_host.c_str(), m_port);
 
     if (list_node()) {
         m_binitialization = true;
@@ -244,6 +248,12 @@ bool redis_client::parse_cluster_slots(redisReply * reply)
 
 void redis_client::clear()
 {
+    if (m_socket) {
+        m_socket->close_socket();
+
+        delete m_socket;
+        m_socket = NULL;
+    }
     clear_nodes();
     clear_slots();
 }
@@ -465,4 +475,110 @@ redisContext* redis_client::get_redis_context_by_key(std::string key)
         return m_rcon;
     }
 }
+
+
+redis_reply redis_client::run(const std::string& request)
+{
+    if (!request.empty() && m_socket.send_msg(request.c_str()) == -1) {
+        ERROR("send to redis(%s:%d) error, req: %s",
+              m_host.c_str(), m_port, request.c_str());
+        return NULL
+    }
+
+    return get_redis_object();
+}
+
+void redis_client::put_data(redis_reply * rr, const std::string & data)
+{
+    int pos = data.find('\r');
+    if (pos >= 0) { // È¥³ýÄ©Î²µÄ\r\n
+        rr->put(data.substr(0, pos));
+    }
+    else {
+        rr->put(data);
+    }
+}
+
+redis_reply* redis_client::process_line_item(t_redis_reply type)
+{
+    m_buff.clear();
+    if (m_socket->read_line(m_buff) <= 0) {
+        ERROR("read line from redis(%s:%d) error", m_host.c_str(), m_port);
+        return NULL;
+    }
+
+    redis_reply* rr = new redis_reply();
+    rr->set_type(type);
+
+    put_data(rr, m_buff);
+    return rr;
+}
+
+redis_reply* redis_client::get_redis_error()
+{
+    return process_line_item(REDIS_REPLY_ERROR);
+}
+
+redis_reply* redis_client::get_redis_status()
+{
+    return process_line_item(REDIS_REPLY_STATUS);
+}
+
+redis_reply* redis_client::get_redis_integer()
+{
+    return process_line_item(REDIS_REPLY_INTEGER);
+}
+
+redis_reply* redis_client::get_redis_string()
+{
+    m_buff.clear();
+    if (m_socket->read_line(m_buff) <= 0) {
+        ERROR("read line from redis(%s:%d) error", m_host.c_str(), m_port);
+        return NULL;
+    }
+
+    redis_reply* rr = new redis_reply();
+    rr->set_type(REDIS_REPLY_STRING);
+
+    int len = atoi(m_buff.c_str());
+    if (len < 0) {
+        return rr;
+    }
+    m_buff.clear();
+    if (len > 0 && m_socket->read_line(m_buff) <= 0) {
+        ERROR("read line from redis(%s:%d) error", m_host.c_str(), m_port);
+        return NULL;
+    }
+    put_data(rr, m_buff);
+    return rr;
+}
+
+redis_reply* redis_client::get_redis_array()
+{
+
+}
+
+redis_reply* redis_client::get_redis_object()
+{
+    char ch;
+    if (m_socket->recv_msg(*ch, 1) == -1) {
+        return NULL;
+    }
+
+    switch (ch) {
+        case '-':   // ERROR
+            return get_redis_error();
+        case '+':   // STATUS
+            return get_redis_status();
+        case ':':   // INTEGER
+            return get_redis_integer();
+        case '$':   // STRING
+            return get_redis_string();
+        case '*':   // ARRAY
+            return get_redis_array();
+        default:    // INVALID
+            return NULL;
+    }
+}
+
 

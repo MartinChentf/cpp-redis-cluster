@@ -8,6 +8,16 @@
 
 #include "socket_client.h"
 
+socket_client::socket_client()
+: m_sockid(INVALID_SOCKET)
+, m_host("")
+, m_port(0)
+, m_read_count(0)
+, m_read_idx(0)
+{
+    memset(m_read_cache, 0, READ_CACHE_LEN);
+}
+
 int socket_client::connect_socket(const char * host, int port)
 {
     int sockfd = 0;
@@ -67,23 +77,14 @@ int socket_client::recv_msg(void * buff, int len)
     }
 
     int read_len = 0;
-//    while(read_len < len)
-//    {
-        int r_len = (int)recv(m_sockid, buff, (size_t)(len - read_len), 0);
-        if(r_len > 0)
-        {
-            read_len += r_len;
-        }
-        else if(r_len == 0)
-        {
-            //break;  /* EOF */
-        }
-        else
-        {
-            close_socket();
-            return -1;
-        }
-//    }
+    read_len = (int)recv(m_sockid, buff, (size_t)len, 0);
+    if(read_len < 0) {
+        close_socket();
+        return -1;
+    }
+    else if(read_len == 0) {
+        return 0;
+    }
 
     return read_len;
 }
@@ -105,5 +106,27 @@ int socket_client::send_msg(const char * buff)
     {
         return sendSize;
     }
+}
+
+int socket_client::read_line(std::string& buff)
+{
+	char ch;
+
+    while (true) {
+        if (m_read_idx >= m_read_count) {
+            m_read_count = recv_msg(m_read_cache, READ_CACHE_LEN);
+            m_read_idx = 0;
+            if (m_read_count <= 0) break;
+        }
+
+        ch = m_read_cache[m_read_idx++];
+        buff.append(&ch);
+
+        if (ch == '\n') {
+            break;
+        }
+    }
+
+	return buff.size();
 }
 

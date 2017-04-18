@@ -6,7 +6,6 @@
 #include "redis_string.h"
 #include "redis_log.h"
 #include "redis_server.h"
-//#include "gt_common.h"
 #include "socket_client.h"
 
 using namespace std;
@@ -25,10 +24,11 @@ void test()
     buff += "mars\r\n";
 
     socket_client* sock = new socket_client();
-    sock->connect_socket("192.168.199.131", 10006);
+    sock->connect_socket("10.45.4.201", 7008);
+    //sock->connect_socket("192.168.199.131", 10006);
     sock->send_msg(buff.c_str());
     sock->recv_msg(ret, 1024*16);
-    printf("return:[%s]", ret);
+    printf("return:[%s]\n", ret);
 
     delete sock;
 }

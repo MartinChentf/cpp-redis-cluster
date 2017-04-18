@@ -3,11 +3,8 @@
 
 #include <string>
 #include <vector>
-#include <map>
 
 #include "redis_command.h"
-
-class redis_client;
 
 class redis_zset : public redis_command
 {

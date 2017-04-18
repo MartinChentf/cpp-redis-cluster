@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
@@ -12,6 +13,7 @@ redis_command::redis_command(redis_client * client)
 , m_rcon(NULL)
 , m_command("")
 , m_slot(0)
+, m_request_buf("")
 {}
 
 void redis_command::set_client(redis_client * client)
@@ -467,5 +469,27 @@ int redis_command::get_cursor_array(std::vector<std::string>* result)
     }
 
     return cursor;
+}
+
+redis_reply* redis_command::run()
+{
+    return m_client->run(m_request_buf);
+}
+
+void redis_command::build_request(const std::vector<std::string>& argv)
+{
+    m_request_buf.clear();
+
+    m_request_buf += "*";
+    m_request_buf += TO_STRING(argv.size());
+    m_request_buf += "\r\n";
+
+    for (int i = 0; i < argv.size(); i++) {
+        m_request_buf += "$";
+        m_request_buf += TO_STRING(argv[i].size());
+        m_request_buf += "\r\n";
+        m_request_buf += argv[i];
+        m_request_buf += "\r\n";
+    }
 }
 

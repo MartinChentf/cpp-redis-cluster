@@ -1,4 +1,3 @@
-#include "redis_client.h"
 #include "redis_hash.h"
 #include "redis_log.h"
 #include "redis_helper.h"

@@ -1,7 +1,5 @@
-#include "redis_client.h"
 #include "redis_string.h"
 #include "redis_helper.h"
-
 
 const char* redis_string::BITOP_STR[redis_string::SIZE_BITOP]
     = { "AND", "OR", "NOT", "XOR" };

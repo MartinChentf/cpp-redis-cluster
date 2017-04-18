@@ -1,10 +1,7 @@
 #ifndef __REDIS_SERVER_H__
 #define __REDIS_SERVER_H__
 
-
 #include "redis_command.h"
-
-class redis_client;
 
 class redis_server : public redis_command
 {

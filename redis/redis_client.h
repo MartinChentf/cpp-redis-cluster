@@ -8,7 +8,6 @@
 
 #include <hiredis.h>
 
-
 class redis_client
 {
 public:
@@ -42,6 +41,19 @@ public:
     redisContext* get_redis_context_by_key(std::string key);
 
     bool is_cluster() { return m_cluster_mode; }
+
+////////////////////////////////////////////////////////////////////////////////
+    redis_reply* run(const std::string& request);
+
+private:
+    void put_data(redis_reply* rr, const std::string& data);
+    redis_reply* process_line_item(t_redis_reply type);
+    redis_reply* get_redis_object();
+    redis_reply* get_redis_error();
+    redis_reply* get_redis_status();
+    redis_reply* get_redis_integer();
+    redis_reply* get_redis_string();
+    redis_reply* get_redis_array();
 
 private:
     bool init();
@@ -78,6 +90,10 @@ private: // for cluster mode
     bool m_cluster_mode;
     t_cluster_node_map m_nodes;
     t_slots_list m_slots;       // slots of master
+
+private:
+    socket_client* m_socket;
+    std::string m_buff;
 };
 
 #endif /* __REDIS_H__ */

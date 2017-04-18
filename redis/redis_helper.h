@@ -84,17 +84,6 @@ public:
     }
 };
 
-static const char * const REPLY_TYPE[] =
-{
-    "",
-    "REDIS_REPLY_STRING",   // 1
-    "REDIS_REPLY_ARRAY",    // 2
-    "REDIS_REPLY_INTEGER",  // 3
-    "REDIS_REPLY_NIL",      // 4
-    "REDIS_REPLY_STATUS",   // 5
-    "REDIS_REPLY_ERROR"     // 6
-};
-
 #define SAFE_ASSIGN(p, val) if (p) (*p) = (val)
 
 #define SAFE_ASSIGN_FUNC(p, func) if (p) (*p) = (func); else (void)(func)
