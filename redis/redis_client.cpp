@@ -542,6 +542,7 @@ redis_reply* redis_client::get_redis_string()
 
     int len = atoi(m_buff.c_str());
     if (len < 0) {
+        rr->set_type(REDIS_REPLY_NIL);
         return rr;
     }
     m_buff.clear();
