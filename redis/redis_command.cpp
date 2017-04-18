@@ -471,9 +471,38 @@ int redis_command::get_cursor_array(std::vector<std::string>* result)
     return cursor;
 }
 
+////////////////////////////////////////////////////////////////////////////////
 redis_reply* redis_command::run()
 {
     return m_client->run(m_request_buf);
+}
+
+std::string redis_command::parse_reply(redis_reply* reply)
+{
+    if (reply == NULL) {
+        return "Reply is NULL";
+    }
+
+    std::string result("Reply Type: ");
+    result += REPLY_TYPE[reply->get_type()];
+    switch(reply->type) {
+        case REDIS_REPLY_STATUS:
+            return result + ", Status: " + reply->str;
+        case REDIS_REPLY_NIL:
+            return result;
+        case REDIS_REPLY_STRING:
+            return result + ", String: " + reply->str;
+        case REDIS_REPLY_ERROR:
+            return result + ", Errstr: " + reply->str;
+        case REDIS_REPLY_INTEGER:
+            return result + ", Integer: "
+                    + TO_STRING(reply->integer);
+        case REDIS_REPLY_ARRAY:
+            return result + ", Array Elements:"
+                    + TO_STRING(reply->elements);
+        default:
+            return "Unkonw Type";
+    }
 }
 
 void redis_command::build_request(const std::vector<std::string>& argv)
@@ -490,6 +519,15 @@ void redis_command::build_request(const std::vector<std::string>& argv)
         m_request_buf += "\r\n";
         m_request_buf += argv[i];
         m_request_buf += "\r\n";
+    }
+}
+
+bool redis_command::get_status()
+{
+    const redis_reply* reply = run();
+    if (reply == NULL || reply->get_type() != REDIS_REPLY_STATUS) {
+        ERROR("Execute command fail! [%s], %s",
+            m_command.c_str(), parse_reply(reply).c_str());
     }
 }
 

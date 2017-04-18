@@ -477,7 +477,7 @@ redisContext* redis_client::get_redis_context_by_key(std::string key)
 }
 
 
-redis_reply redis_client::run(const std::string& request)
+redis_reply* redis_client::run(const std::string& request)
 {
     if (!request.empty() && m_socket.send_msg(request.c_str()) == -1) {
         ERROR("send to redis(%s:%d) error, req: %s",
@@ -531,32 +531,58 @@ redis_reply* redis_client::get_redis_integer()
 
 redis_reply* redis_client::get_redis_string()
 {
+    redis_reply* rr = NULL;
     m_buff.clear();
     if (m_socket->read_line(m_buff) <= 0) {
         ERROR("read line from redis(%s:%d) error", m_host.c_str(), m_port);
         return NULL;
     }
 
-    redis_reply* rr = new redis_reply();
-    rr->set_type(REDIS_REPLY_STRING);
-
     int len = atoi(m_buff.c_str());
     if (len < 0) {
+        rr = new redis_reply();
         rr->set_type(REDIS_REPLY_NIL);
-        return rr;
     }
-    m_buff.clear();
-    if (len > 0 && m_socket->read_line(m_buff) <= 0) {
-        ERROR("read line from redis(%s:%d) error", m_host.c_str(), m_port);
-        return NULL;
+    else {
+        m_buff.clear();
+        if (len > 0 && m_socket->read_line(m_buff) <= 0) {
+            ERROR("read line from redis(%s:%d) error", m_host.c_str(), m_port);
+            return NULL;
+        }
+        rr = new redis_reply();
+        rr->set_type(REDIS_REPLY_STRING);
+        put_data(rr, m_buff);
     }
-    put_data(rr, m_buff);
     return rr;
 }
 
 redis_reply* redis_client::get_redis_array()
 {
+    redis_reply* rr = NULL;
+    m_buff.clear();
+    if (m_socket->read_line(m_buff) <= 0) {
+        ERROR("read line from redis(%s:%d) error", m_host.c_str(), m_port);
+        return NULL;
+    }
 
+    int count = atoi(m_buff.c_str());
+    if (count <= 0) {
+        rr = new redis_reply();
+        rr->set_type(REDIS_REPLY_NIL);
+    }
+    else {
+        rr = new redis_reply();
+    	rr->set_type(REDIS_REPLY_ARRAY);
+        for (int i = 0; i < count; i+=) {
+            redis_reply* element = get_redis_object();
+            if (element == NULL) {
+                delete rr;  // 释放整个数组, 防止内存泄漏
+                return NULL;
+            }
+            rr->put(element);
+        }
+    }
+    return rr;
 }
 
 redis_reply* redis_client::get_redis_object()

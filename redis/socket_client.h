@@ -22,6 +22,7 @@ public:
 
 private:
     bool check_connect();
+    int read_from_cache(void* buff, int len);
 
 private:
     int m_sockid;

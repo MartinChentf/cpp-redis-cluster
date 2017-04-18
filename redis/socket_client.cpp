@@ -69,21 +69,39 @@ bool socket_client::check_connect()
     return true;
 }
 
+int socket_client::read_from_cache(void * buff, int len)
+{
+    int read_len = 0;
+    if (m_read_idx < m_read_count) {
+        int avail_len = m_read_count - m_read_idx;
+        int min = (avail_len < len) ? avail_len : len;
+
+        memcpy(buff, m_read_cache + m_read_idx, min);
+        m_read_idx += min;
+        read_len += min;
+    }
+    return read_len;
+}
+
 int socket_client::recv_msg(void * buff, int len)
 {
+    int read_len = 0;
+    if ((read_len = read_from_cache(buff, len)) >= len) {
+        return read_len;
+    }
+
     if (!check_connect())
     {
         return -1;
     }
 
-    int read_len = 0;
-    read_len = (int)recv(m_sockid, buff, (size_t)len, 0);
-    if(read_len < 0) {
+    int r_len = (int)recv(m_sockid, buff, (size_t)(len - read_len), 0);
+    if(r_len < 0) {
         close_socket();
         return -1;
     }
-    else if(read_len == 0) {
-        return 0;
+    else if(r_len >= 0) {
+        read_len += r_len;
     }
 
     return read_len;

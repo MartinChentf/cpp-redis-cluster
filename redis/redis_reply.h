@@ -36,6 +36,11 @@ public:
     ~redis_reply();
 
 public:
+    t_redis_reply get_type() const { return m_type; }
+    std::string get_string() const { return m_str; }
+    long long get_integer() const { return m_integer; }
+
+public:
     redis_reply& set_type(t_redis_reply type);
     redis_reply& put(const std::string& buff);
     redis_reply& put(const redis_reply* rr);

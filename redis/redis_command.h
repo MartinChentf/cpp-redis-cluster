@@ -20,11 +20,6 @@ protected:
     void hash_slots(std::string key);
     std::string build_command(const char *format, ...);
     redisReply* run_command();
-    
-    void build_request(const std::vector<std::string>& argv);
-    redis_reply* run();
-    
-///////////////////////////////////////////////////////////////////////
 
     bool check_status();
     int check_status_or_nil();
@@ -58,6 +53,15 @@ private:
     redisContext* m_rcon;
     std::string m_command;
     int m_slot;
+
+////////////////////////////////////////////////////////////////////////////////
+protected:
+    bool get_status();
+    void build_request(const std::vector<std::string>& argv);
+    redis_reply* run();
+
+private:
+    std::string parse_reply(redis_reply* reply);
 
 private:
     std::string m_request_buf;
