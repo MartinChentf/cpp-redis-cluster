@@ -6,7 +6,7 @@
 #include "redis_client.h"
 #include "redis_helper.h"
 #include "redis_log.h"
-
+#include "redis_reply.h"
 
 redis_command::redis_command(redis_client * client)
 : m_client(client)
@@ -477,7 +477,7 @@ redis_reply* redis_command::run()
     return m_client->run(m_request_buf);
 }
 
-std::string redis_command::parse_reply(redis_reply* reply)
+std::string redis_command::parse_reply(const redis_reply* reply)
 {
     if (reply == NULL) {
         return "Reply is NULL";
@@ -485,21 +485,21 @@ std::string redis_command::parse_reply(redis_reply* reply)
 
     std::string result("Reply Type: ");
     result += REPLY_TYPE[reply->get_type()];
-    switch(reply->type) {
+    switch(reply->get_type()) {
         case REDIS_REPLY_STATUS:
-            return result + ", Status: " + reply->str;
+            return result + ", Status: " + reply->get_status();
         case REDIS_REPLY_NIL:
             return result;
         case REDIS_REPLY_STRING:
-            return result + ", String: " + reply->str;
+            return result + ", String: " + reply->get_string();
         case REDIS_REPLY_ERROR:
-            return result + ", Errstr: " + reply->str;
+            return result + ", Errstr: " + reply->get_error();
         case REDIS_REPLY_INTEGER:
             return result + ", Integer: "
-                    + TO_STRING(reply->integer);
+                    + TO_STRING(reply->get_integer());
         case REDIS_REPLY_ARRAY:
             return result + ", Array Elements:"
-                    + TO_STRING(reply->elements);
+                    + TO_STRING(reply->get_size());
         default:
             return "Unkonw Type";
     }
@@ -513,7 +513,7 @@ void redis_command::build_request(const std::vector<std::string>& argv)
     m_request_buf += TO_STRING(argv.size());
     m_request_buf += "\r\n";
 
-    for (int i = 0; i < argv.size(); i++) {
+    for (size_t i = 0; i < argv.size(); i++) {
         m_request_buf += "$";
         m_request_buf += TO_STRING(argv[i].size());
         m_request_buf += "\r\n";
@@ -522,12 +522,32 @@ void redis_command::build_request(const std::vector<std::string>& argv)
     }
 }
 
-bool redis_command::get_status()
+bool redis_command::check_status(const char * expection /*= "OK"*/)
 {
     const redis_reply* reply = run();
-    if (reply == NULL || reply->get_type() != REDIS_REPLY_STATUS) {
+    if (reply == NULL || reply->get_type() != T_REDIS_REPLY_STATUS) {
         ERROR("Execute command fail! [%s], %s",
             m_command.c_str(), parse_reply(reply).c_str());
+        SAFE_DELETE(reply);
+        return false;
+    }
+
+    const std::string status = reply->get_status();
+    if (status.empty()) {
+        WARN("Execute command fail! , status is empty");
+        SAFE_DELETE(reply);
+        return false;
+    }
+    else if (expection == NULL || strcasecmp(status.c_str(), expection) == 0) {
+        NORMAL("Execute command success! [%s]", m_command.c_str());
+        SAFE_DELETE(reply);
+        return true;
+    }
+    else {
+        WARN("Execute command fail! , status:[%s], expection:[%s]",
+             status.c_str(), expection);
+        SAFE_DELETE(reply);
+        return false;
     }
 }
 

@@ -138,7 +138,7 @@ int socket_client::read_line(std::string& buff)
         }
 
         ch = m_read_cache[m_read_idx++];
-        buff.append(&ch);
+        buff.push_back(ch);
 
         if (ch == '\n') {
             break;

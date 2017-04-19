@@ -1,5 +1,6 @@
 #include "redis_string.h"
 #include "redis_helper.h"
+#include "redis_log.h"
 
 const char* redis_string::BITOP_STR[redis_string::SIZE_BITOP]
     = { "AND", "OR", "NOT", "XOR" };
@@ -158,13 +159,16 @@ bool redis_string::mget(const std::vector<std::string>& keys,
 
 bool redis_string::mset(const std::map<std::string, std::string>& key_values)
 {
-    std::string key_value_list = redis_helper::join(key_values);
-    build_command("MSET %s", key_value_list.c_str());
-    if (!key_value_list.empty()) {
-        hash_slots(key_values.begin()->first);
+    std::vector<std::string> argv;
+    argv.push_back("MSET");
+    std::map<std::string, std::string>::const_iterator cit = key_values.begin();
+    while (cit != key_values.end()) {
+        argv.push_back(cit->first);
+        argv.push_back(cit->second);
+        ++cit;
     }
-
-    return check_status();
+    build_request(argv);
+    return check_status("OK");
 }
 
 bool redis_string::msetnx(const std::map<std::string, std::string>& key_values)

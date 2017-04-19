@@ -6,7 +6,10 @@
 
 #include "hiredis.h"
 
+#define _USE_REPLY_
+
 class redis_client;
+class redis_reply;
 
 class redis_command
 {
@@ -50,18 +53,18 @@ private:
 
 private:
     redis_client* m_client;
-    redisContext* m_rcon;
-    std::string m_command;
+    redisContext* m_rcon; // discard
+    std::string m_command; // discard
     int m_slot;
 
 ////////////////////////////////////////////////////////////////////////////////
 protected:
-    bool get_status();
+    bool check_status(const char* success /*= "OK"*/);
     void build_request(const std::vector<std::string>& argv);
     redis_reply* run();
 
 private:
-    std::string parse_reply(redis_reply* reply);
+    std::string parse_reply(const redis_reply* reply);
 
 private:
     std::string m_request_buf;

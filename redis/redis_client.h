@@ -8,6 +8,9 @@
 
 #include <hiredis.h>
 
+#include "redis_reply.h"
+class socket_client;
+
 class redis_client
 {
 public:
@@ -16,6 +19,7 @@ public:
         uint16_t port;
         bool master;
         redisContext* con;
+        socket_client* socket;
     } t_cluster_node;
     typedef std::pair<std::string, uint16_t> t_node_pair;
     typedef std::map<t_node_pair, t_cluster_node*> t_cluster_node_map;
@@ -33,19 +37,25 @@ public:
     redis_client(const std::string host, uint16_t port);
     ~redis_client();
 
-    unsigned int get_key_slot(const std::string& key);
+    unsigned int get_key_slot(const std::string& key); // use
 
-    redisContext* get_redis_context();
+    redisContext* get_redis_context(); // use
     redisContext* get_redis_context(const std::string host, uint16_t port);
-    redisContext* get_redis_context_by_slot(int slot);
+    redisContext* get_redis_context_by_slot(int slot); // use
     redisContext* get_redis_context_by_key(std::string key);
 
     bool is_cluster() { return m_cluster_mode; }
 
 ////////////////////////////////////////////////////////////////////////////////
+    // 返回值redis_reply*由调用方负责释放
     redis_reply* run(const std::string& request);
 
-private:
+private:    
+    bool list_node_new();
+    // 连接指定节点，失败或错误返回空
+    socket_client* connect_node(const std::string& host, uint16_t port);
+    bool parse_cluster_slots(redis_reply* reply);
+
     void put_data(redis_reply* rr, const std::string& data);
     redis_reply* process_line_item(t_redis_reply type);
     redis_reply* get_redis_object();
@@ -67,9 +77,11 @@ private:
     void clear_nodes();
     void clear_slots();
 
-    t_cluster_node* create_cluster_node(const std::string host, uint16_t port,
+    t_cluster_node* create_cluster_node(const std::string host,
+                                        uint16_t port,
                                         bool master = false,
-                                        redisContext* con = NULL);
+                                        redisContext* con = NULL,
+                                        socket_client* socket = NULL);
 
     // 判断给定redisContext是否可用，如果不可用则释放掉该redisContext
     bool is_normal_context(redisContext* rcon);
@@ -91,6 +103,7 @@ private: // for cluster mode
     t_cluster_node_map m_nodes;
     t_slots_list m_slots;       // slots of master
 
+////////////////////////////////////////////////////////////////////////////////
 private:
     socket_client* m_socket;
     std::string m_buff;

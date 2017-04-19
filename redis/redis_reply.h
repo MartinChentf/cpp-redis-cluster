@@ -5,13 +5,13 @@
 #include <string>
 
 typedef enum {
-    REDIS_REPLY_UNKOWN,     // 0
-    REDIS_REPLY_STRING,     // 1
-    REDIS_REPLY_ARRAY,      // 2
-    REDIS_REPLY_INTEGER,    // 3
-    REDIS_REPLY_NIL,        // 4
-    REDIS_REPLY_STATUS,     // 5
-    REDIS_REPLY_ERROR,      // 6
+    T_REDIS_REPLY_UNKOWN,     // 0
+    T_REDIS_REPLY_STRING,     // 1
+    T_REDIS_REPLY_ARRAY,      // 2
+    T_REDIS_REPLY_INTEGER,    // 3
+    T_REDIS_REPLY_NIL,        // 4
+    T_REDIS_REPLY_STATUS,     // 5
+    T_REDIS_REPLY_ERROR,      // 6
 } t_redis_reply;
 
 static const char * const REPLY_TYPE[] =
@@ -37,8 +37,13 @@ public:
 
 public:
     t_redis_reply get_type() const { return m_type; }
+    int get_size() const;
+    const redis_reply* get_element(size_t idx) const;
+    std::string get_status() const;
+    std::string get_error() const;
     std::string get_string() const { return m_str; }
     long long get_integer() const { return m_integer; }
+    double get_double(bool* success = NULL) const;
 
 public:
     redis_reply& set_type(t_redis_reply type);
@@ -56,7 +61,7 @@ private:
     // Used for both REDIS_REPLY_ERROR and REDIS_REPLY_STRING
     std::string m_str;
     // elements vector for REDIS_REPLY_ARRAY
-    std::vector<redis_reply*> m_element;
+    std::vector<const redis_reply*> m_element;
 };
 
 #endif /* __REDIS_REPLY_H__ */

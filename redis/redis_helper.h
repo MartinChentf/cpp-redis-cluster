@@ -88,6 +88,8 @@ public:
 
 #define SAFE_ASSIGN_FUNC(p, func) if (p) (*p) = (func); else (void)(func)
 
+#define SAFE_DELETE(p) if (p) { delete (p); (p) = NULL; }
+
 #define TO_STRING(a) redis_helper::to_string(a)
 
 #endif /* __REDIS_HELPER_H__ */
