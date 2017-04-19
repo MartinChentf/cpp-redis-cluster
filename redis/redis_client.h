@@ -50,11 +50,23 @@ public:
     // 返回值redis_reply*由调用方负责释放
     redis_reply* run(const std::string& request);
 
+    /**
+     * @description
+     *   根据key值设置哈希槽, 使redis_client连接到哈希槽对应的redis_server
+     * @param [IN] key {const std::string&} 
+     * @return {void} 
+     * @author chen.tengfei
+     * @date 2017-04-19
+     */
+    void set_hash_slot(const std::string& key);
+
 private:    
     bool list_node_new();
     // 连接指定节点，失败或错误返回空
     socket_client* connect_node(const std::string& host, uint16_t port);
     bool parse_cluster_slots(redis_reply* reply);
+
+    void redirect(int slot);
 
     void put_data(redis_reply* rr, const std::string& data);
     redis_reply* process_line_item(t_redis_reply type);
@@ -65,6 +77,7 @@ private:
     redis_reply* get_redis_string();
     redis_reply* get_redis_array();
 
+////////////////////////////////////////////////////////////////////////////////
 private:
     bool init();
     bool list_node();

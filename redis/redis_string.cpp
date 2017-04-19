@@ -7,7 +7,11 @@ const char* redis_string::BITOP_STR[redis_string::SIZE_BITOP]
 
 int redis_string::get(const std::string& key, std::string& result)
 {
-    build_command("GET %s", key.c_str());
+    std::vector<std::string> argv;
+    argv.push_back("GET");
+    argv.push_back(key.c_str());
+
+    build_request(argv);
     hash_slots(key);    
 
     return get_string_or_nil(result);
@@ -17,7 +21,12 @@ int redis_string::getSet(const std::string& key,
                           const std::string& value,
                           std::string& result)
 {
-    build_command("GETSET %s %s", key.c_str(), value.c_str());
+    std::vector<std::string> argv;
+    argv.push_back("GETSET");
+    argv.push_back(key.c_str());
+    argv.push_back(value.c_str());
+
+    build_request(argv);
     hash_slots(key);
 
     return get_string_or_nil(result);
@@ -53,16 +62,19 @@ bool redis_string::psetex(const std::string& key, long long millisecond,
 bool redis_string::set_string(const std::string& key,const std::string& value,
                         const char * ex_px,long long second,const char * nx_xx)
 {
+    std::vector<std::string> argv;
+    argv.push_back("SET");
+    argv.push_back(key.c_str());
+    argv.push_back(value.c_str());
+
     if (ex_px != NULL) {
-        build_command("SET %s %s %s %lld %s",
-                      key.c_str(), value.c_str(),
-                      ex_px, second,
-                      nx_xx == NULL ? "" : nx_xx);
+        argv.push_back(ex_px);
+        argv.push_back(TO_STRING(second));
     }
-    else {
-        build_command("SET %s %s %s", key.c_str(), value.c_str(),
-                      nx_xx == NULL ? "" : nx_xx);
+    if (nx_xx != NULL) {
+        argv.push_back(nx_xx);
     }
+    build_request(argv);
     hash_slots(key);
 
     return (check_status_or_nil() > 0 ? true : false);
@@ -71,7 +83,13 @@ bool redis_string::set_string(const std::string& key,const std::string& value,
 bool redis_string::getrange(const std::string& key,int start,int end,
                             std::string& result)
 {
-    build_command("GETRANGE %s %d %d", key.c_str(), start, end);
+    std::vector<std::string> argv;
+    argv.push_back("GETRANGE");
+    argv.push_back(key.c_str());
+    argv.push_back(TO_STRING(start));
+    argv.push_back(TO_STRING(end));
+
+    build_request(argv);
     hash_slots(key);
 
     return get_string(result);
@@ -148,8 +166,13 @@ long long redis_string::bitpos(const std::string& key,bool value,
 bool redis_string::mget(const std::vector<std::string>& keys,
                         std::vector<std::string*>& result)
 {
-    std::string key_list = redis_helper::join(keys);
-    build_command("MGET %s", key_list.c_str());
+    std::vector<std::string> argv;
+    argv.push_back("MGET");
+    for (size_t i = 0; i < keys.size(); i++) {
+        argv.push_back(keys[i]);
+    }
+
+    build_request(argv);
     if (!keys.empty()) {
         hash_slots(keys[0]);
     }
@@ -198,7 +221,12 @@ bool redis_string::incrbyfloat(const std::string & key,
                                       double increment,
                                       std::string * result /*= NULL*/)
 {
-    build_command("INCRBYFLOAT %s %lf", key.c_str(), increment);
+    std::vector<std::string> argv;
+    argv.push_back("INCRBYFLOAT");
+    argv.push_back(key.c_str());
+    argv.push_back(TO_STRING(increment));
+
+    build_request(argv);
     hash_slots(key);
 
     return get_string(result);

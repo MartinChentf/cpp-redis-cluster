@@ -23,7 +23,12 @@ int redis_hash::hexists(const std::string& key, const std::string& field)
 int redis_hash::hget(const std::string& key, const std::string& field,
                      std::string& result)
 {
-    build_command("HGET %s %s", key.c_str(), field.c_str());
+    std::vector<std::string> argv;
+    argv.push_back("HGET");
+    argv.push_back(key.c_str());
+    argv.push_back(field.c_str());
+
+    build_request(argv);
     hash_slots(key);
 
     return get_string_or_nil(result);
@@ -32,7 +37,11 @@ int redis_hash::hget(const std::string& key, const std::string& field,
 bool redis_hash::hgetall(const std::string& key,
                          std::map<std::string, std::string>& result)
 {
-    build_command("HGETALL %s", key.c_str());
+    std::vector<std::string> argv;
+    argv.push_back("HGETALL");
+    argv.push_back(key.c_str());
+
+    build_request(argv);
     hash_slots(key);
 
     std::vector<std::string> key_val;
@@ -61,8 +70,13 @@ bool redis_hash::hincrbyfloat(const std::string& key,
                               double increment,
                               std::string* result /*= NULL*/)
 {
-    build_command("HINCRBYFLOAT %s %s %lf",
-                  key.c_str(), field.c_str(), increment);
+    std::vector<std::string> argv;
+    argv.push_back("HINCRBYFLOAT");
+    argv.push_back(key.c_str());
+    argv.push_back(field.c_str());
+    argv.push_back(TO_STRING(increment));
+
+    build_request(argv);
     hash_slots(key);
 
     return get_string(result);
@@ -70,10 +84,14 @@ bool redis_hash::hincrbyfloat(const std::string& key,
 
 bool redis_hash::hkeys(const std::string& key, std::vector<std::string>& result)
 {
-    build_command("HKEYS %s", key.c_str());
+    std::vector<std::string> argv;
+    argv.push_back("HKEYS");
+    argv.push_back(key.c_str());
+
+    build_request(argv);
     hash_slots(key);
 
-    return get_array(result);
+    return get_array_or_nil(result) >= 0;
 }
 
 long long redis_hash::hlen(const std::string& key)
@@ -88,8 +106,14 @@ bool redis_hash::hmget(const std::string& key,
                        const std::vector<std::string>& fields,
                        std::vector<std::string*>& result)
 {
-    std::string field_list = redis_helper::join(fields);
-    build_command("HMGET %s %s", key.c_str(), field_list.c_str());
+    std::vector<std::string> argv;
+    argv.push_back("HMGET");
+    argv.push_back(key.c_str());
+    for (size_t i = 0; i < fields.size(); i++) {
+        argv.push_back(fields[i]);
+    }
+
+    build_request(argv);
     hash_slots(key);
 
     return get_array(result);
@@ -98,8 +122,17 @@ bool redis_hash::hmget(const std::string& key,
 bool redis_hash::hmset(const std::string& key,
                        const std::map<std::string, std::string>& field_values)
 {
-    std::string key_val = redis_helper::join(field_values);
-    build_command("HMSET %s %s", key.c_str(), key_val.c_str());
+    std::vector<std::string> argv;
+    argv.push_back("HMSET");
+    argv.push_back(key.c_str());
+    std::map<std::string, std::string>::const_iterator cit = field_values.begin();
+    while (cit != field_values.end()) {
+        argv.push_back(cit->first);
+        argv.push_back(cit->second);
+        ++cit;
+    }
+
+    build_request(argv);
     hash_slots(key);
 
     return check_status();
@@ -159,9 +192,13 @@ long long redis_hash::hstrlen(const std::string& key, const std::string& field)
 
 bool redis_hash::hvals(const std::string& key, std::vector<std::string>& result)
 {
-    build_command("HVALS %s", key.c_str());
+    std::vector<std::string> argv;
+    argv.push_back("HVALS");
+    argv.push_back(key.c_str());
+
+    build_request(argv);
     hash_slots(key);
 
-    return get_array(result);
+    return get_array_or_nil(result) >= 0;
 }
 

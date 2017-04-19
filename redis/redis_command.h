@@ -24,13 +24,12 @@ protected:
     std::string build_command(const char *format, ...);
     redisReply* run_command();
 
-    bool check_status();
-    int check_status_or_nil();
+/******************************************************************************/
+    bool check_status(const char* expection = "OK");
+    int check_status_or_nil(const char* expection = "OK");
 
-    std::string get_string(bool* success = NULL);
-    bool get_string(std::string* result);
     bool get_string(std::string& result);
-    std::string get_string_or_nil(bool* success = NULL);
+    bool get_string(std::string* result);
     int get_string_or_nil(std::string& result);
 
     long long get_integer64(bool* success = NULL);
@@ -54,16 +53,17 @@ private:
 private:
     redis_client* m_client;
     redisContext* m_rcon; // discard
-    std::string m_command; // discard
+    std::string m_command;
     int m_slot;
 
 ////////////////////////////////////////////////////////////////////////////////
 protected:
-    bool check_status(const char* success /*= "OK"*/);
     void build_request(const std::vector<std::string>& argv);
     redis_reply* run();
 
 private:
+    // 合成command命令, 方便日志输出
+    void generate_cmdstr(const std::vector<std::string>& argv);
     std::string parse_reply(const redis_reply* reply);
 
 private:

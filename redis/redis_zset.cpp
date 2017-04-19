@@ -56,7 +56,14 @@ long long redis_zset::zadd_ch(const std::string& key,
 bool redis_zset::zadd_incr(const std::string& key, double score,
                            const std::string& member, std::string& result)
 {
-    build_command("ZADD %s INCR %lf %s", key.c_str(), score, member.c_str());
+    std::vector<std::string> argv;
+    argv.push_back("ZADD");
+    argv.push_back(key.c_str());
+    argv.push_back("INCR");
+    argv.push_back(TO_STRING(score));
+    argv.push_back(member.c_str());
+
+    build_request(argv);
     hash_slots(key);
 
     return get_string(result);
@@ -87,7 +94,13 @@ long long redis_zset::zcount(const std::string& key, const std::string& min,
 bool redis_zset::zincrby(const std::string& key, double increment,
                          const std::string& member, std::string& result)
 {
-    build_command("ZINCRBY %s %lf %s", key.c_str(), increment, member.c_str());
+    std::vector<std::string> argv;
+    argv.push_back("ZINCRBY");
+    argv.push_back(key.c_str());
+    argv.push_back(TO_STRING(increment));
+    argv.push_back(member.c_str());
+
+    build_request(argv);
     hash_slots(key);
 
     return get_string(result);
@@ -139,7 +152,13 @@ long long redis_zset::zlexcount(const std::string& key,
 int redis_zset::zrange(const std::string& key, int start, int stop,
                        std::vector<std::string>& result)
 {
-    build_command("ZRANGE %s %d %d", key.c_str(), start, stop);
+    std::vector<std::string> argv;
+    argv.push_back("ZRANGE");
+    argv.push_back(key.c_str());
+    argv.push_back(TO_STRING(start));
+    argv.push_back(TO_STRING(stop));
+
+    build_request(argv);
     hash_slots(key);
 
     return get_array_or_nil(result);
@@ -149,7 +168,14 @@ int redis_zset::zrange_with_scores(const std::string& key,
     int start, int stop,
     std::vector< std::pair<std::string, double> >& result)
 {
-    build_command("ZRANGE %s %d %d WITHSCORES", key.c_str(), start, stop);
+    std::vector<std::string> argv;
+    argv.push_back("ZRANGE");
+    argv.push_back(key.c_str());
+    argv.push_back(TO_STRING(start));
+    argv.push_back(TO_STRING(stop));
+    argv.push_back("WITHSCORES");
+
+    build_request(argv);
     hash_slots(key);
 
     std::vector<std::string> elem_score;
@@ -178,18 +204,22 @@ int redis_zset::zrangeby(const char* cmd, const std::string& key,
                          std::vector<std::string>& result,
                          int offset, int count, bool with_scores /*= false*/)
 {
-    std::string limit("");
+    std::vector<std::string> argv;
+    argv.push_back(cmd);
+    argv.push_back(key.c_str());
+    argv.push_back(min.c_str());
+    argv.push_back(max.c_str());
+
     if (offset >=0 && count > 0) {
-        limit += "LIMIT ";
-        limit += TO_STRING(offset);
-        limit += " ";
-        limit += TO_STRING(count);
+        argv.push_back("LIMIT");
+        argv.push_back(TO_STRING(offset));
+        argv.push_back(TO_STRING(count));
+    }
+    if (with_scores) {
+        argv.push_back("WITHSCORES");
     }
 
-    // cmd key min max limit WITHSCORES
-    build_command("%s %s %s %s %s %s", cmd, key.c_str(),
-                  min.c_str(), max.c_str(), limit.c_str(),
-                  with_scores ? "WITHSCORES" : "");
+    build_request(argv);
     hash_slots(key);
 
     return get_array_or_nil(result);
@@ -299,7 +329,13 @@ int redis_zset::zremrangebyscore(const std::string& key, double min, double max)
 int redis_zset::zrevrange(const std::string& key, int start, int stop,
                           std::vector<std::string>& result)
 {
-    build_command("ZREVRANGE %s %d %d", key.c_str(), start, stop);
+    std::vector<std::string> argv;
+    argv.push_back("ZREVRANGE");
+    argv.push_back(key.c_str());
+    argv.push_back(TO_STRING(start));
+    argv.push_back(TO_STRING(stop));
+
+    build_request(argv);
     hash_slots(key);
 
     return get_array_or_nil(result);
@@ -308,7 +344,14 @@ int redis_zset::zrevrange(const std::string& key, int start, int stop,
 int redis_zset::zrevrange_with_scores(const std::string& key, int start,
     int stop, std::vector< std::pair<std::string, double> >& result)
 {
-    build_command("ZREVRANGE %s %d %d WITHSCORES", key.c_str(), start, stop);
+    std::vector<std::string> argv;
+    argv.push_back("ZREVRANGE");
+    argv.push_back(key.c_str());
+    argv.push_back(TO_STRING(start));
+    argv.push_back(TO_STRING(stop));
+    argv.push_back("WITHSCORES");
+
+    build_request(argv);
     hash_slots(key);
 
     std::vector<std::string> elem_score;
@@ -394,7 +437,12 @@ int redis_zset::zscan(const std::string& key, int cursor,
 int redis_zset::zscore(const std::string& key, const std::string& member,
                        std::string& score)
 {
-    build_command("ZSCORE %s %s", key.c_str(), member.c_str());
+    std::vector<std::string> argv;
+    argv.push_back("ZSCORE");
+    argv.push_back(key.c_str());
+    argv.push_back(member.c_str());
+
+    build_request(argv);
     hash_slots(key);
 
     return get_string_or_nil(score);

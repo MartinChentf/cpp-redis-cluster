@@ -4,8 +4,14 @@
 int redis_list::blpop(const std::vector<std::string>& keys, long long timeout,
                       std::map<std::string,std::string>& result)
 {
-    std::string key_list = redis_helper::join(keys);
-    build_command("BLPOP %s %d", key_list.c_str(), timeout);
+    std::vector<std::string> argv;
+    argv.push_back("BLPOP");
+    for (size_t i = 0; i < keys.size(); i++) {
+        argv.push_back(keys[i]);
+    }
+    argv.push_back(TO_STRING(timeout));
+
+    build_request(argv);
     if (keys.size()) {
         hash_slots(keys[0]);
     }
@@ -27,8 +33,14 @@ int redis_list::blpop(const std::vector<std::string>& keys, long long timeout,
 int redis_list::brpop(const std::vector<std::string>& keys, long long timeout,
                       std::map<std::string,std::string>& result)
 {
-    std::string key_list = redis_helper::join(keys);
-    build_command("BRPOP %s %d", key_list.c_str(), timeout);
+    std::vector<std::string> argv;
+    argv.push_back("BRPOP");
+    for (size_t i = 0; i < keys.size(); i++) {
+        argv.push_back(keys[i]);
+    }
+    argv.push_back(TO_STRING(timeout));
+
+    build_request(argv);
     if (keys.size()) {
         hash_slots(keys[0]);
     }
@@ -50,7 +62,13 @@ int redis_list::brpop(const std::vector<std::string>& keys, long long timeout,
 int redis_list::brpoplpush(const std::string& src, const std::string& dest,
                            long long timeout, std::string& result)
 {
-    build_command("BRPOPLPUSH %s %s %d", src.c_str(), dest.c_str(), timeout);
+    std::vector<std::string> argv;
+    argv.push_back("BRPOPLPUSH");
+    argv.push_back(src.c_str());
+    argv.push_back(dest.c_str());
+    argv.push_back(TO_STRING(timeout));
+
+    build_request(argv);
     hash_slots(src);
 
     return get_string_or_nil(result);
@@ -58,7 +76,12 @@ int redis_list::brpoplpush(const std::string& src, const std::string& dest,
 
 int redis_list::lindex(const std::string& key, int index, std::string& result)
 {
-    build_command("LINDEX %s %d", key.c_str(), index);
+    std::vector<std::string> argv;
+    argv.push_back("LINDEX");
+    argv.push_back(key.c_str());
+    argv.push_back(TO_STRING(index));
+
+    build_request(argv);
     hash_slots(key);
 
     return get_string_or_nil(result);
@@ -85,7 +108,11 @@ long long redis_list::llen(const std::string& key)
 
 int redis_list::lpop(const std::string& key, std::string& result)
 {
-    build_command("LPOP %s", key.c_str());
+    std::vector<std::string> argv;
+    argv.push_back("LPOP");
+    argv.push_back(key.c_str());
+
+    build_request(argv);
     hash_slots(key);
 
     return get_string_or_nil(result);
@@ -112,10 +139,16 @@ long long redis_list::lpushx(const std::string& key, const std::string& value)
 bool redis_list::lrange(const std::string& key, int start, int stop,
                         std::vector<std::string>& result)
 {
-    build_command("LRANGE %s %d %d", key.c_str(), start, stop);
+    std::vector<std::string> argv;
+    argv.push_back("LRANGE");
+    argv.push_back(key.c_str());
+    argv.push_back(TO_STRING(start));
+    argv.push_back(TO_STRING(stop));
+
+    build_request(argv);
     hash_slots(key);
 
-    return get_array(result);
+    return get_array_or_nil(result) >= 0;
 }
 
 long long redis_list::lrem(const std::string& key, int count,
@@ -130,7 +163,18 @@ long long redis_list::lrem(const std::string& key, int count,
 bool redis_list::lset(const std::string& key, int index,
                       const std::string& value)
 {
+#if 0
+#define 0
     build_command("LSET %s %d %s", key.c_str(), index, value.c_str());
+    hash_slots(key);
+#endif /* 0 */
+
+    std::vector<std::string> argv;
+    argv.push_back("LSET");
+    argv.push_back(key.c_str());
+    argv.push_back(TO_STRING(index));
+    argv.push_back(value.c_str());
+    build_request(argv);
     hash_slots(key);
 
     return check_status();
@@ -138,7 +182,17 @@ bool redis_list::lset(const std::string& key, int index,
 
 bool redis_list::ltrim(const std::string& key, int start, int stop)
 {
+#if 0
     build_command("LTRIM %s %d %d", key.c_str(), start, stop);
+    hash_slots(key);
+#endif /* 0 */
+
+    std::vector<std::string> argv;
+    argv.push_back("LTRIM");
+    argv.push_back(key.c_str());
+    argv.push_back(TO_STRING(start));
+    argv.push_back(TO_STRING(stop));
+    build_request(argv);
     hash_slots(key);
 
     return check_status();
@@ -146,7 +200,11 @@ bool redis_list::ltrim(const std::string& key, int start, int stop)
 
 int redis_list::rpop(const std::string& key, std::string& result)
 {
-    build_command("RPOP %s", key.c_str());
+    std::vector<std::string> argv;
+    argv.push_back("RPOP");
+    argv.push_back(key.c_str());
+
+    build_request(argv);
     hash_slots(key);
 
     return get_string_or_nil(result);
@@ -155,7 +213,12 @@ int redis_list::rpop(const std::string& key, std::string& result)
 int redis_list::rpoplpush(const std::string& src, const std::string& dest,
                           std::string& result)
 {
-    build_command("RPOPLPUSH %s %s", src.c_str(), dest.c_str());
+    std::vector<std::string> argv;
+    argv.push_back("RPOPLPUSH");
+    argv.push_back(src.c_str());
+    argv.push_back(dest.c_str());
+
+    build_request(argv);
     hash_slots(src);
 
     return get_string_or_nil(result);

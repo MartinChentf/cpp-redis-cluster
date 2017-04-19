@@ -95,7 +95,8 @@ int socket_client::recv_msg(void * buff, int len)
         return -1;
     }
 
-    int r_len = (int)recv(m_sockid, buff, (size_t)(len - read_len), 0);
+    int r_len =
+        (int)recv(m_sockid, (char*)buff+read_len, (size_t)(len-read_len), 0);
     if(r_len < 0) {
         close_socket();
         return -1;

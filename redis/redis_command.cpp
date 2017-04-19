@@ -26,8 +26,10 @@ void redis_command::set_client(redis_client * client)
 void redis_command::hash_slots(std::string key)
 {
     if (m_client != NULL) {
-        m_slot = m_client->get_key_slot(key);
-        m_rcon = m_client->get_redis_context_by_slot(m_slot);
+        m_slot = m_client->get_key_slot(key);   // ɾ
+        m_rcon = m_client->get_redis_context_by_slot(m_slot); // ɾ
+
+        m_client->set_hash_slot(key);
     }
 }
 
@@ -107,154 +109,61 @@ std::string redis_command::parse_reply(redisReply * reply)
     }
 }
 
-////////////////////////////////////////////////////////////////////////////////
-bool redis_command::check_status()
+bool redis_command::get_string(std::string & result)
 {
-    bool bret = false;
-
-    redisReply* reply = run_command();
-
-    if (reply == NULL || reply->type == REDIS_REPLY_ERROR) {
+    redis_reply* reply = run();
+    if (reply == NULL || reply->get_type() != T_REDIS_REPLY_STRING) {
         ERROR("Execute command fail! [%s], %s",
             m_command.c_str(), parse_reply(reply).c_str());
+        SAFE_DELETE(reply);
+        return false;
     }
-    else if (reply->type == REDIS_REPLY_STATUS &&
-             strcasecmp(reply->str, "OK") == 0) {
-        NORMAL("Execute command success! [%s]", m_command.c_str());
-        bret = true;
-    }
-    else {
-        WARN("Unexpected reply: %s", parse_reply(reply).c_str());
-    }
+    DEBUG("Execute command success! [%s]", m_command.c_str());
 
-    freeReplyObject(reply);
-    return bret;
-}
-
-int redis_command::check_status_or_nil()
-{
-    int iret = -1;
-
-    redisReply* reply = run_command();
-
-    if (reply == NULL || reply->type == REDIS_REPLY_ERROR) {
-        ERROR("Execute command fail! [%s], %s",
-            m_command.c_str(), parse_reply(reply).c_str());
-    }
-    else if (reply->type == REDIS_REPLY_STATUS &&
-             strcasecmp(reply->str, "OK") == 0) {
-        NORMAL("Execute command success! [%s]", m_command.c_str());
-        iret = 1;
-    }
-    else if (reply->type == REDIS_REPLY_NIL) {
-        NORMAL("Execute command success! [%s], Reply is nil!",
-            m_command.c_str());
-        iret = 0;
-    }
-    else {
-        WARN("Unexpected reply: %s", parse_reply(reply).c_str());
-    }
-
-    freeReplyObject(reply);
-    return iret;
-}
-
-std::string redis_command::get_string(bool * success /*= NULL*/)
-{
-    std::string ret_str("");
-
-    redisReply* reply = run_command();
-
-    if (reply == NULL || reply->type == REDIS_REPLY_ERROR) {
-        ERROR("Execute command fail! [%s], %s",
-            m_command.c_str(), parse_reply(reply).c_str());
-        SAFE_ASSIGN(success, false);
-    }
-    else if (reply->type == REDIS_REPLY_STRING) {
-        NORMAL("Execute command success! [%s]", m_command.c_str());
-        ret_str = reply->str;
-        SAFE_ASSIGN(success, true);
-    }
-    else {
-        WARN("Unexpected reply: %s", parse_reply(reply).c_str());
-        SAFE_ASSIGN(success, false);
-    }
-
-    freeReplyObject(reply);
-    return ret_str;
+    result = reply->get_string();
+    SAFE_DELETE(reply);
+    return true;
 }
 
 bool redis_command::get_string(std::string * result)
 {
-    bool success;
-    SAFE_ASSIGN_FUNC(result, get_string(&success));
-    return success;
-}
-
-bool redis_command::get_string(std::string & result)
-{
-    bool success;
-    result = get_string(&success);
-    return success;
-}
-
-std::string redis_command::get_string_or_nil(bool * success /*= NULL*/)
-{
-    std::string ret_str("");
-
-    redisReply* reply = run_command();
-
-    if (reply == NULL || reply->type == REDIS_REPLY_ERROR) {
+    redis_reply* reply = run();
+    if (reply == NULL || reply->get_type() != T_REDIS_REPLY_STRING) {
         ERROR("Execute command fail! [%s], %s",
             m_command.c_str(), parse_reply(reply).c_str());
-        SAFE_ASSIGN(success, false);
+        SAFE_DELETE(reply);
+        return false;
     }
-    else if (reply->type == REDIS_REPLY_STRING) {
-        NORMAL("Execute command success! [%s]", m_command.c_str());
-        ret_str = reply->str;
-        SAFE_ASSIGN(success, true);
-    }
-    else if (reply->type == REDIS_REPLY_NIL) {
-        NORMAL("Execute command success! [%s], Reply is nil!",
-            m_command.c_str());
-        SAFE_ASSIGN(success, true);
-    }
-    else {
-        WARN("Unexpected reply: %s", parse_reply(reply).c_str());
-        SAFE_ASSIGN(success, false);
-    }
+    DEBUG("Execute command success! [%s]", m_command.c_str());
 
-    freeReplyObject(reply);
-    return ret_str;
+    if (result != NULL)
+        *result = reply->get_string();
+    SAFE_DELETE(reply);
+    return true;
 }
 
 int redis_command::get_string_or_nil(std::string& result)
 {
-    int iret = -1;
-
-    redisReply* reply = run_command();
-
-    if (reply == NULL || reply->type == REDIS_REPLY_ERROR) {
+    redis_reply* reply = run();
+    if (reply == NULL
+        || (reply->get_type() != T_REDIS_REPLY_STRING
+            && reply->get_type() != T_REDIS_REPLY_NIL)) {
         ERROR("Execute command fail! [%s], %s",
             m_command.c_str(), parse_reply(reply).c_str());
-    }
-    else if (reply->type == REDIS_REPLY_STRING) {
-        NORMAL("Execute command success! [%s]", m_command.c_str());
-        result = std::string(reply->str);
-        iret = 1;
-    }
-    else if (reply->type == REDIS_REPLY_NIL) {
-        NORMAL("Execute command success! [%s], Reply is nil!",
-            m_command.c_str());
-        result = "";
-        iret = 0;
-    }
-    else {
-        WARN("Unexpected reply: %s", parse_reply(reply).c_str());
+        SAFE_DELETE(reply);
+        return -1;
     }
 
-    freeReplyObject(reply);
-    return iret;
+    if (reply->get_type() == T_REDIS_REPLY_NIL) {
+        DEBUG("Execute command success! [%s], Reply is nil!",
+            m_command.c_str());
+        SAFE_DELETE(reply);
+        return 0;
+    }
+
+    result = reply->get_string();
+    SAFE_DELETE(reply);
+    return 1;
 }
 
 long long redis_command::get_integer64(bool * success /*= NULL*/)
@@ -339,97 +248,83 @@ int redis_command::get_integer32_or_nil(bool * success /*= NULL*/)
 
 bool redis_command::get_array(std::vector<std::string*>& result)
 {
-    bool bret = false;
-
-    redisReply* reply = run_command();
-
-    if (reply == NULL || reply->type == REDIS_REPLY_ERROR) {
+    redis_reply* reply = run();
+    if (reply == NULL || reply->get_type() != T_REDIS_REPLY_ARRAY) {
         ERROR("Execute command fail! [%s], %s",
             m_command.c_str(), parse_reply(reply).c_str());
+        SAFE_DELETE(reply);
+        return false;
     }
-    else if (reply->type == REDIS_REPLY_ARRAY) {
-        NORMAL("Execute command success! [%s]", m_command.c_str());
-        for (size_t i = 0; i < reply->elements; i ++) {
-            redisReply* elem = reply->element[i];
-            if (elem->type == REDIS_REPLY_STRING) {
-                result.push_back(new std::string(elem->str));
-            }
-            else {
-                result.push_back(NULL);
-            }
-        }
-        bret = true;
-    }
-    else {
-        WARN("Unexpected reply: %s", parse_reply(reply).c_str());
-    }
+    DEBUG("Execute command success! [%s]", m_command.c_str());
 
-    return bret;
+    for (size_t i = 0; i < reply->get_size(); i ++) {
+        const redis_reply* elem = reply->get_element(i);
+        if (elem->get_type() == T_REDIS_REPLY_STRING) {
+            result.push_back(new std::string(elem->get_string()));
+        }
+        else {
+            result.push_back(NULL);
+        }
+    }
+    SAFE_DELETE(reply);
+    return true;
 }
 
 bool redis_command::get_array(std::vector<std::string>& result)
 {
-    bool bret = false;
-
-    redisReply* reply = run_command();
-
-    if (reply == NULL || reply->type == REDIS_REPLY_ERROR) {
+    redis_reply* reply = run();
+    if (reply == NULL || reply->get_type() != T_REDIS_REPLY_ARRAY) {
         ERROR("Execute command fail! [%s], %s",
             m_command.c_str(), parse_reply(reply).c_str());
+        SAFE_DELETE(reply);
+        return false;
     }
-    else if (reply->type == REDIS_REPLY_ARRAY) {
-        NORMAL("Execute command success! [%s]", m_command.c_str());
-        for (size_t i = 0; i < reply->elements; i ++) {
-            redisReply* elem = reply->element[i];
-            if (elem->type == REDIS_REPLY_STRING) {
-                result.push_back(elem->str);
-            }
-            else {
-                result.push_back("");
-            }
-        }
-        bret = true;
-    }
-    else {
-        WARN("Unexpected reply: %s", parse_reply(reply).c_str());
-    }
+    DEBUG("Execute command success! [%s]", m_command.c_str());
 
-    return bret;
+    for (size_t i = 0; i < reply->get_size(); i ++) {
+        const redis_reply* elem = reply->get_element(i);
+        if (elem->get_type() == T_REDIS_REPLY_STRING) {
+            result.push_back(elem->get_string());
+        }
+        else {
+            result.push_back("");
+        }
+    }
+    SAFE_DELETE(reply);
+    return true;
 }
 
 int redis_command::get_array_or_nil(std::vector<std::string>& result)
 {
-    int iret = -1;
-
-    redisReply* reply = run_command();
-
-    if (reply == NULL || reply->type == REDIS_REPLY_ERROR) {
+    redis_reply* reply = run();
+    if (reply == NULL
+        || (reply->get_type() != T_REDIS_REPLY_ARRAY
+            && reply->get_type() != T_REDIS_REPLY_NIL)) {
         ERROR("Execute command fail! [%s], %s",
             m_command.c_str(), parse_reply(reply).c_str());
+        SAFE_DELETE(reply);
+        return -1;
     }
-    else if (reply->type == REDIS_REPLY_ARRAY) {
-        NORMAL("Execute command success! [%s]", m_command.c_str());
-        for (size_t i = 0; i < reply->elements; i ++) {
-            redisReply* elem = reply->element[i];
-            if (elem->type == REDIS_REPLY_STRING) {
-                result.push_back(elem->str);
-            }
-            else {
-                result.push_back("");
-            }
-        }
-        iret = reply->elements;
-    }
-    else if (reply->type == REDIS_REPLY_NIL) {
-        NORMAL("Execute command success! [%s], Reply is nil!",
+    
+    if (reply->get_type() == REDIS_REPLY_NIL) {
+        DEBUG("Execute command success! [%s], Reply is nil!",
             m_command.c_str());
-        iret = 0;
+        SAFE_DELETE(reply);
+        return 0;
     }
-    else {
-        WARN("Unexpected reply: %s", parse_reply(reply).c_str());
-    }
+    DEBUG("Execute command success! [%s]", m_command.c_str());
 
-    return iret;
+    for (size_t i = 0; i < reply->get_size(); i ++) {
+        const redis_reply* elem = reply->get_element(i);
+        if (elem->get_type() == REDIS_REPLY_STRING) {
+            result.push_back(elem->get_string());
+        }
+        else {
+            result.push_back("");
+        }
+    }
+    SAFE_DELETE(reply);
+    return 1;
 }
 
 int redis_command::get_cursor_array(std::vector<std::string>* result)
@@ -520,6 +415,20 @@ void redis_command::build_request(const std::vector<std::string>& argv)
         m_request_buf += argv[i];
         m_request_buf += "\r\n";
     }
+
+    generate_cmdstr(argv);
+}
+
+void redis_command::generate_cmdstr(const std::vector<std::string>& argv)
+{
+    m_command.clear();
+
+    for (size_t i = 0; i < argv.size(); i++) {
+        m_command.push_back('"');
+        m_command += argv[i];
+        m_command.push_back('"');
+        m_command.push_back(' ');
+    }
 }
 
 bool redis_command::check_status(const char * expection /*= "OK"*/)
@@ -548,6 +457,44 @@ bool redis_command::check_status(const char * expection /*= "OK"*/)
              status.c_str(), expection);
         SAFE_DELETE(reply);
         return false;
+    }
+}
+
+int redis_command::check_status_or_nil(const char * expection /*= "OK"*/)
+{
+    redis_reply* reply = run();
+    if (reply == NULL
+        || (reply->get_type() != T_REDIS_REPLY_STATUS
+            && reply->get_type() != T_REDIS_REPLY_NIL)) {
+        ERROR("Execute command fail! [%s], %s",
+            m_command.c_str(), parse_reply(reply).c_str());
+        SAFE_DELETE(reply);
+        return -1;
+    }
+
+    if (reply->get_type() == T_REDIS_REPLY_NIL) {
+        NORMAL("Execute command success! [%s], Reply is nil!",
+            m_command.c_str());
+        SAFE_DELETE(reply);
+        return 0;
+    }
+
+    const std::string status = reply->get_status();
+    if (status.empty()) {
+        WARN("Execute command fail! , status is empty");
+        SAFE_DELETE(reply);
+        return false;
+    }
+    else if (expection == NULL || strcasecmp(status.c_str(), expection) == 0) {
+        NORMAL("Execute command success! [%s]", m_command.c_str());
+        SAFE_DELETE(reply);
+        return 1;
+    }
+    else {
+        WARN("Execute command fail! , status:[%s], expection:[%s]",
+             status.c_str(), expection);
+        SAFE_DELETE(reply);
+        return -1;
     }
 }
 

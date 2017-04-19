@@ -37,7 +37,7 @@ public:
 
 public:
     t_redis_reply get_type() const { return m_type; }
-    int get_size() const;
+    size_t get_size() const;
     const redis_reply* get_element(size_t idx) const;
     std::string get_status() const;
     std::string get_error() const;

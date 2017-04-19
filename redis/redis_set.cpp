@@ -41,14 +41,18 @@ bool redis_set::set_operation(const char* op,
                               const std::vector<std::string>& keys,
                               std::vector<std::string>& result)
 {
-    std::string key_list = redis_helper::join(keys);
-    build_command("%s %s", op, key_list.c_str());
+    std::vector<std::string> argv;
+    argv.push_back(op);
+    for (size_t i = 0; i < keys.size(); i++) {
+        argv.push_back(keys[i]);
+    }
 
+    build_request(argv);
     if (keys.size()) {
         hash_slots(keys[0]);
     }
 
-    return get_array(result);
+    return get_array_or_nil(result) >= 0;
 }
 
 long long redis_set::sdiffstore(const std::string& dest,
@@ -92,7 +96,11 @@ int redis_set::sismember(const std::string& key, const std::string& member)
 int redis_set::smembers(const std::string& key,
                         std::vector<std::string>& result)
 {
-    build_command("SMEMBERS %s", key.c_str());
+    std::vector<std::string> argv;
+    argv.push_back("SMEMBERS");
+    argv.push_back(key.c_str());
+
+    build_request(argv);
     hash_slots(key);
 
     return get_array_or_nil(result);
@@ -109,7 +117,11 @@ int redis_set::smove(const std::string& src, const std::string& dest,
 
 int redis_set::spop(const std::string& key, std::string& result)
 {
-    build_command("SPOP %s", key.c_str());
+    std::vector<std::string> argv;
+    argv.push_back("SPOP");
+    argv.push_back(key.c_str());
+
+    build_request(argv);
     hash_slots(key);
 
     return get_string_or_nil(result);
@@ -118,7 +130,12 @@ int redis_set::spop(const std::string& key, std::string& result)
 int redis_set::spop(const std::string& key,
                     std::vector<std::string>& result, int count)
 {
-    build_command("SPOP %s %d", key.c_str(), count);
+    std::vector<std::string> argv;
+    argv.push_back("SPOP");
+    argv.push_back(key.c_str());
+    argv.push_back(TO_STRING(count));
+
+    build_request(argv);
     hash_slots(key);
 
     return get_array_or_nil(result);
@@ -126,7 +143,11 @@ int redis_set::spop(const std::string& key,
 
 int redis_set::srandmember(const std::string& key, std::string& result)
 {
-    build_command("SRANDMEMBER %s", key.c_str());
+    std::vector<std::string> argv;
+    argv.push_back("SRANDMEMBER");
+    argv.push_back(key.c_str());
+
+    build_request(argv);
     hash_slots(key);
 
     return get_string_or_nil(result);
@@ -135,7 +156,12 @@ int redis_set::srandmember(const std::string& key, std::string& result)
 int redis_set::srandmember(const std::string& key,
                            std::vector<std::string>& result, int count)
 {
-    build_command("SRANDMEMBER %s %d", key.c_str(), count);
+    std::vector<std::string> argv;
+    argv.push_back("SRANDMEMBER");
+    argv.push_back(key.c_str());
+    argv.push_back(TO_STRING(count));
+
+    build_request(argv);
     hash_slots(key);
 
     return get_array_or_nil(result);

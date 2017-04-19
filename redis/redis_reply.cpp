@@ -25,7 +25,7 @@ void redis_reply::clear()
     }
 }
 
-int redis_reply::get_size() const
+size_t redis_reply::get_size() const
 {
     switch (m_type) {
         case T_REDIS_REPLY_NIL:
