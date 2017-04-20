@@ -21,6 +21,8 @@ void redis_list_test::SetUpTestCase() {
     m_pList = new redis_list(m_pClient);
     m_pKey = new redis_key(m_pClient);
     m_pStr = new redis_string(m_pClient);
+
+    m_pKey->del("foo");
 }
 
 void redis_list_test::TearDownTestCase() {
@@ -426,44 +428,46 @@ TEST_F(redis_list_test, blpop_non_block)
 {
     std::vector<std::string> keys;
     keys.push_back("foo");
-    std::map<std::string, std::string> result;
+    std::string key, value;
 
     // 弹出列表中第一个元素
-    EXPECT_EQ(1, redis_list_test::m_pList->blpop(keys, 2, result));
-    EXPECT_EQ("foo:three", redis_helper::join(result, ":"));
+    EXPECT_EQ(1, redis_list_test::m_pList->blpop(keys, 2, key, value));
+    EXPECT_EQ("foo", key);
+    EXPECT_EQ("three", value);
 
     // key为空列表, 超时的情况
     redis_list_test::m_pList->ltrim("foo", 1, 0);
-    EXPECT_EQ(0, redis_list_test::m_pList->blpop(keys, 2, result));
+    EXPECT_EQ(0, redis_list_test::m_pList->blpop(keys, 2, key, value));
 
     // key类型错误的情况
     redis_list_test::m_pStr->set("foo", "hello");
-    EXPECT_EQ(-1, redis_list_test::m_pList->blpop(keys, 2, result));
+    EXPECT_EQ(-1, redis_list_test::m_pList->blpop(keys, 2, key, value));
 
     // 其他错误(超时时间为负值) 
-    EXPECT_EQ(-1, redis_list_test::m_pList->blpop(keys, -2, result));
+    EXPECT_EQ(-1, redis_list_test::m_pList->blpop(keys, -2, key, value));
 }
 
 TEST_F(redis_list_test, brpop_non_block)
 {
     std::vector<std::string> keys;
     keys.push_back("foo");
-    std::map<std::string, std::string> result;
+    std::string key, value;
 
     // 弹出列表末尾元素
-    EXPECT_EQ(1, redis_list_test::m_pList->brpop(keys, 2, result));
-    EXPECT_EQ("foo:one", redis_helper::join(result, ":"));
+    EXPECT_EQ(1, redis_list_test::m_pList->brpop(keys, 2, key, value));
+    EXPECT_EQ("foo", key);
+    EXPECT_EQ("one", value);
 
     // key为空列表, 超时的情况
     redis_list_test::m_pList->ltrim("foo", 1, 0);
-    EXPECT_EQ(0, redis_list_test::m_pList->brpop(keys, 2, result));
+    EXPECT_EQ(0, redis_list_test::m_pList->brpop(keys, 2, key, value));
 
     // key类型错误的情况
     redis_list_test::m_pStr->set("foo", "hello");
-    EXPECT_EQ(-1, redis_list_test::m_pList->brpop(keys, 2, result));
+    EXPECT_EQ(-1, redis_list_test::m_pList->brpop(keys, 2, key, value));
 
     // 其他错误(超时时间为负值) 
-    EXPECT_EQ(-1, redis_list_test::m_pList->brpop(keys, -2, result));
+    EXPECT_EQ(-1, redis_list_test::m_pList->brpop(keys, -2, key, value));
 }
 
 TEST_F(redis_list_test, brpoplpush_non_block)
@@ -535,7 +539,6 @@ void* other_client(void*)
 
 TEST_F(redis_list_test, blpop_with_block)
 {
-    std::map<std::string, std::string> result;
     std::vector<std::string> keys;
     keys.push_back("foo");
 
@@ -545,15 +548,16 @@ TEST_F(redis_list_test, blpop_with_block)
     EXPECT_EQ(0, pthread_create(&id, NULL, other_client, NULL));
 
     // 弹出列表中第一个元素
-    EXPECT_EQ(1, redis_list_test::m_pList->blpop(keys, 0, result));
-    EXPECT_EQ("foo:one", redis_helper::join(result, ":"));
+    std::string key, value;
+    EXPECT_EQ(1, redis_list_test::m_pList->blpop(keys, 0, key, value));
+    EXPECT_EQ("foo", key);
+    EXPECT_EQ("one", value);
 
     pthread_join(id, NULL);
 }
 
 TEST_F(redis_list_test, brpop_with_block)
 {
-    std::map<std::string, std::string> result;
     std::vector<std::string> keys;
     keys.push_back("foo");
 
@@ -563,8 +567,10 @@ TEST_F(redis_list_test, brpop_with_block)
     EXPECT_EQ(0, pthread_create(&id, NULL, other_client, NULL));
 
     // 弹出列表末尾元素
-    EXPECT_EQ(1, redis_list_test::m_pList->brpop(keys, 0, result));
-    EXPECT_EQ("foo:one", redis_helper::join(result, ":"));
+    std::string key, value;
+    EXPECT_EQ(1, redis_list_test::m_pList->brpop(keys, 0, key, value));
+    EXPECT_EQ("foo", key);
+    EXPECT_EQ("one", value);
 
     pthread_join(id, NULL);
 }

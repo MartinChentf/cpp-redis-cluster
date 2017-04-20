@@ -6,7 +6,7 @@ OBJECT=$(patsubst %.cpp, %.o, $(SOURCE))
 all: $(OBJECT)
 
 .cpp.o:
-	$(CXX) -c $(CPPFLAGS) $(HIREDIS_INCS) $(HIREDIS_LIBS) $<
+	$(CXX) -c $(CPPFLAGS) $(REDIS_INCS) $<
 
 .PHONY: clean
 

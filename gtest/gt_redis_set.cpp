@@ -19,6 +19,8 @@ void redis_set_test::SetUpTestCase() {
     m_pSet = new redis_set(m_pClient);
     m_pKey = new redis_key(m_pClient);
     m_pStr = new redis_string(m_pClient);
+
+    m_pKey->del("foo");
 }
 
 void redis_set_test::TearDownTestCase() {

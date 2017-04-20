@@ -65,10 +65,13 @@ public:
      * @param [IN] key {const std::string&} 哈希集对象的key
      * @param [OUT] result {std::map<std::string, std::string>&}
      *   所有域以及关联的值的映射表. 如果key不存在, 则映射表为空
-     * @return {bool} 操作是否成功, false表示出错或key的value类型错误(non-hash)
+     * @return {int} 返回操作结果, 返回值如下:
+     *   >0: 哈希集中域的个数
+     *    0: key不存在
+     *   -1: 出错或key的value类型错误(non-hash)
      */
-    bool hgetall(const std::string& key,
-                 std::map<std::string, std::string>& result);
+    int hgetall(const std::string& key,
+                std::map<std::string, std::string>& result);
 
     /**
      * @description

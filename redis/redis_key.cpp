@@ -3,8 +3,14 @@
 
 int redis_key::del(const std::vector<std::string>& keys)
 {
-    std::string key_list = redis_helper::join(keys);
-    build_command("DEL %s", key_list.c_str());
+    std::vector<std::string> argv;
+    argv.push_back("DEL");
+
+    for (size_t i = 0; i < keys.size(); i++) {
+        argv.push_back(keys[i]);
+    }
+
+    build_request(argv);
 
     if (!keys.empty()) {
         hash_slots(keys[0]);

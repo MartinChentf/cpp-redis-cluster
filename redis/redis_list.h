@@ -23,7 +23,8 @@ public:
      *   2) 如果给定的列表中至少有一个非空列表, 则弹出第一个非空列表的头部元素.
      * @param [IN] keys {const std::vector<std::string>&} 给定弹出元素的列表组
      * @param [IN] timeout {long long} 超时时间
-     * @param [OUT] result {std::map<std::string, std::string>&}
+     * @param [OUT] key {std::string&} 弹出元素的列表
+     * @param [OUT] value {std::string&} 弹出元素
      *   存储弹出元素的key以及对应的元素
      * @return {int} 返回操作结果, 返回值如下:
      *    1: 操作成功
@@ -34,7 +35,7 @@ public:
      * @date 2017-03-29
      */
     int blpop(const std::vector<std::string>& keys, long long timeout,
-              std::map<std::string, std::string>& result);
+              std::string& key, std::string& value);
 
     /**
      * @description
@@ -42,7 +43,8 @@ public:
      *   blpop函数类似, 除了brpop函数是从列表尾部弹出元素.
      * @param [IN] keys {const std::vector<std::string>&} 给定弹出元素的列表组
      * @param [IN] timeout {long long} 超时时间
-     * @param [OUT] result {std::map<std::string, std::string>&}
+     * @param [OUT] key {std::string&} 弹出元素的列表
+     * @param [OUT] value {std::string&} 弹出元素
      *   存储弹出元素的key以及对应的元素
      * @return {int} 返回操作结果, 返回值如下:
      *    1: 操作成功
@@ -53,7 +55,7 @@ public:
      * @date 2017-03-29
      */
     int brpop(const std::vector<std::string>& keys, long long timeout,
-              std::map<std::string, std::string>& result);
+              std::string& key, std::string& value);
     /**
      * @description
      *   brpoplpush函数是rpoplpush函数的阻塞版本. 当src包含元素时, 行为和

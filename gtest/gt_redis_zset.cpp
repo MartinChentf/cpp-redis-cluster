@@ -22,6 +22,8 @@ void redis_zset_test::SetUpTestCase() {
     m_pZset = new redis_zset(m_pClient);
     m_pKey = new redis_key(m_pClient);
     m_pStr = new redis_string(m_pClient);
+
+    m_pKey->del("foo");
 }
 
 void redis_zset_test::TearDownTestCase() {
@@ -297,14 +299,14 @@ TEST_F(redis_zset_test, zinterstore_SUM)
     std::vector<double> weights;
     redis_zset_test::zstoreSetUp(keys, weights);
 
-    EXPECT_EQ(2, redis_zset_test::m_pZset->zinterstore("{foo}:2", 2, keys, weights));
+    EXPECT_EQ(2, redis_zset_test::m_pZset->zinterstore("{foo}:2", 2, keys, &weights));
     EXPECT_EQ(2, redis_zset_test::m_pZset->zrange_with_scores("{foo}:2", 0, -1, result));
     EXPECT_EQ("two:4, four:12", redis_helper::join(result, ", "));
     result.clear();
 
     // key的类型错误
     redis_zset_test::m_pStr->set("foo", "hello");
-    EXPECT_EQ(-1, redis_zset_test::m_pZset->zinterstore("{foo}:2", 2, keys, weights));
+    EXPECT_EQ(-1, redis_zset_test::m_pZset->zinterstore("{foo}:2", 2, keys, &weights));
 
     redis_zset_test::zstoreTearDown();
 }
@@ -316,7 +318,7 @@ TEST_F(redis_zset_test, zinterstore_MIN)
     std::vector<double> weights;
     redis_zset_test::zstoreSetUp(keys, weights);
 
-    EXPECT_EQ(2, redis_zset_test::m_pZset->zinterstore("{foo}:2", 2, keys, weights, "MIN"));
+    EXPECT_EQ(2, redis_zset_test::m_pZset->zinterstore("{foo}:2", 2, keys, &weights, "MIN"));
     EXPECT_EQ(2, redis_zset_test::m_pZset->zrange_with_scores("{foo}:2", 0, -1, result));
     EXPECT_EQ("two:2, four:4", redis_helper::join(result, ", "));
     result.clear();
@@ -331,7 +333,7 @@ TEST_F(redis_zset_test, zinterstore_MAX)
     std::vector<double> weights;
     redis_zset_test::zstoreSetUp(keys, weights);
 
-    EXPECT_EQ(2, redis_zset_test::m_pZset->zinterstore("{foo}:2", 2, keys, weights, "MAX"));
+    EXPECT_EQ(2, redis_zset_test::m_pZset->zinterstore("{foo}:2", 2, keys, &weights, "MAX"));
     EXPECT_EQ(2, redis_zset_test::m_pZset->zrange_with_scores("{foo}:2", 0, -1, result));
     EXPECT_EQ("two:2, four:8", redis_helper::join(result, ", "));
     result.clear();
@@ -346,14 +348,14 @@ TEST_F(redis_zset_test, zunionstore_SUM)
     std::vector<double> weights;
     redis_zset_test::zstoreSetUp(keys, weights);
 
-    EXPECT_EQ(5, redis_zset_test::m_pZset->zunionstore("{foo}:2", 2, keys, weights));
+    EXPECT_EQ(5, redis_zset_test::m_pZset->zunionstore("{foo}:2", 2, keys, &weights));
     EXPECT_EQ(5, redis_zset_test::m_pZset->zrange_with_scores("{foo}:2", 0, -1, result));
     EXPECT_EQ("one:1, three:3, two:4, four:12, six:18", redis_helper::join(result, ", "));
     result.clear();
 
     // key的类型错误
     redis_zset_test::m_pStr->set("foo", "hello");
-    EXPECT_EQ(-1, redis_zset_test::m_pZset->zunionstore("{foo}:2", 2, keys, weights));
+    EXPECT_EQ(-1, redis_zset_test::m_pZset->zunionstore("{foo}:2", 2, keys, &weights));
 
     redis_zset_test::zstoreTearDown();
 }
@@ -365,7 +367,7 @@ TEST_F(redis_zset_test, zunionstore_MIN)
     std::vector<double> weights;
     redis_zset_test::zstoreSetUp(keys, weights);
 
-    EXPECT_EQ(5, redis_zset_test::m_pZset->zunionstore("{foo}:2", 2, keys, weights, "MIN"));
+    EXPECT_EQ(5, redis_zset_test::m_pZset->zunionstore("{foo}:2", 2, keys, &weights, "MIN"));
     EXPECT_EQ(5, redis_zset_test::m_pZset->zrange_with_scores("{foo}:2", 0, -1, result));
     EXPECT_EQ("one:1, two:2, three:3, four:4, six:18", redis_helper::join(result, ", "));
     result.clear();
@@ -380,7 +382,7 @@ TEST_F(redis_zset_test, zunionstore_MAX)
     std::vector<double> weights;
     redis_zset_test::zstoreSetUp(keys, weights);
 
-    EXPECT_EQ(5, redis_zset_test::m_pZset->zunionstore("{foo}:2", 2, keys, weights, "MAX"));
+    EXPECT_EQ(5, redis_zset_test::m_pZset->zunionstore("{foo}:2", 2, keys, &weights, "MAX"));
     EXPECT_EQ(5, redis_zset_test::m_pZset->zrange_with_scores("{foo}:2", 0, -1, result));
     EXPECT_EQ("one:1, two:2, three:3, four:8, six:18", redis_helper::join(result, ", "));
     result.clear();

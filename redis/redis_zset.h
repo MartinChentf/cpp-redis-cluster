@@ -141,7 +141,7 @@ public:
      * @param [IN] numkeys {int} 需要计算的有序集合的个数
      * @param [IN] keys {const std::vector<std::string>&}
      *   给定的一组有序集合. keys的数量由numkeys指定, 否则出错
-     * @param [IN] weights {const std::vector<double>&} 有序集合对应的权重列表.
+     * @param [IN] weights {const std::vector<double>*} 有序集合对应的权重列表.
      *   每一个集合对应一个权重值. 当权重列表为空时, 表示默认权重值为1.
      * @param [IN] aggregate {const char*} 指定结果集的聚合方式. 默认值为"SUM",
      *   取值如下:
@@ -156,7 +156,7 @@ public:
      */
     long long zinterstore(const std::string& dest, int numkeys,
                           const std::vector<std::string>& keys,
-                          const std::vector<double>& weights,
+                          const std::vector<double>* weights = NULL,
                           const char* aggregate = "SUM");
 
     /**
@@ -167,7 +167,7 @@ public:
      */
     long long zunionstore(const std::string& dest, int numkeys,
                           const std::vector<std::string>& keys,
-                          const std::vector<double>& weights,
+                          const std::vector<double>* weights = NULL,
                           const char* aggregate = "SUM");
 
     /**
@@ -596,7 +596,7 @@ public:
 private:
     long long zstore(const char* cmd, const std::string& dest, int numkeys,
                      const std::vector<std::string>& keys,
-                     const std::vector<double>& weights,
+                     const std::vector<double>* weights,
                      const char* aggregate);
 
     int zrangeby(const char* cmd, const std::string& key,
@@ -608,10 +608,6 @@ private:
     // 如果列表中元素不是成对出现, 则返回-1
     int parse_element_score(const std::vector<std::string>& in,
                             std::vector< std::pair<std::string, double> >& out);
-
-    // 把成员/分数对转换成"score1 member1 score2 member2 ..."的字符串
-    std::string join(
-        const std::vector< std::pair<std::string, double> >& member_score);
 };
 
 #endif /* __REDIS_ZSET_H__ */

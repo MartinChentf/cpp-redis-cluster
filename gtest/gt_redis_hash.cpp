@@ -19,6 +19,8 @@ void redis_hash_test::SetUpTestCase() {
     m_pHash = new redis_hash(m_pClient);
     m_pKey = new redis_key(m_pClient);
     m_pStr = new redis_string(m_pClient);
+
+    m_pKey->del("foo");
 }
 
 void redis_hash_test::TearDownTestCase() {
@@ -51,12 +53,12 @@ TEST_F(redis_hash_test, hgetall)
 {
     std::map<std::string,std::string> result;
 
-    EXPECT_EQ(true, redis_hash_test::m_pHash->hgetall("foo", result));
+    EXPECT_EQ(5, redis_hash_test::m_pHash->hgetall("foo", result));
     EXPECT_EQ("f1 a f2 b f3 c f4 d f5 e", redis_helper::join(result));
 
     // keyÀàÐÍ´íÎó
     redis_hash_test::m_pStr->set("foo", "hello");
-    EXPECT_EQ(false, redis_hash_test::m_pHash->hgetall("foo", result));
+    EXPECT_EQ(-1, redis_hash_test::m_pHash->hgetall("foo", result));
 }
 
 TEST_F(redis_hash_test, hmset)

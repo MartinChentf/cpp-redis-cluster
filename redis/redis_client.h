@@ -6,8 +6,6 @@
 #include <map>
 #include <list>
 
-#include <hiredis.h>
-
 #include "redis_reply.h"
 class socket_client;
 
@@ -15,20 +13,20 @@ class redis_client
 {
 public:
     typedef struct cluster_node {
-        std::string host;
-        uint16_t port;
-        bool master;
-        redisContext* con;
-        socket_client* socket;
+        std::string host;       // IP
+        uint16_t port;          // port
+        bool master;            // redis-server是master节点
+        socket_client* socket;  // 与redis-server节点连接的socket
     } t_cluster_node;
     typedef std::pair<std::string, uint16_t> t_node_pair;
     typedef std::map<t_node_pair, t_cluster_node*> t_cluster_node_map;
     typedef t_cluster_node_map::iterator t_cluster_node_map_iter;
 
+    // 哈希槽区间
     typedef struct cluster_slots {
         int begin;
         int end;
-        t_cluster_node* node;
+        t_cluster_node* node; // 该区间的哈希槽所在的redis-server节点
     } t_cluster_slots;
     typedef std::list<t_cluster_slots*> t_slots_list;
     typedef t_slots_list::iterator t_slots_list_iter;
@@ -37,22 +35,29 @@ public:
     redis_client(const std::string host, uint16_t port);
     ~redis_client();
 
-    unsigned int get_key_slot(const std::string& key); // use
+    /**
+     * @description
+     *   当前redis_client是否连接的是redis集群
+     * @return {bool} true-集群; false-非集群
+     * @author chen.tengfei
+     * @date 2017-04-20
+     */
+    bool cluster() { return m_cluster_mode; }
 
-    redisContext* get_redis_context(); // use
-    redisContext* get_redis_context(const std::string host, uint16_t port);
-    redisContext* get_redis_context_by_slot(int slot); // use
-    redisContext* get_redis_context_by_key(std::string key);
-
-    bool is_cluster() { return m_cluster_mode; }
-
-////////////////////////////////////////////////////////////////////////////////
-    // 返回值redis_reply*由调用方负责释放
+    /**
+     * @description
+     *   执行请求的命令, 并返回经过解析的redis_server的应答
+     * @param [IN] request {const std::string&}
+     *   请求命令, 命令格式遵循Redis协议规范
+     * @return {redis_reply*} 解析后的redis_server的应答, 返回值由调用方负责释放
+     * @author chen.tengfei
+     * @date 2017-04-20
+     */
     redis_reply* run(const std::string& request);
 
     /**
      * @description
-     *   根据key值设置哈希槽, 使redis_client连接到哈希槽对应的redis_server
+     *   根据key值计算哈希槽, 使redis_client重定向到哈希槽所在的redis_server
      * @param [IN] key {const std::string&} 
      * @return {void} 
      * @author chen.tengfei
@@ -61,11 +66,17 @@ public:
     void set_hash_slot(const std::string& key);
 
 private:    
-    bool list_node_new();
-    // 连接指定节点，失败或错误返回空
+    bool init();
+    void clear();
+    bool list_node();
+    // 连接到指定redis_server节点, 失败或错误返回空
     socket_client* connect_node(const std::string& host, uint16_t port);
     bool parse_cluster_slots(redis_reply* reply);
+    t_cluster_node* create_cluster_node(const std::string host,
+        uint16_t port, bool master = false, socket_client* socket = NULL);
 
+/******************************************************************************/
+    unsigned int get_key_slot(const std::string& key);
     void redirect(int slot);
 
     void put_data(redis_reply* rr, const std::string& data);
@@ -77,49 +88,22 @@ private:
     redis_reply* get_redis_string();
     redis_reply* get_redis_array();
 
-////////////////////////////////////////////////////////////////////////////////
 private:
-    bool init();
-    bool list_node();
-
-    // 连接指定节点，失败或错误返回空
-    redisContext* connect_node(const t_node_pair& node);
-    bool parse_cluster_slots(redisReply* reply);
-
-    void clear();
-    void clear_nodes();
-    void clear_slots();
-
-    t_cluster_node* create_cluster_node(const std::string host,
-                                        uint16_t port,
-                                        bool master = false,
-                                        redisContext* con = NULL,
-                                        socket_client* socket = NULL);
-
-    // 判断给定redisContext是否可用，如果不可用则释放掉该redisContext
-    bool is_normal_context(redisContext* rcon);
-    redisContext* get_normal_context(); // 遍历所有节点获取一个正常连接的redisContext
-    redisContext* get_normal_context_with_cluster_mode();
-    redisContext* get_normal_context_with_singleton_mode();
+    std::string m_buff;
 
 private:
-    // 保存当前连接节点的host、IP和redisContext信息
+    bool m_binitialization;
+
+    // 保存当前连接redis_server节点的host、IP和socket_client信息
     // for both cluster mode and singleton mode
     std::string m_host;
     uint16_t m_port;
-    redisContext* m_rcon;
-
-    bool m_binitialization;
+    socket_client* m_socket;
 
 private: // for cluster mode
     bool m_cluster_mode;
-    t_cluster_node_map m_nodes;
+    t_cluster_node_map m_nodes; // cluster node
     t_slots_list m_slots;       // slots of master
-
-////////////////////////////////////////////////////////////////////////////////
-private:
-    socket_client* m_socket;
-    std::string m_buff;
 };
 
 #endif /* __REDIS_H__ */

@@ -5,13 +5,13 @@
 #include <string>
 
 typedef enum {
-    T_REDIS_REPLY_UNKOWN,     // 0
-    T_REDIS_REPLY_STRING,     // 1
-    T_REDIS_REPLY_ARRAY,      // 2
-    T_REDIS_REPLY_INTEGER,    // 3
-    T_REDIS_REPLY_NIL,        // 4
-    T_REDIS_REPLY_STATUS,     // 5
-    T_REDIS_REPLY_ERROR,      // 6
+    REDIS_REPLY_UNKOWN,     // 0
+    REDIS_REPLY_STRING,     // 1
+    REDIS_REPLY_ARRAY,      // 2
+    REDIS_REPLY_INTEGER,    // 3
+    REDIS_REPLY_NIL,        // 4
+    REDIS_REPLY_STATUS,     // 5
+    REDIS_REPLY_ERROR,      // 6
 } t_redis_reply;
 
 static const char * const REPLY_TYPE[] =

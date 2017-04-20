@@ -4,8 +4,14 @@
 long long redis_set::sadd(const std::string& key,
                           const std::vector<std::string>& member)
 {
-    std::string member_list = redis_helper::join(member);
-    build_command("SADD %s %s", key.c_str(), member_list.c_str());
+    std::vector<std::string> argv;
+    argv.push_back("SADD");
+    argv.push_back(key.c_str());
+    for (size_t i = 0; i < member.size(); i++) {
+        argv.push_back(member[i]);
+    }
+
+    build_request(argv);
     hash_slots(key);
 
     return get_integer64();
@@ -13,7 +19,11 @@ long long redis_set::sadd(const std::string& key,
 
 long long redis_set::scard(const std::string& key)
 {
-    build_command("SCARD %s", key.c_str());
+    std::vector<std::string> argv;
+    argv.push_back("SCARD");
+    argv.push_back(key.c_str());
+
+    build_request(argv);
     hash_slots(key);
 
     return get_integer64();
@@ -78,8 +88,14 @@ redis_set::set_operation_with_store(const char* op,
                                     const std::string& dest,
                                     const std::vector<std::string>& keys)
 {
-    std::string key_list = redis_helper::join(keys);
-    build_command("%s %s %s", op, dest.c_str(), key_list.c_str());
+    std::vector<std::string> argv;
+    argv.push_back(op);
+    argv.push_back(dest.c_str());
+    for (size_t i = 0; i < keys.size(); i++) {
+        argv.push_back(keys[i]);
+    }
+
+    build_request(argv);
     hash_slots(dest);
 
     return get_integer64();
@@ -87,7 +103,12 @@ redis_set::set_operation_with_store(const char* op,
 
 int redis_set::sismember(const std::string& key, const std::string& member)
 {
-    build_command("SISMEMBER %s %s", key.c_str(), member.c_str());
+    std::vector<std::string> argv;
+    argv.push_back("SISMEMBER");
+    argv.push_back(key.c_str());
+    argv.push_back(member.c_str());
+
+    build_request(argv);
     hash_slots(key);
 
     return get_integer32();
@@ -109,7 +130,13 @@ int redis_set::smembers(const std::string& key,
 int redis_set::smove(const std::string& src, const std::string& dest,
                      const std::string& member)
 {
-    build_command("SMOVE %s %s %s", src.c_str(), dest.c_str(), member.c_str());
+    std::vector<std::string> argv;
+    argv.push_back("SMOVE");
+    argv.push_back(src.c_str());
+    argv.push_back(dest.c_str());
+    argv.push_back(member.c_str());
+
+    build_request(argv);
     hash_slots(src);
 
     return get_integer32();
@@ -170,8 +197,14 @@ int redis_set::srandmember(const std::string& key,
 long long redis_set::srem(const std::string& key,
                           const std::vector<std::string>& member)
 {
-    std::string member_list = redis_helper::join(member);
-    build_command("SREM %s %s", key.c_str(), member_list.c_str());
+    std::vector<std::string> argv;
+    argv.push_back("SREM");
+    argv.push_back(key.c_str());
+    for (size_t i = 0; i < member.size(); i++) {
+        argv.push_back(member[i]);
+    }
+
+    build_request(argv);
     hash_slots(key);
 
     return get_integer64();
@@ -182,14 +215,20 @@ int redis_set::sscan(const std::string& key, int cursor,
                      const char* pattern /*= NULL*/,
                      int count /*= 10*/)
 {
-    std::string match("");
+    std::vector<std::string> argv;
+    argv.push_back("SSCAN");
+    argv.push_back(key.c_str());
+    argv.push_back(TO_STRING(cursor));
     if (pattern) {
-        match += "MATCH ";
-        match += pattern;
+        argv.push_back("MATCH");
+        argv.push_back(pattern);
+    }
+    if (count != 10) {
+        argv.push_back("COUNT");
+        argv.push_back(TO_STRING(count));
     }
 
-    build_command("SSCAN %s %d %s COUNT %d", key.c_str(),
-                  cursor, match.c_str(), count);
+    build_request(argv);
     hash_slots(key);
 
     return get_cursor_array(&result);

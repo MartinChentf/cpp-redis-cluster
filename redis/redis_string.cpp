@@ -99,7 +99,13 @@ bool redis_string::setrange(const std::string& key, int offset,
                             const std::string& value,
                             long long* length /*= NULL*/)
 {
-    build_command("SETRANGE %s %d %s", key.c_str(), offset, value.c_str());
+    std::vector<std::string> argv;
+    argv.push_back("SETRANGE");
+    argv.push_back(key.c_str());
+    argv.push_back(TO_STRING(offset));
+    argv.push_back(value.c_str());
+
+    build_request(argv);
     hash_slots(key);
 
     return get_integer64(length);
@@ -107,7 +113,12 @@ bool redis_string::setrange(const std::string& key, int offset,
 
 int redis_string::getbit(const std::string& key,int offset)
 {
-    build_command("GETBIT %s %d", key.c_str(), offset);
+    std::vector<std::string> argv;
+    argv.push_back("GETBIT");
+    argv.push_back(key.c_str());
+    argv.push_back(TO_STRING(offset));
+
+    build_request(argv);
     hash_slots(key);
 
     return get_integer32();
@@ -115,7 +126,13 @@ int redis_string::getbit(const std::string& key,int offset)
 
 int redis_string::setbit(const std::string& key, int offset, bool value)
 {
-    build_command("SETBIT %s %d %d", key.c_str(), offset, (value?1:0));
+    std::vector<std::string> argv;
+    argv.push_back("SETBIT");
+    argv.push_back(key.c_str());
+    argv.push_back(TO_STRING(offset));
+    argv.push_back(TO_STRING(value?1:0));
+
+    build_request(argv);
     hash_slots(key);
 
     return get_integer32();
@@ -128,7 +145,13 @@ long long redis_string::bitconut(const std::string& key)
 
 long long redis_string::bitconut(const std::string& key, int start, int end)
 {
-    build_command("BITCOUNT %s %d %d", key.c_str(), start, end);
+    std::vector<std::string> argv;
+    argv.push_back("BITCOUNT");
+    argv.push_back(key.c_str());
+    argv.push_back(TO_STRING(start));
+    argv.push_back(TO_STRING(end));
+
+    build_request(argv);
     hash_slots(key);
 
     return get_integer64();
@@ -137,9 +160,15 @@ long long redis_string::bitconut(const std::string& key, int start, int end)
 long long redis_string::bitop(BITOP op, const std::string& dest_key,
                               const std::vector<std::string>& src_keys)
 {
-    std::string key_list = redis_helper::join(src_keys);
-    build_command("BITOP %s %s %s", BITOP_STR[op],
-                  dest_key.c_str(), key_list.c_str());
+    std::vector<std::string> argv;
+    argv.push_back("BITOP");
+    argv.push_back(BITOP_STR[op]);
+    argv.push_back(dest_key.c_str());
+    for (size_t i = 0; i < src_keys.size(); i++) {
+        argv.push_back(src_keys[i]);
+    }
+
+    build_request(argv);
     hash_slots(dest_key);
 
     return get_integer64();
@@ -157,7 +186,14 @@ long long redis_string::bitop(BITOP op, const std::string& dest_key,
 long long redis_string::bitpos(const std::string& key,bool value,
                                int start /*= 0*/,int end /*= -1*/)
 {
-    build_command("BITPOS %s %d %d %d", key.c_str(), (value?1:0), start, end);
+    std::vector<std::string> argv;
+    argv.push_back("BITPOS");
+    argv.push_back(key.c_str());
+    argv.push_back(TO_STRING(value?1:0));
+    argv.push_back(TO_STRING(start));
+    argv.push_back(TO_STRING(end));
+
+    build_request(argv);
     hash_slots(key);
 
     return get_integer64();
@@ -177,7 +213,7 @@ bool redis_string::mget(const std::vector<std::string>& keys,
         hash_slots(keys[0]);
     }
 
-    return get_array(result);
+    return get_array(result) >= 0;
 }
 
 bool redis_string::mset(const std::map<std::string, std::string>& key_values)
@@ -196,9 +232,17 @@ bool redis_string::mset(const std::map<std::string, std::string>& key_values)
 
 bool redis_string::msetnx(const std::map<std::string, std::string>& key_values)
 {
-    std::string key_value_list = redis_helper::join(key_values);
-    build_command("MSETNX %s", key_value_list.c_str());
-    if (!key_value_list.empty()) {
+    std::vector<std::string> argv;
+    argv.push_back("MSETNX");
+
+    std::map<std::string, std::string>::const_iterator it = key_values.begin();
+    for (; it != key_values.end(); ++it) {
+        argv.push_back(it->first);
+        argv.push_back(it->second);
+    }
+
+    build_request(argv);
+    if (!key_values.empty()) {
         hash_slots(key_values.begin()->first);
     }
 
@@ -247,11 +291,15 @@ bool redis_string::decrby(const std::string & key,
 bool redis_string::incoper(const char * cmd,const std::string & key,
                            long long * inc,long long * result)
 {
-    if (inc != NULL)
-        build_command("%s %s %d", cmd, key.c_str(), *inc);
-    else
-        build_command("%s %s", cmd, key.c_str());
+    std::vector<std::string> argv;
+    argv.push_back(cmd);
+    argv.push_back(key.c_str());
 
+    if (inc != NULL) {
+        argv.push_back(TO_STRING(*inc));
+    }
+
+    build_request(argv);
     hash_slots(key);
 
     return get_integer64(result);
@@ -260,7 +308,12 @@ bool redis_string::incoper(const char * cmd,const std::string & key,
 bool redis_string::append(const std::string & key,const std::string & value,
                           long long * length /*= NULL*/)
 {
-    build_command("APPEND %s %s", key.c_str(), value.c_str());
+    std::vector<std::string> argv;
+    argv.push_back("APPEND");
+    argv.push_back(key.c_str());
+    argv.push_back(value.c_str());
+
+    build_request(argv);
     hash_slots(key);
 
     return get_integer64(length);
@@ -268,7 +321,11 @@ bool redis_string::append(const std::string & key,const std::string & value,
 
 bool redis_string::strlen(const std::string & key,long long & length)
 {
-    build_command("STRLEN %s", key.c_str());
+    std::vector<std::string> argv;
+    argv.push_back("STRLEN");
+    argv.push_back(key.c_str());
+
+    build_request(argv);
     hash_slots(key);
 
     return get_integer64(length);

@@ -17,6 +17,8 @@ void redis_string_test::SetUpTestCase() {
                                  gt_component::Instance().get_port());
     m_pStr = new redis_string(m_pClient);
     m_pKey = new redis_key(m_pClient);
+
+    m_pKey->del("foo");
 }
 
 void redis_string_test::TearDownTestCase() {

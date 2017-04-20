@@ -19,9 +19,8 @@ REDIS_DIR = $(PWD)/redis
 GTEST_DIR = $(PWD)/gtest
 
 # include and library
-export HIREDIS_INCS = -I/usr/local/include/hiredis -I$(REDIS_DIR)
-export HIREDIS_LIBS = -lhiredis
-export GTEST_LIBS = -L/usr/local/lib/gtest -lgtest -lgtest_main $(HIREDIS_LIBS)
+export REDIS_INCS = -I$(REDIS_DIR)
+export GTEST_LIBS = -L/usr/local/lib/gtest -lgtest -lgtest_main
 
 # Binaries
 EXAMPLE=redis_example
@@ -45,7 +44,7 @@ $(EXAMPLE_DIR): COMPLIE $(REDIS_DIR)
 	@make -C $@
 
 $(EXAMPLE): GENERATE
-	$(LINK) -o $(BIN_DIR)/$@ $(TEST_OBJ) $(REDIS_OBJ) $(CPPFLAGS) $(HIREDIS_INCS) $(HIREDIS_LIBS)
+	$(LINK) -o $(BIN_DIR)/$@ $(TEST_OBJ) $(REDIS_OBJ) $(CPPFLAGS) $(REDIS_INCS)
 
 
 # gtest
@@ -55,7 +54,7 @@ $(GTEST_DIR): COMPLIE $(REDIS_DIR)
 	@make -C $@
 
 $(GTEST_BIN): GENERATE
-	$(LINK) -o $(BIN_DIR)/$@ $(GTEST_OBJ) $(REDIS_OBJ) $(CPPFLAGS) $(GTEST_LIBS) $(HIREDIS_INCS)
+	$(LINK) -o $(BIN_DIR)/$@ $(GTEST_OBJ) $(REDIS_OBJ) $(CPPFLAGS) $(GTEST_LIBS) $(REDIS_INCS)
 
 
 check_dir:

@@ -4,10 +4,6 @@
 #include <string>
 #include <vector>
 
-#include "hiredis.h"
-
-#define _USE_REPLY_
-
 class redis_client;
 class redis_reply;
 
@@ -20,9 +16,9 @@ public:
     void set_client(redis_client* client);
 
 protected:
+    void build_request(const std::vector<std::string>& argv);
     void hash_slots(std::string key);
-    std::string build_command(const char *format, ...);
-    redisReply* run_command();
+    redis_reply* run();
 
 /******************************************************************************/
     bool check_status(const char* expection = "OK");
@@ -39,34 +35,20 @@ protected:
     long long get_integer64_or_nil(bool * success = NULL);
     int get_integer32_or_nil(bool * success = NULL);
 
-    bool get_array(std::vector<std::string*>& result);
-    bool get_array(std::vector<std::string>& result);
+    int get_array(std::vector<std::string*>& result);
+    int get_array(std::vector<std::string>& result);
     int get_array_or_nil(std::vector<std::string>& result);
     int get_cursor_array(std::vector<std::string>* result);
 
 private:
-    std::string parse_reply(redisReply* reply);
-
-    bool is_normal_context(); // 判断当前连接是否有效
-    void confirm_redis_context();   // 确认Client是否已经连接上redis, 可能出现连接失败的情况
-
-private:
-    redis_client* m_client;
-    redisContext* m_rcon; // discard
-    std::string m_command;
-    int m_slot;
-
-////////////////////////////////////////////////////////////////////////////////
-protected:
-    void build_request(const std::vector<std::string>& argv);
-    redis_reply* run();
-
-private:
     // 合成command命令, 方便日志输出
     void generate_cmdstr(const std::vector<std::string>& argv);
+    // 分析redis_reply对象, 方便日志输出
     std::string parse_reply(const redis_reply* reply);
 
 private:
+    redis_client* m_client;
+    std::string m_command;
     std::string m_request_buf;
 };
 
