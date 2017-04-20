@@ -168,21 +168,7 @@ int redis_hash::hscan(const std::string& key, int cursor,
                       std::map<std::string,std::string>& result,
                       const char* pattern /*= NULL*/, int count /*= 10*/)
 {
-    std::vector<std::string> argv;
-    argv.push_back("HSCAN");
-    argv.push_back(key.c_str());
-    argv.push_back(TO_STRING(cursor));
-    if (pattern) {
-        argv.push_back("MATCH");
-        argv.push_back(pattern);
-    }
-    if (count != 10) {
-        argv.push_back("COUNT");
-        argv.push_back(TO_STRING(count));
-    }
-
-    build_request(argv);
-    hash_slots(key);
+    scan_keys("HSCAN", &key, cursor, pattern, count);
 
     std::vector<std::string> key_val;
     cursor = get_cursor_array(&key_val);

@@ -28,6 +28,34 @@ void redis_command::hash_slots(std::string key)
     }
 }
 
+std::string redis_command::parse_reply(const redis_reply* reply)
+{
+    if (reply == NULL) {
+        return "Reply is NULL";
+    }
+
+    std::string result("Reply Type: ");
+    result += REPLY_TYPE[reply->get_type()];
+    switch(reply->get_type()) {
+        case REDIS_REPLY_STATUS:
+            return result + ", Status: " + reply->get_status();
+        case REDIS_REPLY_NIL:
+            return result;
+        case REDIS_REPLY_STRING:
+            return result + ", String: " + reply->get_string();
+        case REDIS_REPLY_ERROR:
+            return result + ", Errstr: " + reply->get_error();
+        case REDIS_REPLY_INTEGER:
+            return result + ", Integer: "
+                    + TO_STRING(reply->get_integer());
+        case REDIS_REPLY_ARRAY:
+            return result + ", Array Elements:"
+                    + TO_STRING(reply->get_size());
+        default:
+            return "Unkonw Type";
+    }
+}
+
 bool redis_command::check_status(const char * expection /*= "OK"*/)
 {
     const redis_reply* reply = run();
@@ -349,38 +377,9 @@ int redis_command::get_cursor_array(std::vector<std::string>* result)
     return cursor;
 }
 
-////////////////////////////////////////////////////////////////////////////////
 redis_reply* redis_command::run()
 {
     return m_client->run(m_request_buf);
-}
-
-std::string redis_command::parse_reply(const redis_reply* reply)
-{
-    if (reply == NULL) {
-        return "Reply is NULL";
-    }
-
-    std::string result("Reply Type: ");
-    result += REPLY_TYPE[reply->get_type()];
-    switch(reply->get_type()) {
-        case REDIS_REPLY_STATUS:
-            return result + ", Status: " + reply->get_status();
-        case REDIS_REPLY_NIL:
-            return result;
-        case REDIS_REPLY_STRING:
-            return result + ", String: " + reply->get_string();
-        case REDIS_REPLY_ERROR:
-            return result + ", Errstr: " + reply->get_error();
-        case REDIS_REPLY_INTEGER:
-            return result + ", Integer: "
-                    + TO_STRING(reply->get_integer());
-        case REDIS_REPLY_ARRAY:
-            return result + ", Array Elements:"
-                    + TO_STRING(reply->get_size());
-        default:
-            return "Unkonw Type";
-    }
 }
 
 void redis_command::build_request(const std::vector<std::string>& argv)
@@ -411,6 +410,34 @@ void redis_command::generate_cmdstr(const std::vector<std::string>& argv)
         m_command += argv[i];
         m_command.push_back('"');
         m_command.push_back(' ');
+    }
+}
+
+void redis_command::scan_keys(const char* cmd, const std::string* key,
+                              int cursor, const char* pattern, int count)
+{
+    std::vector<std::string> argv;
+    argv.push_back(cmd);
+
+    if (key) {
+        argv.push_back(*key);
+    }
+
+    argv.push_back(TO_STRING(cursor));
+
+    if (pattern && *pattern) {
+        argv.push_back("MATCH");
+        argv.push_back(pattern);
+    }
+
+    if (count != 10) {
+        argv.push_back("COUNT");
+        argv.push_back(TO_STRING(count));
+    }
+
+    build_request(argv);
+    if (key) {
+        hash_slots(*key);
     }
 }
 

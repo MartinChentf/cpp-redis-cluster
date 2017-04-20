@@ -27,3 +27,10 @@ int redis_key::del(const std::string& key)
     return del(str);
 }
 
+int redis_key::scan(int cursor, std::vector<std::string>& result,
+                    const char * pattern /*= NULL*/, int count /*= 10*/)
+{
+    scan_keys("SCAN", NULL, cursor, pattern, count);
+    return get_cursor_array(&result);
+}
+

@@ -215,22 +215,7 @@ int redis_set::sscan(const std::string& key, int cursor,
                      const char* pattern /*= NULL*/,
                      int count /*= 10*/)
 {
-    std::vector<std::string> argv;
-    argv.push_back("SSCAN");
-    argv.push_back(key.c_str());
-    argv.push_back(TO_STRING(cursor));
-    if (pattern) {
-        argv.push_back("MATCH");
-        argv.push_back(pattern);
-    }
-    if (count != 10) {
-        argv.push_back("COUNT");
-        argv.push_back(TO_STRING(count));
-    }
-
-    build_request(argv);
-    hash_slots(key);
-
+    scan_keys("SSCAN", &key, cursor, pattern, count);
     return get_cursor_array(&result);
 }
 

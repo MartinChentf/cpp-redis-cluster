@@ -40,6 +40,10 @@ protected:
     int get_array_or_nil(std::vector<std::string>& result);
     int get_cursor_array(std::vector<std::string>* result);
 
+/******************************************************************************/
+    void scan_keys(const char* cmd, const std::string* key, int cursor,
+                   const char * pattern, int count);
+
 private:
     // 合成command命令, 方便日志输出
     void generate_cmdstr(const std::vector<std::string>& argv);

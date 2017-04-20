@@ -23,6 +23,23 @@ public:
      */
     int del(const std::vector<std::string>& keys);
     int del(const std::string& key);
+
+    /**
+     * @description
+     *   用于迭代当前选择的redis数据库中key的集合
+     * @param [IN] cursor {int} 游标值, 第一次迭代使用0作为游标.
+     * @param [OUT] result {std::vector<std::string>&} 存储结果集, 内部以追加方
+     *   式将本次遍历结果添加进该对象中, 为防止因总结果集过大导致该数组溢出, 用
+     *   户可在调用本函数前后清理该对象.
+     * @param [IN] pattern {const char*} glob风格的模式参数, 非空时有效
+     * @param [IN] count {int} 限定结果集元素的数量, 默认值:10
+     * @return {int} 下一个游标位置, 返回值如下:
+     *   >0: 下一个游标位置
+     *    0: 遍历结束
+     *   -1: key的value类型错误(non-hash)
+     */
+    int scan(int cursor, std::vector<std::string>& result,
+             const char* pattern = NULL, int count = 10);
 };
 
 #endif
