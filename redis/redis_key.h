@@ -42,4 +42,4 @@ public:
              const char* pattern = NULL, int count = 10);
 };
 
-#endif
+#endif /* __REDIS_KEY_H__ */

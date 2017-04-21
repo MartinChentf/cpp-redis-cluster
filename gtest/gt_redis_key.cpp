@@ -82,3 +82,23 @@ TEST_F(redis_key_test, del)
     redis_key_test::m_pKey->del(keys);
 }
 
+TEST_F(redis_key_test, scan)
+{
+    std::vector<std::string> result;
+    std::map<std::string, std::string> key_value;
+    for (int i = 1; i <= 20; i++) {
+        std::string key("{foo}:");
+        key += TO_STRING(i);
+        key_value[key] = TO_STRING(i);
+    }
+    redis_key_test::m_pStr->mset(key_value);
+
+    int cursor = redis_key_test::m_pKey->scan(0, result, "*{foo}*");
+    while (cursor != 0) {
+        cursor = redis_key_test::m_pKey->scan(cursor, result, "*{foo}*");
+    }
+    EXPECT_EQ(20, result.size());
+
+    redis_key_test::m_pKey->del(result);
+}
+
