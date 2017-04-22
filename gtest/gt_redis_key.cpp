@@ -50,13 +50,15 @@ TEST_F(redis_key_test, del)
     std::vector<std::string*> results;
     std::vector<std::string> keys;
     std::vector<std::string> keys_del;
+    std::map<std::string, std::string> key_value;
     for (int i = 1; i <= 10; i++) {
         std::string key("{foo}:");
         key += TO_STRING(i);
-        redis_key_test::m_pStr->set(key, TO_STRING(i));
+        key_value[key] = TO_STRING(i);
         keys.push_back(key);
         if (i%2) keys_del.push_back(key);
     }
+    redis_key_test::m_pStr->mset(key_value); // 批量插入多个键值对
 
     // 删除多个key
     EXPECT_EQ(5, redis_key_test::m_pKey->del(keys_del));

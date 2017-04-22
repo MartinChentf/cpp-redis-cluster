@@ -71,6 +71,7 @@ private:
     bool list_node();
     // 连接到指定redis_server节点, 失败或错误返回空
     socket_client* connect_node(const std::string& host, uint16_t port);
+    std::string parse_reply(const redis_reply* reply);
     bool parse_cluster_slots(redis_reply* reply);
     t_cluster_node* create_cluster_node(const std::string host,
         uint16_t port, bool master = false, socket_client* socket = NULL);

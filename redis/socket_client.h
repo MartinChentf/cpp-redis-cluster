@@ -11,7 +11,7 @@ class socket_client
 {
 public:
     socket_client();
-    virtual ~socket_client() { close_socket(); }
+    ~socket_client() { close_socket(); }
 
 public:
     int connect_socket(const char* host, int port);

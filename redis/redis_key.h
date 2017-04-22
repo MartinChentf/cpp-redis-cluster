@@ -26,6 +26,16 @@ public:
 
     /**
      * @description
+     *   
+     * @param [IN] key {const std::string&} 
+     * @return {bool} 
+     * @author chen.tengfei
+     * @date 2017-04-22
+     */
+    bool dump(const std::string& key);
+
+    /**
+     * @description
      *   用于迭代当前选择的redis数据库中key的集合
      * @param [IN] cursor {int} 游标值, 第一次迭代使用0作为游标.
      * @param [OUT] result {std::vector<std::string>&} 存储结果集, 内部以追加方

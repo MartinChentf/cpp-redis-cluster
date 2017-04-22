@@ -1,5 +1,5 @@
-#ifndef __REFID_COMMAND_H__
-#define __REFID_COMMAND_H__
+#ifndef __REDIS_COMMAND_H__
+#define __REDIS_COMMAND_H__
 
 #include <string>
 #include <vector>
@@ -56,4 +56,4 @@ private:
     std::string m_request_buf;
 };
 
-#endif /* __REFID_COMMAND_H__ */
+#endif /* __REDIS_COMMAND_H__ */

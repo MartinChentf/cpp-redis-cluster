@@ -15,9 +15,11 @@ static const char* const INFO_CLUSTER =
 "$7\r\n"
 "Cluster\r\n";
 static const char* const CLUSTER_SLOTS =
-"*1\r\n"
-"$13\r\n"
-"CLUSTER SLOTS";
+"*2\r\n"
+"$7\r\n"
+"CLUSTER\r\n"
+"$5\r\n"
+"SLOTS\r\n";
 
 /*
  * Implemented in crc16.cpp
@@ -92,9 +94,13 @@ void redis_client::clear()
         t_cluster_node_map_iter map_it = m_nodes.begin();
         for (; map_it != m_nodes.end(); ++map_it) {
             t_cluster_node* node = map_it->second;
-            node->socket->close_socket();
-            SAFE_DELETE(node->socket);
-            delete node;
+            if (node) {
+                if (node->socket) {
+                    node->socket->close_socket();
+                    delete node->socket;
+                }
+                delete node;
+            }
         }
         m_nodes.clear();
 
@@ -122,7 +128,8 @@ bool redis_client::list_node()
         SAFE_DELETE(reply);
     }
     else {
-        ERROR("Execute command fail! Command[INFO Cluster]");
+        ERROR("Execute command fail! Command[INFO Cluster], %s",
+              parse_reply(reply).c_str());
         SAFE_DELETE(reply);
         return false;
     }
@@ -161,6 +168,34 @@ socket_client* redis_client::connect_node(const std::string& host, uint16_t port
     }
 }
 
+std::string redis_client::parse_reply(const redis_reply* reply)
+{
+    if (reply == NULL) {
+        return "Reply is NULL";
+    }
+
+    std::string result("Reply Type: ");
+    result += REPLY_TYPE[reply->get_type()];
+    switch(reply->get_type()) {
+        case REDIS_REPLY_STATUS:
+            return result + ", Status: " + reply->get_status();
+        case REDIS_REPLY_NIL:
+            return result;
+        case REDIS_REPLY_STRING:
+            return result + ", String: " + reply->get_string();
+        case REDIS_REPLY_ERROR:
+            return result + ", Errstr: " + reply->get_error();
+        case REDIS_REPLY_INTEGER:
+            return result + ", Integer: "
+                    + TO_STRING(reply->get_integer());
+        case REDIS_REPLY_ARRAY:
+            return result + ", Array Elements:"
+                    + TO_STRING(reply->get_size());
+        default:
+            return "Unkonw Type";
+    }
+}
+
 bool redis_client::parse_cluster_slots(redis_reply * reply)
 {
     if (NULL == reply) {
@@ -168,8 +203,8 @@ bool redis_client::parse_cluster_slots(redis_reply * reply)
     }
 
     if (reply->get_type() != REDIS_REPLY_ARRAY || reply->get_size() <= 0) {
-        ERROR("Reply error: reply-type(%s) is't array or size(%d) <= 0.",
-              REPLY_TYPE[reply->get_type()], reply->get_size());
+        ERROR("Reply Error: reply-type is't array or size(%d) <= 0. %s",
+              reply->get_size(), parse_reply(reply).c_str());
         return false;
     }
 
@@ -177,8 +212,8 @@ bool redis_client::parse_cluster_slots(redis_reply * reply)
         const redis_reply* elem_slots = reply->get_element(i);
         if (elem_slots->get_type() != REDIS_REPLY_ARRAY
             || elem_slots->get_size() < 3) {
-            ERROR("Reply Error: reply-type(%s) is't array or size(%d) < 3.",
-                  REPLY_TYPE[reply->get_type()], reply->get_size());
+            ERROR("Reply Error: reply-type is't array or size(%d) < 3. %s",
+                  reply->get_size(), parse_reply(reply).c_str());
             return false;
         }
 
@@ -193,7 +228,8 @@ bool redis_client::parse_cluster_slots(redis_reply * reply)
             if (idx == 0) { // begin of slots
                 const redis_reply* elem_slots_begin = elem_slots->get_element(idx);
                 if (elem_slots_begin->get_type() != REDIS_REPLY_INTEGER) {
-                    ERROR("Reply Type Error: reply-type(%s) isn't integer.");
+                    ERROR("Reply Type Error: reply-type isn't integer. %s",
+                          parse_reply(reply).c_str());
                     return false;
                 }
                 slots->begin = (int)(elem_slots_begin->get_integer());
@@ -201,7 +237,8 @@ bool redis_client::parse_cluster_slots(redis_reply * reply)
             else if (idx == 1) { // end of slots
                 const redis_reply* elem_slots_end = elem_slots->get_element(idx);
                 if (elem_slots_end->get_type() != REDIS_REPLY_INTEGER) {
-                    ERROR("Reply Type Error: reply-type(%s) isn't integer.");
+                    ERROR("Reply Type Error: reply-type isn't integer. %s",
+                          parse_reply(reply).c_str());
                     return false;
                 }
                 slots->end = (int)(elem_slots_end->get_integer());
@@ -216,8 +253,8 @@ bool redis_client::parse_cluster_slots(redis_reply * reply)
                 const redis_reply* elem_node = elem_slots->get_element(idx);
                 if (elem_node->get_type() != REDIS_REPLY_ARRAY ||
                     elem_node->get_size() != 3) {
-                    ERROR("Reply Error: reply-type(%s) is't array or size(%d) != 3.",
-                          REPLY_TYPE[reply->get_type()], reply->get_size());
+                    ERROR("Reply Error: reply-type is't array or size(%d) != 3. %s",
+                          reply->get_size(), parse_reply(reply).c_str());
                     return false;
                 }
 
