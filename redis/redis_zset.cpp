@@ -104,7 +104,8 @@ long long redis_zset::zcount(const std::string& key, const std::string& min,
 }
 
 bool redis_zset::zincrby(const std::string& key, double increment,
-                         const std::string& member, std::string& result)
+                         const std::string& member,
+                         std::string* result /*= NULL*/)
 {
     std::vector<std::string> argv;
     argv.push_back("ZINCRBY");
@@ -119,14 +120,14 @@ bool redis_zset::zincrby(const std::string& key, double increment,
 }
 
 long long redis_zset::zstore(const char* cmd, const std::string& dest,
-                             int numkeys, const std::vector<std::string>& keys,
+                             const std::vector<std::string>& keys,
                              const std::vector<double>* weights,
                              const char* aggregate)
 {
     std::vector<std::string> argv;
     argv.push_back(cmd);
     argv.push_back(dest.c_str());
-    argv.push_back(TO_STRING(numkeys));
+    argv.push_back(TO_STRING(keys.size()));
 
     for (size_t i = 0; i < keys.size(); i++) {
         argv.push_back(keys[i]);
@@ -150,20 +151,20 @@ long long redis_zset::zstore(const char* cmd, const std::string& dest,
     return get_integer64();
 }
 
-long long redis_zset::zinterstore(const std::string& dest, int numkeys,
+long long redis_zset::zinterstore(const std::string& dest,
                                   const std::vector<std::string>& keys,
                                   const std::vector<double>* weights /*= NULL*/,
                                   const char* aggregate /*= "SUM"*/)
 {
-    return zstore("ZINTERSTORE", dest, numkeys, keys, weights, aggregate);
+    return zstore("ZINTERSTORE", dest, keys, weights, aggregate);
 }
 
-long long redis_zset::zunionstore(const std::string& dest, int numkeys,
+long long redis_zset::zunionstore(const std::string& dest,
                                   const std::vector<std::string>& keys,
                                   const std::vector<double>* weights /*= NULL*/,
                                   const char* aggregate /*= "SUM"*/)
 {
-    return zstore("ZUNIONSTORE", dest, numkeys, keys, weights, aggregate);
+    return zstore("ZUNIONSTORE", dest, keys, weights, aggregate);
 }
 
 long long redis_zset::zlexcount(const std::string& key,

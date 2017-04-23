@@ -124,7 +124,7 @@ public:
      * @param [IN] key {const std::string&} 有序集合对象的key.
      * @param [IN] increment {double} 累加值
      * @param [IN] member {const std::string&} 需要累加的成员
-     * @param [OUT] result {std::string&} 存储累加结果
+     * @param [OUT] result {std::string*} 不为空时, 存储累加结果
      * @return {int} 返回操作结果, 返回值如下:
      *    true: 累加成功
      *   false: 出错或key的value类型错误(non-sortedset)
@@ -132,15 +132,14 @@ public:
      * @date 2017-04-05
      */
     bool zincrby(const std::string& key, double increment,
-                    const std::string& member, std::string& result);
+                    const std::string& member, std::string* result = NULL);
 
     /**
      * @description
      *   计算给定numkeys个有序集合的交集, 并将计算结果放入dest中.
      * @param [IN] dest {const std::string&} 存放计算结果的有序集合对象
-     * @param [IN] numkeys {int} 需要计算的有序集合的个数
      * @param [IN] keys {const std::vector<std::string>&}
-     *   给定的一组有序集合. keys的数量由numkeys指定, 否则出错
+     *   给定的一组有序集合/集合(所有集合成员的分值都被视为1).
      * @param [IN] weights {const std::vector<double>*} 有序集合对应的权重列表.
      *   每一个集合对应一个权重值. 当权重列表为空时, 表示默认权重值为1.
      * @param [IN] aggregate {const char*} 指定结果集的聚合方式. 默认值为"SUM",
@@ -154,7 +153,7 @@ public:
      * @author chen.tengfei
      * @date 2017-04-06
      */
-    long long zinterstore(const std::string& dest, int numkeys,
+    long long zinterstore(const std::string& dest,
                           const std::vector<std::string>& keys,
                           const std::vector<double>* weights = NULL,
                           const char* aggregate = "SUM");
@@ -165,7 +164,7 @@ public:
      * @author chen.tengfei
      * @date 2017-04-06
      */
-    long long zunionstore(const std::string& dest, int numkeys,
+    long long zunionstore(const std::string& dest,
                           const std::vector<std::string>& keys,
                           const std::vector<double>* weights = NULL,
                           const char* aggregate = "SUM");
@@ -594,7 +593,7 @@ public:
                std::string& score);
 
 private:
-    long long zstore(const char* cmd, const std::string& dest, int numkeys,
+    long long zstore(const char* cmd, const std::string& dest,
                      const std::vector<std::string>& keys,
                      const std::vector<double>* weights,
                      const char* aggregate);

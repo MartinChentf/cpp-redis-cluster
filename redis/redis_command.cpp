@@ -125,18 +125,7 @@ int redis_command::check_status_or_nil(const char * expection /*= "OK"*/)
 
 bool redis_command::get_string(std::string & result)
 {
-    redis_reply* reply = run();
-    if (reply == NULL || reply->get_type() != REDIS_REPLY_STRING) {
-        ERROR("Execute command fail! [%s], %s",
-            m_command.c_str(), parse_reply(reply).c_str());
-        SAFE_DELETE(reply);
-        return false;
-    }
-    DEBUG("Execute command success! [%s]", m_command.c_str());
-
-    result = reply->get_string();
-    SAFE_DELETE(reply);
-    return true;
+    return get_string(&result);
 }
 
 bool redis_command::get_string(std::string * result)

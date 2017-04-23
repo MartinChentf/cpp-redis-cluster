@@ -5,6 +5,7 @@
 
 #include "redis_client.h"
 #include "redis_string.h"
+#include "redis_zset.h"
 #include "redis_log.h"
 #include "redis_server.h"
 #include "socket_client.h"
@@ -12,32 +13,30 @@
 using namespace std;
 
 void test()
-{
-    char ret[1024*16];
-
-    string buff("");
-    buff += "*3\r\n";
-    buff += "$3\r\n";
-    buff += "SET\r\n";
-    buff += "$3\r\n";
-    buff += "foo\r\n";
-    buff += "$4\r\n";
-    buff += "mars\r\n";
-
-    socket_client* sock = new socket_client();
-    sock->connect_socket("10.45.4.201", 7008);
-    //sock->connect_socket("192.168.199.131", 10006);
-    sock->send_msg(buff.c_str());
-    sock->recv_msg(ret, 1024*16);
-    printf("return:[%s]\n", ret);
-
-    delete sock;
-}
+{}
 
 int main()
 {
-    //redis_client redis(gt_component::Instance().get_host(),
-    //                    gt_component::Instance().get_port());
+    redis_client redis("192.168.199.131", 10006);
+    redis_zset zset(&redis);
+
+    std::vector<std::pair<std::string,double> > member_score;
+    member_score.push_back(std::make_pair("a", 1));
+    member_score.push_back(std::make_pair("b", 2));
+    member_score.push_back(std::make_pair("c", 3));
+    zset.zadd("{foo}:1", member_score);
+
+    member_score.clear();
+    member_score.push_back(std::make_pair("d", 4));
+    member_score.push_back(std::make_pair("b", 2));
+    member_score.push_back(std::make_pair("c", 3));
+    zset.zadd("{foo}:2", member_score);
+
+    std::vector<std::string> keys;
+    keys.push_back("{foo}:1");
+    keys.push_back("{foo}:2");
+
+    zset.zinterstore("{foo}:0", keys);
 
     test();
 }
