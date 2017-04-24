@@ -1,3 +1,5 @@
+#include <unistd.h>
+#include <time.h>
 #include <string>
 
 #include "gtest/gtest.h"
@@ -37,6 +39,19 @@ void redis_key_test::SetUp() {
 
 void redis_key_test::TearDown() {
     m_pKey->del("foo");
+}
+
+bool redis_key_test::contain_with(std::string str,
+                                  std::vector<std::string>& search)
+{
+    bool iret = true;
+    for (size_t i = 0; i < search.size(); i++) {
+        if (!strstr(str.c_str(), search[i].c_str())) {
+            iret = false;
+            break;
+        }
+    }
+    return iret;
 }
 
 TEST_F(redis_key_test, del)
@@ -82,6 +97,119 @@ TEST_F(redis_key_test, del)
     results.clear();
 
     redis_key_test::m_pKey->del(keys);
+}
+
+TEST_F(redis_key_test, dump)
+{
+    std::string result;
+
+    EXPECT_EQ(1, redis_key_test::m_pKey->dump("foo", result));
+    EXPECT_EQ("", result);
+
+    redis_key_test::m_pKey->del("foo");
+    EXPECT_EQ(0, redis_key_test::m_pKey->dump("foo", result));
+}
+
+TEST_F(redis_key_test, exists_multikey)
+{
+    std::vector<std::string> keys;
+    keys.push_back("foo");
+    keys.push_back("{foo}:1");
+    keys.push_back("foo");
+
+    // 多个key, 重复
+    EXPECT_EQ(2, redis_key_test::m_pKey->exists(keys));
+
+    // key不存在
+    redis_key_test::m_pKey->del("foo");
+    EXPECT_EQ(0, redis_key_test::m_pKey->exists(keys));
+}
+
+TEST_F(redis_key_test, exists)
+{
+    // key存在
+    EXPECT_EQ(1, redis_key_test::m_pKey->exists("foo"));
+
+    // key不存在
+    redis_key_test::m_pKey->del("foo");
+    EXPECT_EQ(0, redis_key_test::m_pKey->exists("foo"));
+}
+
+TEST_F(redis_key_test, expire)
+{
+    // 设置生存时间
+    EXPECT_EQ(1, redis_key_test::m_pKey->expire("foo", 3));
+    sleep(2);
+    EXPECT_EQ(1, redis_key_test::m_pKey->exists("foo"));
+    sleep(2);
+    EXPECT_EQ(0, redis_key_test::m_pKey->exists("foo"));
+
+    // 生存时间非正数
+    redis_key_test::m_pStr->set("foo", "hello");
+    EXPECT_EQ(1, redis_key_test::m_pKey->exists("foo"));
+    EXPECT_EQ(1, redis_key_test::m_pKey->expire("foo", -3));
+    EXPECT_EQ(0, redis_key_test::m_pKey->exists("foo"));
+
+    // key不存在
+    redis_key_test::m_pKey->del("foo");
+    EXPECT_EQ(0, redis_key_test::m_pKey->expire("foo", 3));
+}
+
+TEST_F(redis_key_test, expireat)
+{
+    // 设置时间戳
+    EXPECT_EQ(1, redis_key_test::m_pKey->expireat("foo", time(0) + 3));
+    sleep(2);
+    EXPECT_EQ(1, redis_key_test::m_pKey->exists("foo"));
+    sleep(2);
+    EXPECT_EQ(0, redis_key_test::m_pKey->exists("foo"));
+
+    // 时间戳表示过去的时刻
+    redis_key_test::m_pStr->set("foo", "hello");
+    EXPECT_EQ(1, redis_key_test::m_pKey->exists("foo"));
+    EXPECT_EQ(1, redis_key_test::m_pKey->expireat("foo", time(0) - 3));
+    EXPECT_EQ(0, redis_key_test::m_pKey->exists("foo"));
+
+    // key不存在
+    redis_key_test::m_pKey->del("foo");
+    EXPECT_EQ(0, redis_key_test::m_pKey->expireat("foo", time(0) + 3));
+}
+
+TEST_F(redis_key_test, keys)
+{
+    std::vector<std::string> result;
+    redis_key_test::m_pKey->del("foo");
+    redis_key_test::m_pStr->set("{K}:foo", "hello");
+    redis_key_test::m_pStr->set("{K}:fao", "hello");
+    redis_key_test::m_pStr->set("{K}:feeeo", "hello");
+    redis_key_test::m_pStr->set("{K}:fco", "hello");
+    redis_key_test::m_pStr->set("{K}:fo", "hello");
+
+    EXPECT_EQ(5, redis_key_test::m_pKey->keys("*", result));
+    EXPECT_EQ(true, contain_with("{K}:foo,{K}:fao,{K}:feeeo,{K}:fco,{K}:fo",result));
+    result.clear();
+
+    EXPECT_EQ(3, redis_key_test::m_pKey->keys("{K}:f?o", result));
+    EXPECT_EQ(true, contain_with("{K}:foo,{K}:fao,{K}:fco",result));
+    result.clear();
+
+    EXPECT_EQ(5, redis_key_test::m_pKey->keys("{K}:f*o", result));
+    EXPECT_EQ(true, contain_with("{K}:foo,{K}:fao,{K}:feeeo,{K}:fco,{K}:fo",result));
+    result.clear();
+
+    EXPECT_EQ(2, redis_key_test::m_pKey->keys("{K}:f[^o]o", result));
+    EXPECT_EQ(true, contain_with("{K}:fao,{K}:fco",result));
+    result.clear();
+
+    EXPECT_EQ(2, redis_key_test::m_pKey->keys("{K}:f[a-c]o", result));
+    EXPECT_EQ(true, contain_with("{K}:fao,{K}:fco",result));
+    result.clear();
+
+    redis_key_test::m_pKey->del("{K}:foo");
+    redis_key_test::m_pKey->del("{K}:fao");
+    redis_key_test::m_pKey->del("{K}:feeeo");
+    redis_key_test::m_pKey->del("{K}:fco");
+    redis_key_test::m_pKey->del("{K}:fo");
 }
 
 TEST_F(redis_key_test, scan)

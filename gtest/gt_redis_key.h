@@ -16,6 +16,9 @@ public:
 protected:
     virtual void SetUp();
     virtual void TearDown();
+    
+    static bool contain_with(std::string str,
+                             std::vector<std::string>& search);
 
 protected:    
     static redis_string*    m_pStr;

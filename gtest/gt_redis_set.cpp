@@ -49,7 +49,7 @@ void redis_set_test::TearDown()
     m_pKey->del("foo");
 }
 
-bool contain_with(std::string str, std::vector<std::string>& search)
+bool redis_set_test::contain_with(std::string str, std::vector<std::string>& search)
 {
     bool iret = true;
     for (size_t i = 0; i < search.size(); i++) {

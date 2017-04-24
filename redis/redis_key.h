@@ -26,13 +26,95 @@ public:
 
     /**
      * @description
-     *   
-     * @param [IN] key {const std::string&} 
-     * @return {bool} 
+     *   序列化给定key的值, 并返回序列化后的值. 使用RESTORE命令可将该值反序列化
+     *   存入redis key中.
+     * @param [IN] key {const std::string&} 给定的key
+     * @param [OUT] result {std::string&} 存储序列化后的值
+     * @return {int} 返回操作结果, 返回值如下:
+     *    1: 操作成功
+     *    0: key不存在
+     *   -1: 出错
      * @author chen.tengfei
      * @date 2017-04-22
      */
-    bool dump(const std::string& key);
+    int dump(const std::string& key, std::string& result);
+
+    /**
+     * @description
+     *   判断key是否存在. 支持redis 3.0.3以上版本.
+     * @param [IN] keys {const std::vector<std::string>&} 给定的key
+     * @return {int} 返回存在的key的个数, 返回值如下:
+     *   >0: 存在的key的个数, 如果参数中同一个key被重复多次, 则将会被多次计数
+     *    0: key不存在
+     *   -1: 出错
+     * @author chen.tengfei
+     * @date 2017-04-24
+     */
+    int exists(const std::vector<std::string>& keys);
+
+    /**
+     * @description
+     *   判断key是否存在.
+     * @param [IN] key {const std::string&} 给定的key
+     * @return {int} 返回key是否存在, 返回值如下:
+     *    1: key存在
+     *    0: key不存在
+     *   -1: 出错
+     * @author chen.tengfei
+     * @date 2017-04-24
+     */
+    int exists(const std::string& key);
+
+    /**
+     * @description
+     *   设置key的生存时间. 生存时间超时, key将会被删除
+     * @param [IN] key {const std::string&} 给定的key
+     * @param [IN] second {int} 生存时间, 单位: 秒. 如果时间为非正数, key将被立
+     *   即删除
+     * @return {int} 返回值如下:
+     *    1: 设置成功
+     *    0: key不存在或生存时间无法被设置
+     *   -1: 出错
+     * @author chen.tengfei
+     * @date 2017-04-24
+     */
+    int expire(const std::string& key, int second);
+
+    /**
+     * @description
+     *   用UNIX时间戳设置key的生存时间.
+     * @param [IN] key {const std::string&} 给定的key
+     * @param [IN] timestamp {time_t} UNIX时间戳. 如果时间戳表示过去的时刻, key
+     *   将被立即删除
+     * @return {int} 返回值如下:
+     *    1: 设置成功
+     *    0: key不存在或时间戳无法被设置
+     *   -1: 出错
+     * @author chen.tengfei
+     * @date 2017-04-24
+     */
+    int expireat(const std::string& key, time_t timestamp);
+
+    /**
+     * @description
+     *   返回所有符合给定模式pattern的所有key.
+     *   支持的正则表达模式:
+     *    a) * 匹配所有key
+     *    b) h?llo 匹配 hello, hallo 和 hxllo
+     *    c) h*llo 匹配 hllo 和 heeeello
+     *    d) h[ae]llo 匹配 hello 和 hallo, 但是不匹配 hillo
+     *    e) h[^e]llo 匹配 hallo, hbllo, ... 但是不匹配 hello
+     *    f) h[a-b]llo 匹配 hallo 和 hbllo
+     * @param [IN] pattern {const std::string&} 匹配模式
+     * @param [OUT] result {std::vector<std::string>&} 存储结果集
+     * @return {int} 返回符合条件的key的个数, 返回值如下:
+     *   >0: 符合条件的key的个数
+     *    0: 没有符合条件的key
+     *   -1: 出错
+     * @author chen.tengfei
+     * @date 2017-04-24
+     */
+    int keys(const std::string& pattern, std::vector<std::string>& result);
 
     /**
      * @description
