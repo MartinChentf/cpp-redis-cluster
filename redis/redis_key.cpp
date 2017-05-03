@@ -105,6 +105,49 @@ int redis_key::keys(const std::string& pattern,std::vector<std::string>& result)
     return get_array_or_nil(result);
 }
 
+bool redis_key::migrate(const std::string& host, uint16_t port,
+    const std::string& key, int dest_db, long long timeout,
+    bool is_copy /*= false*/, bool is_replace /*= false*/,
+    const std::vector<std::string>* keys /*= NULL*/)
+{
+    std::vector<std::string> argv;
+    argv.push_back("MIGRATE");
+    argv.push_back(host);
+    argv.push_back(TO_STRING(port));    
+    argv.push_back(key);    
+    argv.push_back(TO_STRING(dest_db));
+    argv.push_back(TO_STRING(timeout));
+
+    if (is_copy) {
+        argv.push_back("COPY");
+    }
+    if (is_replace) {
+        argv.push_back("REPLACE");
+    }
+    if (key == "" && keys != NULL) {
+        argv.push_back("KEYS");
+        for (size_t i = 0; i < keys->size(); i++) {
+            argv.push_back((*keys)[i]);
+        }
+    }
+
+    build_request(argv);
+
+    return check_status();
+}
+
+int redis_key::move(const std::string& key, int db)
+{
+    std::vector<std::string> argv;
+    argv.push_back("MOVE");
+    argv.push_back(key);    
+    argv.push_back(TO_STRING(db));
+
+    build_request(argv);
+
+    return get_integer32();
+}
+
 int redis_key::scan(int cursor, std::vector<std::string>& result,
                     const char * pattern /*= NULL*/, int count /*= 10*/)
 {

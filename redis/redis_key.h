@@ -108,14 +108,54 @@ public:
      * @param [IN] pattern {const std::string&} 匹配模式
      * @param [OUT] result {std::vector<std::string>&} 存储结果集
      * @return {int} 返回符合条件的key的个数, 返回值如下:
-     *   >0: 符合条件的key的个数
-     *    0: 没有符合条件的key
-     *   -1: 出错
+     *   >=0: 符合条件的key的个数
+     *    -1: 出错
      * @author chen.tengfei
      * @date 2017-04-24
      */
     int keys(const std::string& pattern, std::vector<std::string>& result);
 
+    /**
+     * @description
+     *   将指定数据从当前的redis-server实例迁移到目标redis-server实例的指定数据
+     *   库上. 该操作是一个原子操作, 当操作成功时, 可以确保数据从原实例删除并存
+     *   在于目标实例中.
+     *   选项:
+     *      COPY - 数据不从原实例删除.
+     *      REPLACE - 覆盖目标实例中已经存在的同名键值
+     *      KEYS - 如果key参数为空字符串, 该命令一次可以迁移多个key, 迁移的键值
+     *       由keys参数指定
+     * @param [IN] host {const std::string&} 目标实例的服务器地址.
+     * @param [IN] port {uint16_t} 目标实例的服务端口.
+     * @param [IN] key {const std::string&} 需要迁动的数据的键值. 取值为 "" 时,
+     *   表示使用 KEYS 选项.
+     * @param [IN] dest_db {int} 目标实例的数据库ID号.
+     * @param [IN] timeout {long long} 迁移过程的超时时间, 单位: 毫秒.
+     * @param [IN] is_copy {bool} 是否使用 COPY 选项, 默认值为false.
+     * @param [IN] is_replace {bool} 是否使用 REPLACE 选项, 默认值为false.
+     * @param [IN] keys {const std::vector<std::string>*} 是否使用 KEYS 选项, 默
+     *   认值为NULL. 当key = "" , 并且keys不为空时, 启用该选项. 
+     * @return {bool} 迁移是否成功.
+     * @author chen.tengfei
+     * @date 2017-04-26
+     */
+    bool migrate(const std::string& host, uint16_t port, const std::string& key,
+        int dest_db, long long timeout, bool is_copy = false,
+        bool is_replace = false, const std::vector<std::string>* keys = NULL);
+
+    /**
+     * @description
+     *   将指定key从当前数据库移动到指定数据库. 该命令禁止在集群模式下使用.
+     * @param [IN] key {const std::string&} 指定移动的键值
+     * @param [IN] db {int} 目标数据库
+     * @return {int} 是否移动成功, 返回值如下:
+     *    1: 迁移成功
+     *    0: 未迁移成功, 目标数据库有相同名字的给定key,或key不存在于当前数据库中
+     *   -1: 出错
+     * @author chen.tengfei
+     * @date 2017-04-26
+     */
+    bool move(const std::string& key, int db);
     /**
      * @description
      *   用于迭代当前选择的redis数据库中key的集合
