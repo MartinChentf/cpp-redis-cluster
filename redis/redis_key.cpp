@@ -148,6 +148,42 @@ int redis_key::move(const std::string& key, int db)
     return get_integer32();
 }
 
+int redis_key::object_refcount(const std::string& key)
+{
+    std::vector<std::string> argv;
+    argv.push_back("OBJECT");
+    argv.push_back("REFCOUNT");
+    argv.push_back(key);    
+
+    build_request(argv);
+
+    return get_integer32_or_nil();
+}
+
+bool redis_key::object_encoding(const std::string& key, std::string& encode)
+{
+    std::vector<std::string> argv;
+    argv.push_back("OBJECT");
+    argv.push_back("ENCODING");
+    argv.push_back(key);    
+
+    build_request(argv);
+
+    return get_string_or_nil(encode) >= 0;
+}
+
+long long redis_key::object_idletime(const std::string& key)
+{
+    std::vector<std::string> argv;
+    argv.push_back("OBJECT");
+    argv.push_back("IDLETIME");
+    argv.push_back(key);    
+
+    build_request(argv);
+
+    return get_integer64_or_nil();
+}
+
 int redis_key::scan(int cursor, std::vector<std::string>& result,
                     const char * pattern /*= NULL*/, int count /*= 10*/)
 {

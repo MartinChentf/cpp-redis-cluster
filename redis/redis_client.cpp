@@ -387,7 +387,7 @@ void redis_client::put_data(redis_reply * rr, const std::string & data)
         rr->put(data.substr(0, pos));
     }
     else {
-        rr->put(data);
+        rr->put(data.c_str(), data.length());
     }
 }
 
@@ -454,7 +454,7 @@ redis_reply* redis_client::get_redis_string()
         buff[len] = 0;
         rr = new redis_reply();
         rr->set_type(REDIS_REPLY_STRING);
-        rr->put(buff);
+        rr->put(buff, len);
 
         // ∂¡»°\r\n
         m_buff.clear();

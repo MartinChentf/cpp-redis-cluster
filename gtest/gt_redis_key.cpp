@@ -20,8 +20,6 @@ void redis_key_test::SetUpTestCase() {
                                  gt_component::Instance().get_port());
     m_pStr = new redis_string(m_pClient);
     m_pKey = new redis_key(m_pClient);
-
-    m_pKey->del("foo");
 }
 
 void redis_key_test::TearDownTestCase() {
@@ -33,13 +31,9 @@ void redis_key_test::TearDownTestCase() {
     m_pKey = NULL;
 }
 
-void redis_key_test::SetUp() {
-    m_pStr->set("foo", "hello");
-}
+void redis_key_test::SetUp() {}
 
-void redis_key_test::TearDown() {
-    m_pKey->del("foo");
-}
+void redis_key_test::TearDown() {}
 
 bool redis_key_test::contain_with(std::string str,
                                   std::vector<std::string>& search)
@@ -57,6 +51,8 @@ bool redis_key_test::contain_with(std::string str,
 TEST_F(redis_key_test, del)
 {
     std::string result;
+
+    redis_key_test::m_pStr->set("foo", "hello");
 
     // 删除一个key
     EXPECT_EQ(1, redis_key_test::m_pKey->del("foo"));
@@ -103,8 +99,9 @@ TEST_F(redis_key_test, dump)
 {
     std::string result;
 
+    redis_key_test::m_pStr->set("foo", "hello");
     EXPECT_EQ(1, redis_key_test::m_pKey->dump("foo", result));
-    EXPECT_EQ("", result);
+    EXPECT_EQ("1", result);
 
     redis_key_test::m_pKey->del("foo");
     EXPECT_EQ(0, redis_key_test::m_pKey->dump("foo", result));
@@ -118,6 +115,7 @@ TEST_F(redis_key_test, exists_multikey)
     keys.push_back("foo");
 
     // 多个key, 重复
+    redis_key_test::m_pStr->set("foo", "hello");
     EXPECT_EQ(2, redis_key_test::m_pKey->exists(keys));
 
     // key不存在
@@ -127,6 +125,7 @@ TEST_F(redis_key_test, exists_multikey)
 
 TEST_F(redis_key_test, exists)
 {
+    redis_key_test::m_pStr->set("foo", "hello");
     // key存在
     EXPECT_EQ(1, redis_key_test::m_pKey->exists("foo"));
 
@@ -138,6 +137,7 @@ TEST_F(redis_key_test, exists)
 TEST_F(redis_key_test, expire)
 {
     // 设置生存时间
+    redis_key_test::m_pStr->set("foo", "hello");
     EXPECT_EQ(1, redis_key_test::m_pKey->expire("foo", 3));
     sleep(2);
     EXPECT_EQ(1, redis_key_test::m_pKey->exists("foo"));
@@ -158,6 +158,7 @@ TEST_F(redis_key_test, expire)
 TEST_F(redis_key_test, expireat)
 {
     // 设置时间戳
+    redis_key_test::m_pStr->set("foo", "hello");
     EXPECT_EQ(1, redis_key_test::m_pKey->expireat("foo", time(0) + 3));
     sleep(2);
     EXPECT_EQ(1, redis_key_test::m_pKey->exists("foo"));
@@ -178,7 +179,6 @@ TEST_F(redis_key_test, expireat)
 TEST_F(redis_key_test, keys)
 {
     std::vector<std::string> result;
-    redis_key_test::m_pKey->del("foo");
     redis_key_test::m_pStr->set("{K}:foo", "hello");
     redis_key_test::m_pStr->set("{K}:fao", "hello");
     redis_key_test::m_pStr->set("{K}:feeeo", "hello");
@@ -210,6 +210,21 @@ TEST_F(redis_key_test, keys)
     redis_key_test::m_pKey->del("{K}:feeeo");
     redis_key_test::m_pKey->del("{K}:fco");
     redis_key_test::m_pKey->del("{K}:fo");
+}
+
+TEST_F(redis_key_test, object_refcount)
+{
+    redis_key_test::m_pStr->set("foo", "hello");
+    EXPECT_EQ(1, redis_key_test::m_pKey->object_refcount("foo"));
+    redis_key_test::m_pStr->set("foo", "11");
+    EXPECT_EQ(2, redis_key_test::m_pKey->object_refcount("foo"));
+    redis_key_test::m_pStr->set("foo1", "11");
+    EXPECT_EQ(3, redis_key_test::m_pKey->object_refcount("foo"));
+
+    redis_key_test::m_pKey->del("foo");
+    EXPECT_EQ(0, redis_key_test::m_pKey->object_refcount("foo"));
+
+    redis_key_test::m_pKey->del("foo1");
 }
 
 TEST_F(redis_key_test, scan)

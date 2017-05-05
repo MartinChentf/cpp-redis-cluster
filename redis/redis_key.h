@@ -1,6 +1,7 @@
 #ifndef __REDIS_KEY_H__
 #define __REDIS_KEY_H__
 
+#include <stdint.h>
 #include <vector>
 #include <string>
 
@@ -155,7 +156,48 @@ public:
      * @author chen.tengfei
      * @date 2017-04-26
      */
-    bool move(const std::string& key, int db);
+    int move(const std::string& key, int db);
+
+    /**
+     * @description
+     *   返回指定key关联的Value被引用的次数. 此命令主要用于调试
+     * @param [IN] key {const std::string&} 指定的键值
+     * @return {int} 返回引用次数, 返回值如下:
+     *   >0: 引用次数
+     *    0: key不存在
+     *   -1: 出错
+     * @author chen.tengfei
+     * @date 2017-05-05
+     */
+    int object_refcount(const std::string& key);
+
+    /**
+     * @description
+     *   返回指定key关联的Value的内部表示方式(即压缩方式).
+     * @param [IN] key {const std::string&} 指定的键值
+     * @param [OUT] encode {std::string&} 存放返回结果(压缩方式), 空值表示key不
+     *   存在.
+     * @return {bool} 返回操作结果, 返回值如下:
+     *    true: 操作成功
+     *   false: 操作失败
+     * @author chen.tengfei
+     * @date 2017-05-05
+     */
+    bool object_encoding(const std::string& key, std::string& encode);
+
+    /**
+     * @description
+     *   返回指定key关联的Value的空闲时间(没有读写请求), 单位: 秒
+     * @param [IN] key {const std::string&} 指定的键值
+     * @return {long long} 返回空闲时间, 返回值如下:
+     *   >0: 空闲时间
+     *    0: key不存在
+     *   -1: 出错
+     * @author chen.tengfei
+     * @date 2017-05-05
+     */
+    long long object_idletime(const std::string& key);
+
     /**
      * @description
      *   用于迭代当前选择的redis数据库中key的集合
