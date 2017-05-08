@@ -5,7 +5,7 @@
 
 #define VALID_SOCKET(sock_id) ((sock_id) > 0)
 #define INVALID_SOCKET -1
-#define READ_CACHE_LEN 128
+#define READ_CACHE_LEN 8192
 
 class socket_client
 {
@@ -16,13 +16,20 @@ public:
 public:
     int connect_socket(const char* host, int port);
     int close_socket();
-    int recv_msg(void* buff, int len);
-    int send_msg(const char* buff);
-    int read_line(std::string& buff);
+
+    char read_byte();
+    std::string read_line();
+    int read(void* buff, int len);
+
+    int write(const void* buff, int len);
 
 private:
     bool check_connect();
-    int read_from_cache(void* buff, int len);
+
+    /**
+     * 确保缓冲区有可读数据, 返回缓冲区可读字节长度.
+     */
+    int read_to_cache();
 
 private:
     int m_sockid;
@@ -31,7 +38,7 @@ private:
 
     char m_read_cache[READ_CACHE_LEN];
     int m_read_count;
-    int m_read_idx;
+    int m_read_limit;
 };
 
 #endif /* __SOCKET_CLIENT_H__ */
