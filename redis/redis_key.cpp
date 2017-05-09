@@ -184,10 +184,190 @@ long long redis_key::object_idletime(const std::string& key)
     return get_integer64_or_nil();
 }
 
+int redis_key::persist(const std::string& key)
+{
+    std::vector<std::string> argv;
+    argv.push_back("PERSIST");
+    argv.push_back(key);    
+
+    build_request(argv);
+    hash_slots(key);
+
+    return get_integer32();
+}
+
+int redis_key::pexpire(const std::string& key, long long milliseconds)
+{
+    std::vector<std::string> argv;
+    argv.push_back("PEXPIRE");
+    argv.push_back(key);
+    argv.push_back(TO_STRING(milliseconds));
+
+    build_request(argv);
+    hash_slots(key);
+
+    return get_integer32();
+}
+
+int redis_key::pexpireat(const std::string& key,
+                         unsigned long long milliseconds_timestamp)
+{
+    std::vector<std::string> argv;
+    argv.push_back("PEXPIREAT");
+    argv.push_back(key);
+    argv.push_back(TO_STRING(milliseconds_timestamp));
+
+    build_request(argv);
+    hash_slots(key);
+
+    return get_integer32();
+}
+
+long long redis_key::pttl(const std::string & key)
+{
+    std::vector<std::string> argv;
+    argv.push_back("PTTL");
+    argv.push_back(key);
+
+    build_request(argv);
+    hash_slots(key);
+
+    return get_integer64();
+}
+
+int redis_key::randomkey(std::string & out)
+{
+    std::vector<std::string> argv;
+    argv.push_back("RANDOMKEY");
+
+    build_request(argv);
+
+    return get_string_or_nil(out);
+}
+
+bool redis_key::rename(const sd::string& key, const std::string& new_key)
+{
+    std::vector<std::string> argv;
+    argv.push_back("RENAME");
+    argv.push_back(key);
+    argv.push_back(new_key);
+
+    build_request(argv);
+    hash_slots(key);
+
+    return check_status();
+}
+
+bool redis_key::renamenx(const std::string& key, const std::string& new_key)
+{
+    std::vector<std::string> argv;
+    argv.push_back("RENAMENX");
+    argv.push_back(key);
+    argv.push_back(new_key);
+
+    build_request(argv);
+    hash_slots(key);
+
+    return check_status();
+}
+
+bool redis_key::restore(const std::string& key, unsigned long long ttl,
+    const std::string& serialized_value, bool is_replace /*= false*/)
+{
+    std::vector<std::string> argv;
+    argv.push_back("RESTORE");
+    argv.push_back(key);
+    argv.push_back(TO_STRING(ttl));
+    argv.push_back(serialized_value);
+
+    if (is_replace) {
+        argv.push_back("REPLACE");
+    }
+
+    build_request(argv);
+    hash_slots(key);
+
+    return check_status();
+}
+
+int redis_key::sort(const std::string& key, const std::string& dest,
+                    sort_params* params /*= NULL*/)
+{
+    std::vector<std::string> argv;
+    argv.push_back("SORT");
+    argv.push_back(key);
+    if (params) {
+        argv.insert(argv.end(), params.get_params());
+    }
+    argv.push_back("STORE");
+    argv.push_back(dest);
+
+    if (is_replace) {
+        argv.push_back("REPLACE");
+    }
+
+    build_request(argv);
+    hash_slots(key);
+}
+
 int redis_key::scan(int cursor, std::vector<std::string>& result,
                     const char * pattern /*= NULL*/, int count /*= 10*/)
 {
     scan_keys("SCAN", NULL, cursor, pattern, count);
     return get_cursor_array(&result);
+}
+
+sort_params& sort_params::by(const std::string& pattern)
+{
+    params.push_back("BY");
+    params.push_back(pattern);
+    return *this;
+}
+
+sort_params& sort_params::nosort()
+{
+    params.push_back("BY");
+    params.push_back("NOSORT");
+    return *this;
+}
+
+sort_params& sort_params::get(const std::string& pattern)
+{
+    params.push_back("GET");
+    params.push_back(pattern);
+    return *this;
+}
+
+sort_params& sort_params::limit(int offset, int count)
+{
+    params.push_back("LIMIT");
+    params.push_back(TO_STRING(offset));
+    params.push_back(TO_STRING(count));
+    return *this;
+}
+
+void sort_params::store(const std::string& dest)
+{
+    params.push_back("STORE");
+    params.push_back(dest);
+    return *this;
+}
+
+sort_params& sort_params::asc()
+{
+    params.push_back("ASC");
+    return *this;
+}
+
+sort_params& sort_params::desc()
+{
+    params.push_back("DESC");
+    return *this;
+}
+
+sort_params& sort_params::alpha()
+{
+    params.push_back("ALPHA");
+    return *this;
 }
 

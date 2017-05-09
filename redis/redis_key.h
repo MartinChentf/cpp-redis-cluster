@@ -200,6 +200,151 @@ public:
 
     /**
      * @description
+     *   移除指定key的超时时间.
+     * @param [IN] key {const std::string&} 指定的键值
+     * @return {int} 返回操作结果, 返回值如下:
+     *    1: 成功移除生存时间
+     *    0: key不存在或者key没有设置生存时间
+     *   -1: 出错
+     * @author chen.tengfei
+     * @date 2017-05-09
+     */
+    int persist(const std::string& key);
+
+    /**
+     * @description
+     *   设置key的生存时间. 生存时间超时, key将会被删除
+     * @param [IN] key {const std::string&} 给定的key
+     * @param [IN] milliseconds {long long} 生存时间, 单位: 毫秒. 如果时间为非正
+     *   数, key将被立即删除
+     * @return {int} 返回值如下:
+     *    1: 设置成功
+     *    0: key不存在或生存时间无法被设置
+     *   -1: 出错
+     * @author chen.tengfei
+     * @date 2017-04-24
+     */
+    int pexpire(const std::string& key, long long milliseconds);
+
+    /**
+     * @description
+     *   用UNIX时间戳设置key的生存时间.
+     * @param [IN] key {const std::string&} 给定的key
+     * @param [IN] timestamp {time_t} 以毫秒为单位的UNIX时间戳. 如果时间戳表示过
+     *   去的时刻, key将被立即删除
+     * @return {int} 返回值如下:
+     *    1: 设置成功
+     *    0: key不存在或时间戳无法被设置
+     *   -1: 出错
+     * @author chen.tengfei
+     * @date 2017-04-24
+     */
+    int pexpireat(const std::string& key,
+                  unsigned long long milliseconds_timestamp);
+
+    /**
+     * @description
+     *   返回指定key剩余的生存时间, 单位: 毫秒
+     * @param [IN] key {const std::string&} 给定的key
+     * @return {long long} 返回剩余生存时间, 返回值如下:
+     *   >=0: 剩余生存时间
+     *    -1: key存在但是已经过期
+     *    -2: key不存在
+     * @author chen.tengfei
+     * @date 2017-05-09
+     */
+    long long pttl(const std::string& key);
+
+    /**
+     * @description
+     *   从当前数据库返回一个随机的key.
+     * @param [OUT] out {std::string&} 存储返回的key
+     * @return {int} 返回操作结果, 返回值如下:
+     *    1: 成功返回一个随机的key
+     *    0: 当前数据库为空
+     *   -1: 出错
+     * @author chen.tengfei
+     * @date 2017-05-09
+     */
+    int randomkey(std::string& out);
+
+    /**
+     * @description
+     *   将key重命名为new_key. 如果key不存在, 则失败; 如果new_key存在, 其值将被
+     *   覆盖.
+     * @param [IN] key {const std::string&} 给定的key
+     * @param [IN] new_key {const std::string&} 新的键名
+     * @return {bool} 返回操作结果, 返回值如下:
+     *    true: 操作成功
+     *   false: 操作失败
+     * @author chen.tengfei
+     * @date 2017-05-09
+     */
+    bool rename(const std::string& key, const std::string& new_key);
+
+    /**
+     * @description
+     *   当new_key不存在时, 将key重命名为new_key. 如果key不存在, 则失败.
+     * @param [IN] key {const std::string&} 给定的key
+     * @param [IN] new_key {const std::string&} 新的键名
+     * @return {bool} 返回操作结果, 返回值如下:
+     *    true: 操作成功
+     *   false: 操作失败
+     * @author chen.tengfei
+     * @date 2017-05-09
+     */
+    bool renamenx(const std::string& key, const std::string& new_key);
+
+    /**
+     * @description
+     *   反序列化给定的序列化值, 并将其存入 key 中. 如果 key 已经存在, 则返回一
+     *   个"Target key name is busy"的错误, 除非使用 REPLACE 模式.
+     * @param [IN] key {const std::string&} 给定的key.
+     * @param [IN] ttl {unsigned long long} key的生存时间, 单位: 毫秒.
+     *   如果ttl为0, 则不设置生存时间.
+     * @param [IN] serialized_value {const std::string&} 序列化的值.
+     * @param [IN] is_replace {bool} 是否使用 REPLACE 模式(redis 3.0或以上版本).
+     *    true: 使用 REPLACE 模式.
+     *   false: 不使用 REPLACE 模式.
+     * @return {bool} 返回操作结果, 返回值如下:
+     *    true: 操作成功
+     *   false: 操作失败
+     * @author chen.tengfei
+     * @date 2017-05-09
+     */
+    bool restore(const std::string& key, unsigned long long ttl,
+                 const std::string& serialized_value, bool is_replace = false);
+
+    /**
+     * @description
+     *   对key关联的list, set, zset中的元素排序, 并将结果存储在指定的dest中.
+     *   默认按照数值类型排序, 比较的元素被看成双精度浮点数类型.
+     * @param [IN] key {const std::string&} 给定的key.
+     * @param [IN] dest {const std::string&} 存储结果的列表键值.
+     * @param [IN] param {sort_params*} 排序参数
+     * @return {int} 返回排序后列表的长度
+     * @author chen.tengfei
+     * @date 2017-05-09
+     */
+    int sort(const std::string& key, const std::string& dest,
+             sort_params* params = NULL);
+
+    /**
+     * @description
+     *   返回key关联的list, set, zset中的排序后的元素.默认按照数值类型排序, 比较
+     *   的元素被看成双精度浮点数类型.
+     * @param [IN] key {const std::string&} 给定的key.
+     * @param [IN] result {std::vector<std::string>&} 存储结果的列表.
+     * @param [IN] param {sort_params*} 排序参数
+     * @return {int} 返回排序后列表的长度
+     * @author chen.tengfei
+     * @date 2017-05-09
+     */
+    int sort(const std::string& key, std::vector<std::string>& result,
+             sort_params* params = NULL);
+
+    /**
+     * @description
      *   用于迭代当前选择的redis数据库中key的集合
      * @param [IN] cursor {int} 游标值, 第一次迭代使用0作为游标.
      * @param [OUT] result {std::vector<std::string>&} 存储结果集, 内部以追加方
@@ -215,5 +360,88 @@ public:
     int scan(int cursor, std::vector<std::string>& result,
              const char* pattern = NULL, int count = 10);
 };
+
+/**
+ * 保存sort命令参数
+ */
+class sort_params
+{
+public:
+    std::vector<std::string>& get_params() {return params};
+
+    /**
+     * @description
+     *   
+     * @param [IN/OUT] name {type} 
+     * @return {type} 
+     * @author chen.tengfei
+     * @date 2017-05-09
+     */
+    sort_params& by(const std::string& pattern);
+
+    /**
+     * @description
+     *   
+     * @param [IN/OUT] name {type} 
+     * @return {type} 
+     * @author chen.tengfei
+     * @date 2017-05-09
+     */
+    sort_params& nosort();
+
+    /**
+     * @description
+     *   
+     * @param [IN/OUT] name {type} 
+     * @return {type} 
+     * @author chen.tengfei
+     * @date 2017-05-09
+     */
+    sort_params& get(const std::string& pattern);
+
+    /**
+     * @description
+     *   
+     * @param [IN/OUT] name {type} 
+     * @return {type} 
+     * @author chen.tengfei
+     * @date 2017-05-09
+     */
+    sort_params& limit(int offset, int count);
+
+    /**
+     * @description
+     *   
+     * @param [IN/OUT] name {type} 
+     * @return {type} 
+     * @author chen.tengfei
+     * @date 2017-05-09
+     */
+    sort_params& asc();
+
+    /**
+     * @description
+     *   
+     * @param [IN/OUT] name {type} 
+     * @return {type} 
+     * @author chen.tengfei
+     * @date 2017-05-09
+     */
+    sort_params& desc();
+
+    /**
+     * @description
+     *   
+     * @param [IN/OUT] name {type} 
+     * @return {type} 
+     * @author chen.tengfei
+     * @date 2017-05-09
+     */
+    sort_params& alpha();
+
+private:
+    std::vector<std::string> params;
+};
+
 
 #endif /* __REDIS_KEY_H__ */

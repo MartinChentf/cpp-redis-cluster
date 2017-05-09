@@ -101,7 +101,8 @@ TEST_F(redis_key_test, dump)
 
     redis_key_test::m_pStr->set("foo", "hello");
     EXPECT_EQ(1, redis_key_test::m_pKey->dump("foo", result));
-    EXPECT_EQ("1", result);
+    EXPECT_EQ(0, memcmp("\0\x5hello\a\0\x9C@\n\x85m\xFE\xF5\x10",
+                        result.c_str(), 17));
 
     redis_key_test::m_pKey->del("foo");
     EXPECT_EQ(0, redis_key_test::m_pKey->dump("foo", result));

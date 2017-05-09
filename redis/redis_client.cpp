@@ -121,7 +121,7 @@ bool redis_client::list_node()
     m_socket = socket;
 
     redis_reply* reply = run(INFO_CLUSTER);
-    if (reply->get_type() == REDIS_REPLY_STRING) {
+    if (reply && reply->get_type() == REDIS_REPLY_STRING) {
         std::string str = reply->get_string();
         int pos = str.find(":");
         m_cluster_mode = ('0' == str.at(pos+1)) ? false : true;
@@ -371,24 +371,14 @@ redis_reply* redis_client::run(const std::string& request)
         return NULL;
     }
 
-    if (!request.empty() && m_socket->send_msg(request.c_str()) == -1) {
+    if (!request.empty() &&
+        m_socket->write(request.c_str(), request.size()) == -1) {
         ERROR("send to redis(%s:%d) error, req: %s",
               m_host.c_str(), m_port, request.c_str());
         return NULL;
     }
 
     return get_redis_object();
-}
-
-void redis_client::put_data(redis_reply * rr, const std::string & data)
-{
-    int pos = data.find('\r');
-    if (pos >= 0) { // 去除末尾的\r\n
-        rr->put(data.substr(0, pos));
-    }
-    else {
-        rr->put(data.c_str(), data.length());
-    }
 }
 
 redis_reply* redis_client::process_line_item(t_redis_reply type)
@@ -398,16 +388,16 @@ redis_reply* redis_client::process_line_item(t_redis_reply type)
         return NULL;
     }
 
-    m_buff.clear();
-    if (m_socket->read_line(m_buff) <= 0) {
+    std::string buff = m_socket->read_line();
+    if (buff.size() <= 0) {
         ERROR("read line from redis(%s:%d) error", m_host.c_str(), m_port);
         return NULL;
     }
 
     redis_reply* rr = new redis_reply();
     rr->set_type(type);
+    rr->put(buff);
 
-    put_data(rr, m_buff);
     return rr;
 }
 
@@ -433,21 +423,21 @@ redis_reply* redis_client::get_redis_string()
         return NULL;
     }
 
-    redis_reply* rr = NULL;
-    m_buff.clear();
-    if (m_socket->read_line(m_buff) <= 0) {
+    std::string str_buff = m_socket->read_line();
+    if (str_buff.size() <= 0) {
         ERROR("read line from redis(%s:%d) error", m_host.c_str(), m_port);
         return NULL;
     }
 
-    int len = atoi(m_buff.c_str());
+    redis_reply* rr = NULL;
+    int len = atoi(str_buff.c_str());
     if (len < 0) {
         rr = new redis_reply();
         rr->set_type(REDIS_REPLY_NIL);
     }
     else {
         char* buff = new char[len + 1];
-        if (len > 0 && m_socket->recv_msg(buff, len) <= 0) {
+        if (len > 0 && m_socket->read(buff, len) <= 0) {
             ERROR("read line from redis(%s:%d) error", m_host.c_str(), m_port);
             return NULL;
         }
@@ -457,12 +447,7 @@ redis_reply* redis_client::get_redis_string()
         rr->put(buff, len);
 
         // 读取\r\n
-        m_buff.clear();
-        if (m_socket->read_line(m_buff) <= 0) {
-            ERROR("read line from redis(%s:%d) error", m_host.c_str(), m_port);
-            SAFE_DELETE(rr);
-            return NULL;
-        }
+        str_buff = m_socket->read_line();
     }
     return rr;
 }
@@ -474,14 +459,14 @@ redis_reply* redis_client::get_redis_array()
         return NULL;
     }
 
-    redis_reply* rr = NULL;
-    m_buff.clear();
-    if (m_socket->read_line(m_buff) <= 0) {
+    std::string str_buff = m_socket->read_line();
+    if (str_buff.size() <= 0) {
         ERROR("read line from redis(%s:%d) error", m_host.c_str(), m_port);
         return NULL;
     }
 
-    int count = atoi(m_buff.c_str());
+    redis_reply* rr = NULL;
+    int count = atoi(str_buff.c_str());
     if (count <= 0) {
         rr = new redis_reply();
         rr->set_type(REDIS_REPLY_NIL);
@@ -492,7 +477,7 @@ redis_reply* redis_client::get_redis_array()
         for (int i = 0; i < count; i++) {
             redis_reply* element = get_redis_object();
             if (element == NULL) {
-                delete rr;  // 释放整个数组, 防止内存泄漏
+                SAFE_DELETE(rr);  // 释放整个数组, 防止内存泄漏
                 return NULL;
             }
             rr->put(element);
@@ -508,11 +493,7 @@ redis_reply* redis_client::get_redis_object()
         return NULL;
     }
 
-    char ch;
-    if (m_socket->recv_msg(&ch, 1) == -1) {
-        return NULL;
-    }
-
+    char ch = m_socket->read_byte();
     switch (ch) {
         case '-':   // ERROR
             return get_redis_error();

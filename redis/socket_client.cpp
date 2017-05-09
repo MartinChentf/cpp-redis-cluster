@@ -5,6 +5,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <string.h>
+#include <errno.h>
 
 #include "socket_client.h"
 
@@ -14,8 +15,10 @@ socket_client::socket_client()
 , m_port(0)
 , m_read_count(0)
 , m_read_limit(0)
+, m_write_count(0)
 {
-    memset(m_read_cache, 0, READ_CACHE_LEN);
+    memset(m_read_buff, 0, READ_BUFF_LEN);
+    memset(m_write_buff, 0, WRITE_BUFF_LEN);
 }
 
 int socket_client::connect_socket(const char * host, int port)
@@ -69,14 +72,14 @@ bool socket_client::check_connect()
     return true;
 }
 
-int socket_client::read_to_cache()
+int socket_client::read_to_buff()
 {
     if (m_read_count >= m_read_limit) {
         if (!check_connect()) {
             return -1;
         }
         m_read_limit =
-            (int)recv(this->m_socket, m_read_cache, READ_CACHE_LEN, 0);
+            (int)recv(m_sockid, m_read_buff, READ_BUFF_LEN, 0);
         m_read_count = 0;
 
         if(m_read_limit < 0) {
@@ -89,42 +92,45 @@ int socket_client::read_to_cache()
     return m_read_limit - m_read_count;
 }
 
-int socket_client::send_msg(const char * buff)
+int socket_client::flush_buffer()
 {
-    if (!check_connect())
-    {
-        return -1;
-    }
+    if (m_write_count > 0) {
+        if (!check_connect()) {
+            return -1;
+        }
+        int send_size = (int)send(m_sockid, m_write_buff, m_write_count, 0);
+        m_write_count = 0;
 
-    int sendSize = (int)send(m_sockid, buff, strlen(buff), 0);
-    if (sendSize <= 0)
-    {
-        close_socket();
-        return -1;
+        if (send_size < 0 && errno == EINTR) {
+            return 0;
+        }
+        else if (send_size <= 0) {
+            close_socket();
+            return -1;
+        }
+
+        return send_size;
     }
-    else
-    {
-        return sendSize;
-    }
+    return 0;
 }
 
 char socket_client::read_byte()
 {
-    read_to_cache();
-    return m_read_cache[m_read_count++];
+    read_to_buff();
+    return m_read_buff[m_read_count++];
 }
 
 std::string socket_client::read_line()
 {
     std::string reply;
     while (true) {
-        read_to_cache();
+        read_to_buff();
 
-        char b = m_read_cache[m_read_count++];
+        char b = m_read_buff[m_read_count++];
         if (b == '\r') {
-            read_to_cache();
+            read_to_buff();
 
-            char c = m_read_cache[m_read_count++];
+            char c = m_read_buff[m_read_count++];
             if (c == '\n') {
                 break;
             }
@@ -143,36 +149,44 @@ int socket_client::read(void* buff, int len)
 {
     int offset = 0;
     while (offset < len) {
-        read_to_cache();
+        read_to_buff();
 
-        int avail_len = m_read_limit - m_read_count;
+        int recv_buff_len = m_read_limit - m_read_count;
         int request_len = len - offset;
-        int length = (avail_len < request_len) ? avail_len : request_len;
+        int length = (recv_buff_len < request_len) ? recv_buff_len : request_len;
 
-        memcpy(buff + offset, m_read_cache + m_read_count, length);
+        memcpy((char*)buff + offset, m_read_buff + m_read_count, length);
         m_read_count += length;
         offset += length;
     }
 
-    return len;
+    return offset;
 }
 
 int socket_client::write(const void* buff, int len)
 {
-    if (!check_connect())
-    {
-        return -1;
-    }
+    int offset = 0;
+    while (offset < len) {
+        int send_buff_len = WRITE_BUFF_LEN - m_write_count;
+        int request_len = len - offset;
+        int length = (send_buff_len < request_len) ? send_buff_len : request_len;
 
-    int sendSize = (int)send(m_sockid, buff, strlen(buff), 0);
-    if (sendSize <= 0)
-    {
-        close_socket();
-        return -1;
+        memcpy(m_write_buff + m_write_count, (char*)buff + offset, length);
+
+        m_write_count += length;
+        int send_size = flush_buffer();
+        if (send_size < 0) {
+            return -1;
+        }
+        else {
+            offset += send_size;
+        }
     }
-    else
-    {
-        return sendSize;
-    }
+    return offset;
+}
+
+void socket_client::flush()
+{
+    flush_buffer();
 }
 

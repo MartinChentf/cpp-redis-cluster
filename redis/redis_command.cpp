@@ -163,6 +163,7 @@ int redis_command::get_string_or_nil(std::string& result)
         SAFE_DELETE(reply);
         return 0;
     }
+    DEBUG("Execute command success! [%s]", m_command.c_str());
 
     result = reply->get_string();
     SAFE_DELETE(reply);

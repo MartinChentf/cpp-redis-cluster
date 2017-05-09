@@ -141,7 +141,8 @@ public:
      * @author chen.tengfei
      * @date 2017-04-23
      */
-    redis_reply& put(const char* buff, size_t len);
+    redis_reply& put(const std::string& buff);
+    redis_reply& put(const char* buff, int len);
 
     /**
      * @description

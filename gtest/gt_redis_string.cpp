@@ -167,7 +167,7 @@ TEST_F(redis_string_test, bitop_AND) {
     std::string result;
     EXPECT_EQ(5, redis_string_test::m_pStr->bitop(redis_string::AND, "foo", keys));
     EXPECT_EQ(1, redis_string_test::m_pStr->get("foo", result));
-    EXPECT_EQ("\x40\x28\x40\x66\x14", result);
+    EXPECT_EQ(0, memcmp("\x40\x28\x40\x66\x14", result.c_str(), 5));
 
     redis_string_test::m_pKey->del("{foo}:1");
     redis_string_test::m_pKey->del("{foo}:2");
@@ -183,7 +183,7 @@ TEST_F(redis_string_test, bitop_OR) {
     std::string result;
     EXPECT_EQ(6, redis_string_test::m_pStr->bitop(redis_string::OR, "foo", keys));
     EXPECT_EQ(1, redis_string_test::m_pStr->get("foo", result));
-    EXPECT_EQ("\xf3\x3c\x73\x66\x54\x0f", result);
+    EXPECT_EQ(0, memcmp("\xf3\x3c\x73\x66\x54\x0f", result.c_str(), 6));
 
     redis_string_test::m_pKey->del("{foo}:1");
     redis_string_test::m_pKey->del("{foo}:2");
@@ -195,7 +195,7 @@ TEST_F(redis_string_test, bitop_NOT) {
     std::string result;
     EXPECT_EQ(5, redis_string_test::m_pStr->bitop(redis_string::NOT, "foo", "{foo}:1"));
     EXPECT_EQ(1, redis_string_test::m_pStr->get("foo", result));
-    EXPECT_EQ("\x0f\xc7\x8d\x99\xab", result);
+    EXPECT_EQ(0, memcmp("\x0f\xc7\x8d\x99\xab", result.c_str(), 5));
 
     redis_string_test::m_pKey->del("{foo}:1");
 }
@@ -210,7 +210,7 @@ TEST_F(redis_string_test, bitop_XOR) {
     std::string result;
     EXPECT_EQ(6, redis_string_test::m_pStr->bitop(redis_string::XOR, "foo", keys));
     EXPECT_EQ(1, redis_string_test::m_pStr->get("foo", result));
-    EXPECT_EQ("\xb3\x14\x33\x00\x40\x0f", result);
+    EXPECT_EQ(0, memcmp("\xb3\x14\x33\x00\x40\x0f", result.c_str(), 6));
 
     redis_string_test::m_pKey->del("{foo}:1");
     redis_string_test::m_pKey->del("{foo}:2");

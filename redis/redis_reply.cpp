@@ -87,23 +87,30 @@ redis_reply& redis_reply::set_type(t_redis_reply type)
     return *this;
 }
 
-redis_reply& redis_reply::put(const char * buff, size_t len)
+redis_reply& redis_reply::put(const std::string & buff)
 {
     switch (m_type) {
         case REDIS_REPLY_STRING:
         case REDIS_REPLY_STATUS:
         case REDIS_REPLY_ERROR:
-            for (int i = 0; i < len; i ++) {
-                m_str.push_back(buff[i]);
-            }
+            m_str = buff;
             break;
         case REDIS_REPLY_INTEGER:
-            m_integer = atoll(buff);
+            m_integer = atoll(buff.c_str());
             break;
         default:
             ERROR("unexpected type: %s", REPLY_TYPE[m_type]);
     }
     return *this;
+}
+
+redis_reply& redis_reply::put(const char * buff, int len)
+{
+    std::string str;
+    for (int i = 0; i < len; i ++) {
+        str.push_back(buff[i]);
+    }
+    return put(str);
 }
 
 redis_reply& redis_reply::put(const redis_reply * rr)

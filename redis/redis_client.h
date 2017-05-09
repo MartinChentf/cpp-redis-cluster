@@ -80,7 +80,6 @@ private:
     unsigned int get_key_slot(const std::string& key);
     void redirect(int slot);
 
-    void put_data(redis_reply* rr, const std::string& data);
     redis_reply* process_line_item(t_redis_reply type);
     redis_reply* get_redis_object();
     redis_reply* get_redis_error();
@@ -88,9 +87,6 @@ private:
     redis_reply* get_redis_integer();
     redis_reply* get_redis_string();
     redis_reply* get_redis_array();
-
-private:
-    std::string m_buff;
 
 private:
     bool m_binitialization;
