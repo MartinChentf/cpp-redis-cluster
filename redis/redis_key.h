@@ -7,6 +7,8 @@
 
 #include "redis_command.h"
 
+class sort_params;
+
 class redis_key : public redis_command
 {
 public:
@@ -317,34 +319,6 @@ public:
 
     /**
      * @description
-     *   对key关联的list, set, zset中的元素排序, 并将结果存储在指定的dest中.
-     *   默认按照数值类型排序, 比较的元素被看成双精度浮点数类型.
-     * @param [IN] key {const std::string&} 给定的key.
-     * @param [IN] dest {const std::string&} 存储结果的列表键值.
-     * @param [IN] param {sort_params*} 排序参数
-     * @return {int} 返回排序后列表的长度
-     * @author chen.tengfei
-     * @date 2017-05-09
-     */
-    int sort(const std::string& key, const std::string& dest,
-             sort_params* params = NULL);
-
-    /**
-     * @description
-     *   返回key关联的list, set, zset中的排序后的元素.默认按照数值类型排序, 比较
-     *   的元素被看成双精度浮点数类型.
-     * @param [IN] key {const std::string&} 给定的key.
-     * @param [IN] result {std::vector<std::string>&} 存储结果的列表.
-     * @param [IN] param {sort_params*} 排序参数
-     * @return {int} 返回排序后列表的长度
-     * @author chen.tengfei
-     * @date 2017-05-09
-     */
-    int sort(const std::string& key, std::vector<std::string>& result,
-             sort_params* params = NULL);
-
-    /**
-     * @description
      *   用于迭代当前选择的redis数据库中key的集合
      * @param [IN] cursor {int} 游标值, 第一次迭代使用0作为游标.
      * @param [OUT] result {std::vector<std::string>&} 存储结果集, 内部以追加方
@@ -359,6 +333,77 @@ public:
      */
     int scan(int cursor, std::vector<std::string>& result,
              const char* pattern = NULL, int count = 10);
+
+    /**
+     * @description
+     *   对key关联的list, set, zset中的元素排序, 并将结果存储在指定的dest中.
+     *   默认按照数值类型排序, 比较的元素被看成双精度浮点数类型.
+     * @param [IN] key {const std::string&} 给定的key.
+     * @param [IN] dest {const std::string&} 存储结果的列表键值.
+     * @param [IN] param {sort_params*} 排序参数
+     * @return {int} 返回结果列表的长度, 返回值如下:
+     *  >=0: 结果列表的长度
+     *   -1: 出错
+     * @author chen.tengfei
+     * @date 2017-05-09
+     */
+    int sort(const std::string& key, const std::string& dest,
+             sort_params* params = NULL);
+
+    /**
+     * @description
+     *   返回key关联的list, set, zset中的排序后的元素.默认按照数值类型排序, 比较
+     *   的元素被看成双精度浮点数类型.
+     * @param [IN] key {const std::string&} 给定的key.
+     * @param [IN] result {std::vector<std::string>&} 存储结果的列表.
+     * @param [IN] param {sort_params*} 排序参数
+     * @return {int} 返回结果列表的长度, 返回值如下:
+     *  >=0: 结果列表的长度
+     *   -1: 出错
+     * @author chen.tengfei
+     * @date 2017-05-09
+     */
+    int sort(const std::string& key, std::vector<std::string>& result,
+             sort_params* params = NULL);
+
+    /**
+     * @description
+     *   改变给定key的最近访问时间, 忽略不存在的key.
+     * @param [IN] keys {const std::vector<std::string>&} 指定的一组keys
+     * @return {int} 返回被touched的key的个数, 如下:
+     *   0: 没有key收到影响
+     *  >0: 实际受到影响的key的个数, 该值可能小于输入key的个数
+     *  -1: 出错
+     * @author chen.tengfei
+     * @date 2017-05-10
+     */
+    int touch(const std::vector<std::string>& keys);
+    int touch(const std::string& key);
+
+    /**
+     * @description
+     *   返回指定key的剩余生存时间, 单位: 秒
+     * @param [IN] key {const std::string&} 给定的key
+     * @return {long long} 返回剩余生存时间, 返回值如下:
+     *   >=0: 剩余生存时间
+     *    -1: key存在但是已经过期
+     *    -2: key不存在
+     * @author chen.tengfei
+     * @date 2017-05-10
+     */
+    long long ttl(const std::string& key);
+
+    /**
+     * @description
+     *   返回key所存储的value的数据结构类型, 可以返回string, list, set, zset 和
+     *   hash等不同的类型.
+     * @param [IN] key {const std::string&} 给定的key
+     * @return {std::string} 返回存储的数据结构类型, 为空表示key不存在.
+     * @author chen.tengfei
+     * @date 2017-05-10
+     */
+    std::string type(const std::string& key);
+    
 };
 
 /**
@@ -367,13 +412,13 @@ public:
 class sort_params
 {
 public:
-    std::vector<std::string>& get_params() {return params};
+    std::vector<std::string>& get_params() {return params;}
 
     /**
      * @description
-     *   
-     * @param [IN/OUT] name {type} 
-     * @return {type} 
+     *   需要一个模式, 用于生成用于排序权重的key名.
+     * @param [IN] pattern {const std::string&} 用于生成排序权重的key的模式.
+     * @return {sort_params&} 返回sort_params类对象
      * @author chen.tengfei
      * @date 2017-05-09
      */
@@ -381,9 +426,8 @@ public:
 
     /**
      * @description
-     *   
-     * @param [IN/OUT] name {type} 
-     * @return {type} 
+     *   使sort命令跳过排序操作. 与get连用可以获取未经排序的外部key.
+     * @return {sort_params&} 返回sort_params类对象
      * @author chen.tengfei
      * @date 2017-05-09
      */
@@ -391,9 +435,9 @@ public:
 
     /**
      * @description
-     *   
-     * @param [IN/OUT] name {type} 
-     * @return {type} 
+     *   需要一个模式, 用于生成排序结果的key名
+     * @param [IN] pattern {const std::string&} 用于生成排序结果的key名的模式.
+     * @return {sort_params&} 返回sort_params类对象
      * @author chen.tengfei
      * @date 2017-05-09
      */
@@ -401,9 +445,10 @@ public:
 
     /**
      * @description
-     *   
-     * @param [IN/OUT] name {type} 
-     * @return {type} 
+     *   限制返回排序结果的数量.
+     * @param [IN] offset {int} 基于0, 排序结果集下标起始值.
+     * @param [IN] count {int} 从结果集offset指定的位置开始选取的元素数量
+     * @return {sort_params&} 返回sort_params类对象
      * @author chen.tengfei
      * @date 2017-05-09
      */
@@ -411,9 +456,8 @@ public:
 
     /**
      * @description
-     *   
-     * @param [IN/OUT] name {type} 
-     * @return {type} 
+     *   结果集升序排列, 该选项为默认选项.
+     * @return {sort_params&} 返回sort_params类对象
      * @author chen.tengfei
      * @date 2017-05-09
      */
@@ -421,9 +465,8 @@ public:
 
     /**
      * @description
-     *   
-     * @param [IN/OUT] name {type} 
-     * @return {type} 
+     *   结果集降序排列
+     * @return {sort_params&} 返回sort_params类对象
      * @author chen.tengfei
      * @date 2017-05-09
      */
@@ -431,9 +474,9 @@ public:
 
     /**
      * @description
-     *   
+     *   按字典序排列.
      * @param [IN/OUT] name {type} 
-     * @return {type} 
+     * @return {sort_params&} 返回sort_params类对象
      * @author chen.tengfei
      * @date 2017-05-09
      */

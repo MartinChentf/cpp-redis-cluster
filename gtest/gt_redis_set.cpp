@@ -14,8 +14,8 @@ redis_set* redis_set_test::m_pSet = NULL;
 redis_key* redis_set_test::m_pKey = NULL;
 
 void redis_set_test::SetUpTestCase() {
-    m_pClient = new redis_client(gt_component::Instance().get_host(),
-                                 gt_component::Instance().get_port());
+    m_pClient = new redis_client(gt_component::Instance().get_cluster_host(),
+                                 gt_component::Instance().get_cluster_port());
     m_pSet = new redis_set(m_pClient);
     m_pKey = new redis_key(m_pClient);
     m_pStr = new redis_string(m_pClient);

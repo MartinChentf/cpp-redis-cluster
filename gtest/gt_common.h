@@ -57,6 +57,9 @@ private:
 public:
     std::string m_host;
     uint16_t m_port;
+
+    std::string m_cluster_host;
+    uint16_t m_cluster_port;
 };
 
 class gt_component
@@ -81,6 +84,13 @@ public:
     }
     uint16_t get_port() {
         return m_config.m_port;
+    }
+
+    std::string get_cluster_host() {
+        return m_config.m_cluster_host;
+    }
+    uint16_t get_cluster_port() {
+        return m_config.m_cluster_port;
     }
 
 private:

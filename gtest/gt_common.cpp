@@ -222,5 +222,9 @@ void gt_config::read_config(const char * config_filename)
     m_host = init_file.readstring("COMMON", "HOST", sItem, sizeof(sItem),
                                   "127.0.0.1");
     m_port = (uint16_t)init_file.readinteger("COMMON", "PORT", 6379);
+
+    m_cluster_host = init_file.readstring("CLUSTER", "HOST", sItem,
+                                          sizeof(sItem), "127.0.0.1");
+    m_cluster_port = (uint16_t)init_file.readinteger("CLUSTER", "PORT", 6379);
 }
 

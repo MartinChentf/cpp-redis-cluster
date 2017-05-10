@@ -17,8 +17,8 @@ redis_zset* redis_zset_test::m_pZset = NULL;
 redis_key* redis_zset_test::m_pKey = NULL;
 
 void redis_zset_test::SetUpTestCase() {
-    m_pClient = new redis_client(gt_component::Instance().get_host(),
-                                 gt_component::Instance().get_port());
+    m_pClient = new redis_client(gt_component::Instance().get_cluster_host(),
+                                 gt_component::Instance().get_cluster_port());
     m_pZset = new redis_zset(m_pClient);
     m_pKey = new redis_key(m_pClient);
     m_pStr = new redis_string(m_pClient);

@@ -21,10 +21,10 @@ int redis_key::del(const std::vector<std::string>& keys)
 
 int redis_key::del(const std::string& key)
 {
-    std::vector<std::string> str;
-    str.push_back(key);
+    std::vector<std::string> keys;
+    keys.push_back(key);
 
-    return del(str);
+    return del(keys);
 }
 
 int redis_key::dump(const std::string& key, std::string& result)
@@ -245,7 +245,7 @@ int redis_key::randomkey(std::string & out)
     return get_string_or_nil(out);
 }
 
-bool redis_key::rename(const sd::string& key, const std::string& new_key)
+bool redis_key::rename(const std::string& key, const std::string& new_key)
 {
     std::vector<std::string> argv;
     argv.push_back("RENAME");
@@ -290,26 +290,6 @@ bool redis_key::restore(const std::string& key, unsigned long long ttl,
     return check_status();
 }
 
-int redis_key::sort(const std::string& key, const std::string& dest,
-                    sort_params* params /*= NULL*/)
-{
-    std::vector<std::string> argv;
-    argv.push_back("SORT");
-    argv.push_back(key);
-    if (params) {
-        argv.insert(argv.end(), params.get_params());
-    }
-    argv.push_back("STORE");
-    argv.push_back(dest);
-
-    if (is_replace) {
-        argv.push_back("REPLACE");
-    }
-
-    build_request(argv);
-    hash_slots(key);
-}
-
 int redis_key::scan(int cursor, std::vector<std::string>& result,
                     const char * pattern /*= NULL*/, int count /*= 10*/)
 {
@@ -317,6 +297,97 @@ int redis_key::scan(int cursor, std::vector<std::string>& result,
     return get_cursor_array(&result);
 }
 
+int redis_key::sort(const std::string& key, const std::string& dest,
+                    sort_params* params /*= NULL*/)
+{
+    std::vector<std::string> argv;
+    argv.push_back("SORT");
+    argv.push_back(key);
+    if (params) {
+        argv.insert(argv.end(), params->get_params().begin(),
+                    params->get_params().end());
+    }
+    argv.push_back("STORE");
+    argv.push_back(dest);
+
+    build_request(argv);
+    hash_slots(key);
+
+    return get_integer32();
+}
+
+int redis_key::sort(const std::string& key, std::vector<std::string>& result,
+                    sort_params* params /*= NULL*/)
+{
+    std::vector<std::string> argv;
+    argv.push_back("SORT");
+    argv.push_back(key);
+    if (params) {
+        argv.insert(argv.end(), params->get_params().begin(),
+                    params->get_params().end());
+    }
+
+    build_request(argv);
+    hash_slots(key);
+
+    return get_array_or_nil(result);
+}
+
+int redis_key::touch(const std::vector<std::string>& keys)
+{
+    std::vector<std::string> argv;
+    argv.push_back("TOUCH");
+
+    for (size_t i = 0; i < keys.size(); i++) {
+        argv.push_back(keys[i]);
+    }
+
+    build_request(argv);
+
+    if (!keys.empty()) {
+        hash_slots(keys[0]);
+    }
+
+    return get_integer32();
+}
+
+int redis_key::touch(const std::string& key)
+{
+    std::vector<std::string> keys;
+    keys.push_back(key);
+
+    return touch(keys);
+}
+
+long long redis_key::ttl(const std::string & key)
+{
+    std::vector<std::string> argv;
+    argv.push_back("TTL");
+    argv.push_back(key);
+
+    build_request(argv);
+    hash_slots(key);
+
+    return get_integer64();
+}
+
+std::string redis_key::type(const std::string & key)
+{
+    std::vector<std::string> argv;
+    argv.push_back("TYPE");
+    argv.push_back(key);
+
+    build_request(argv);
+    hash_slots(key);
+
+    std::string result;
+    get_string(result);
+    return result;
+}
+
+/**
+ * sort_params¿‡∂®“Â
+ */
 sort_params& sort_params::by(const std::string& pattern)
 {
     params.push_back("BY");
@@ -343,13 +414,6 @@ sort_params& sort_params::limit(int offset, int count)
     params.push_back("LIMIT");
     params.push_back(TO_STRING(offset));
     params.push_back(TO_STRING(count));
-    return *this;
-}
-
-void sort_params::store(const std::string& dest)
-{
-    params.push_back("STORE");
-    params.push_back(dest);
     return *this;
 }
 

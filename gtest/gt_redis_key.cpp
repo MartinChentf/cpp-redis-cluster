@@ -16,8 +16,8 @@ redis_string* redis_key_test::m_pStr = NULL;
 redis_key* redis_key_test::m_pKey = NULL;
 
 void redis_key_test::SetUpTestCase() {
-    m_pClient = new redis_client(gt_component::Instance().get_host(),
-                                 gt_component::Instance().get_port());
+    m_pClient = new redis_client(gt_component::Instance().get_cluster_host(),
+                                 gt_component::Instance().get_cluster_port());
     m_pStr = new redis_string(m_pClient);
     m_pKey = new redis_key(m_pClient);
 }
@@ -186,7 +186,7 @@ TEST_F(redis_key_test, keys)
     redis_key_test::m_pStr->set("{K}:fco", "hello");
     redis_key_test::m_pStr->set("{K}:fo", "hello");
 
-    EXPECT_EQ(5, redis_key_test::m_pKey->keys("*", result));
+    EXPECT_EQ(5, redis_key_test::m_pKey->keys("{K}:*", result));
     EXPECT_EQ(true, contain_with("{K}:foo,{K}:fao,{K}:feeeo,{K}:fco,{K}:fo",result));
     result.clear();
 
@@ -211,6 +211,10 @@ TEST_F(redis_key_test, keys)
     redis_key_test::m_pKey->del("{K}:feeeo");
     redis_key_test::m_pKey->del("{K}:fco");
     redis_key_test::m_pKey->del("{K}:fo");
+}
+
+TEST_F(redis_key_test, move)
+{
 }
 
 TEST_F(redis_key_test, object_refcount)
@@ -240,7 +244,7 @@ TEST_F(redis_key_test, scan)
     redis_key_test::m_pStr->mset(key_value);
 
     int cursor = redis_key_test::m_pKey->scan(0, result, "*{foo}*");
-    while (cursor != 0) {
+    while (cursor > 0) {
         cursor = redis_key_test::m_pKey->scan(cursor, result, "*{foo}*");
     }
     EXPECT_EQ(20, result.size());

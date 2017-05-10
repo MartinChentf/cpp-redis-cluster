@@ -13,8 +13,8 @@ redis_string* redis_string_test::m_pStr = NULL;
 redis_key* redis_string_test::m_pKey = NULL;
 
 void redis_string_test::SetUpTestCase() {
-    m_pClient = new redis_client(gt_component::Instance().get_host(),
-                                 gt_component::Instance().get_port());
+    m_pClient = new redis_client(gt_component::Instance().get_cluster_host(),
+                                 gt_component::Instance().get_cluster_port());
     m_pStr = new redis_string(m_pClient);
     m_pKey = new redis_key(m_pClient);
 
