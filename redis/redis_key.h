@@ -8,23 +8,24 @@
 #include "redis_command.h"
 
 class sort_params;
+class MigrateParams;
 
-class redis_key : public redis_command
+class redis_key : virtual public redis_command
 {
 public:
-    redis_key(redis_client* client):redis_command(client){}
+    redis_key(const std::string& host, uint16_t port);
     ~redis_key(){}
 
 public:
     /**
      * 删除指定的一个或一组keys, 忽略不存在的key
-     * @param [IN] key {const std::vector<std::string>&} 指定的一组keys
+     * @param [IN] vkeys {const std::vector<std::string>&} 指定的一组keys
      * @return {int} 返回实际删除的key的个数, 如下:
      *   0: 未删除任何key
      *  >0: 实际删除的key的个数, 该值可能小于输入key的个数
      *  -1: 出错
      */
-    int del(const std::vector<std::string>& keys);
+    int del(const std::vector<std::string>& vkeys);
     int del(const std::string& key);
 
     /**
@@ -45,7 +46,7 @@ public:
     /**
      * @description
      *   判断key是否存在. 支持redis 3.0.3以上版本.
-     * @param [IN] keys {const std::vector<std::string>&} 给定的key
+     * @param [IN] vkeys {const std::vector<std::string>&} 给定的key
      * @return {int} 返回存在的key的个数, 返回值如下:
      *   >0: 存在的key的个数, 如果参数中同一个key被重复多次, 则将会被多次计数
      *    0: key不存在
@@ -53,7 +54,7 @@ public:
      * @author chen.tengfei
      * @date 2017-04-24
      */
-    int exists(const std::vector<std::string>& keys);
+    int exists(const std::vector<std::string>& vkeys);
 
     /**
      * @description
@@ -134,17 +135,13 @@ public:
      *   表示使用 KEYS 选项.
      * @param [IN] dest_db {int} 目标实例的数据库ID号.
      * @param [IN] timeout {long long} 迁移过程的超时时间, 单位: 毫秒.
-     * @param [IN] is_copy {bool} 是否使用 COPY 选项, 默认值为false.
-     * @param [IN] is_replace {bool} 是否使用 REPLACE 选项, 默认值为false.
-     * @param [IN] keys {const std::vector<std::string>*} 是否使用 KEYS 选项, 默
-     *   认值为NULL. 当key = "" , 并且keys不为空时, 启用该选项. 
+     * @param [IN] params {MigrateParams*} migrate 选项
      * @return {bool} 迁移是否成功.
      * @author chen.tengfei
      * @date 2017-04-26
      */
     bool migrate(const std::string& host, uint16_t port, const std::string& key,
-        int dest_db, long long timeout, bool is_copy = false,
-        bool is_replace = false, const std::vector<std::string>* keys = NULL);
+        int dest_db, long long timeout, MigrateParams* params = NULL);
 
     /**
      * @description
@@ -302,7 +299,7 @@ public:
      *   反序列化给定的序列化值, 并将其存入 key 中. 如果 key 已经存在, 则返回一
      *   个"Target key name is busy"的错误, 除非使用 REPLACE 模式.
      * @param [IN] key {const std::string&} 给定的key.
-     * @param [IN] ttl {unsigned long long} key的生存时间, 单位: 毫秒.
+     * @param [IN] TTL {unsigned long long} key的生存时间, 单位: 毫秒.
      *   如果ttl为0, 则不设置生存时间.
      * @param [IN] serialized_value {const std::string&} 序列化的值.
      * @param [IN] is_replace {bool} 是否使用 REPLACE 模式(redis 3.0或以上版本).
@@ -314,7 +311,7 @@ public:
      * @author chen.tengfei
      * @date 2017-05-09
      */
-    bool restore(const std::string& key, unsigned long long ttl,
+    bool restore(const std::string& key, unsigned long long TTL,
                  const std::string& serialized_value, bool is_replace = false);
 
     /**
@@ -369,7 +366,7 @@ public:
     /**
      * @description
      *   改变给定key的最近访问时间, 忽略不存在的key.
-     * @param [IN] keys {const std::vector<std::string>&} 指定的一组keys
+     * @param [IN] vkeys {const std::vector<std::string>&} 指定的一组keys
      * @return {int} 返回被touched的key的个数, 如下:
      *   0: 没有key收到影响
      *  >0: 实际受到影响的key的个数, 该值可能小于输入key的个数
@@ -377,7 +374,7 @@ public:
      * @author chen.tengfei
      * @date 2017-05-10
      */
-    int touch(const std::vector<std::string>& keys);
+    int touch(const std::vector<std::string>& vkeys);
     int touch(const std::string& key);
 
     /**
@@ -475,7 +472,6 @@ public:
     /**
      * @description
      *   按字典序排列.
-     * @param [IN/OUT] name {type} 
      * @return {sort_params&} 返回sort_params类对象
      * @author chen.tengfei
      * @date 2017-05-09
@@ -486,5 +482,42 @@ private:
     std::vector<std::string> params;
 };
 
+class MigrateParams
+{
+public:
+    std::vector<std::string>& getParams() {return params;}
+
+    /**
+     * @description
+     *   拷贝数据, 数据不从本地实例删除.
+     * @return {MigrateParams&} 返回 MigrateParams 类对象
+     * @author chen.tengfei
+     * @date 2017-06-04
+     */
+    MigrateParams& copy();
+
+    /**
+     * @description
+     *   覆盖目标实例中已经存在的同名键值.
+     * @return {MigrateParams&} 返回 MigrateParams 类对象
+     * @author chen.tengfei
+     * @date 2017-06-04
+     */
+    MigrateParams& replace();
+
+    /**
+     * @description
+     *   如果key参数为空字符串, 该命令一次可以迁移多个key, 迁移的键值由keys参数
+     *   指定.
+     * @param [IN] vkeys {const std::vector<std::string>&} 需要迁移的多个key
+     * @return {MigrateParams&} 返回 MigrateParams 类对象
+     * @author chen.tengfei
+     * @date 2017-06-04
+     */
+    MigrateParams& keys(const std::vector<std::string>& vkeys);
+
+private:
+    std::vector<std::string> params;
+};
 
 #endif /* __REDIS_KEY_H__ */

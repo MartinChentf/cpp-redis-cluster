@@ -219,12 +219,60 @@ void gt_config::read_config(const char * config_filename)
     }
 
     char sItem[LINE_MAX_CHARS];
-    m_host = init_file.readstring("COMMON", "HOST", sItem, sizeof(sItem),
-                                  "127.0.0.1");
-    m_port = (uint16_t)init_file.readinteger("COMMON", "PORT", 6379);
+    int singleCount = init_file.readinteger("SINGLE", "COUNT", 0);
+    if (singleCount <= 0) {
+        m_single.push_back(std::make_pair("127.0.0.1", 6379));
+    } else {
+        for (int i = 0; i < singleCount; i++) {
+            char section[64];
+            snprintf(section, sizeof(section), "Single%d", i);
+            std::string host = init_file.readstring(section, "HOST",
+                sItem, sizeof(sItem), "127.0.0.1");
+            uint16_t port = (uint16_t)init_file.readinteger(section, "PORT", 6379);
+            m_single.push_back(std::make_pair(host, port));
+        }
+    }
 
-    m_cluster_host = init_file.readstring("CLUSTER", "HOST", sItem,
-                                          sizeof(sItem), "127.0.0.1");
-    m_cluster_port = (uint16_t)init_file.readinteger("CLUSTER", "PORT", 6379);
+    int clusterCount = init_file.readinteger("CLUSTER", "COUNT", 0);
+    if (clusterCount <= 0) {
+        m_cluster.push_back(std::make_pair("127.0.0.1", 6379));
+    } else {
+        for (int i = 0; i < clusterCount; i++) {
+            char section[64];
+            snprintf(section, sizeof(section), "Cluster%d", i);
+            std::string host = init_file.readstring(section, "HOST",
+                sItem, sizeof(sItem), "127.0.0.1");
+            uint16_t port = (uint16_t)init_file.readinteger(section, "PORT", 6379);
+            m_cluster.push_back(std::make_pair(host, port));
+        }
+    }
+}
+
+std::string gt_component::get_host(int pos) {
+    if (pos < 0 || pos >= (int)m_config.m_single.size()) {
+        return m_config.m_single[0].first;
+    }
+    return m_config.m_single[pos].first;
+}
+
+uint16_t gt_component::get_port(int pos) {
+    if (pos < 0 || pos >= (int)m_config.m_single.size()) {
+        return m_config.m_single[0].second;
+    }
+    return m_config.m_single[pos].second;
+}
+
+std::string gt_component::get_cluster_host(int pos) {
+    if (pos < 0 || pos >= (int)m_config.m_cluster.size()) {
+        return m_config.m_cluster[0].first;
+    }
+    return m_config.m_cluster[pos].first;
+}
+
+uint16_t gt_component::get_cluster_port(int pos) {
+    if (pos < 0 || pos >= (int)m_config.m_cluster.size()) {
+        return m_config.m_cluster[0].second;
+    }
+    return m_config.m_cluster[pos].second;
 }
 

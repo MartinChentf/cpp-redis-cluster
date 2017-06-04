@@ -7,14 +7,10 @@
 
 #include "redis_command.h"
 
-class redis_hash : public redis_command
+class redis_hash : virtual public redis_command
 {
 public:
-    typedef std::map<std::string, std::string> t_field_value_map;
-    typedef t_field_value_map::iterator t_field_value_map_iter;
-
-public:
-    redis_hash(redis_client* client):redis_command(client){}
+    redis_hash(const std::string& host, uint16_t port);
     ~redis_hash(){}
 
 public:

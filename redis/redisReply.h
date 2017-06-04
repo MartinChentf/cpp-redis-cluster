@@ -28,20 +28,20 @@ static const char * const REPLY_TYPE[] =
 /**
  * @description
  *   存储经过解析后的 redis-server 应答结果的类. 调用者把解析后的 redis-server
- *   应答数据存入 redis_reply 类对象.
+ *   应答数据存入 redisReply 类对象.
  * @author chen.tengfei
  * @date 2017-04-22
  */
-class redis_reply
+class redisReply
 {
 public:
-    redis_reply();
-    ~redis_reply();
+    redisReply();
+    ~redisReply();
 
 public:
     /**
      * @description
-     *   返回当前 redis_reply 节点的数据类型
+     *   返回当前 redisReply 节点的数据类型
      * @return {t_redis_reply} 
      * @author chen.tengfei
      * @date 2017-04-23
@@ -50,7 +50,7 @@ public:
 
     /**
      * @description
-     *   返回当前节点存储的 redis_reply 对象的个数
+     *   返回当前节点存储的 redisReply 对象的个数
      * @return {size_t} 返回值与节点数据类型的对应关系如下:
      *   REDIS_REPLY_UNKOWN: -1
      *   REDIS_REPLY_NIL: 0
@@ -68,11 +68,11 @@ public:
      * @description
      *   当数据类型是 REDIS_REPLY_ARRAY 类型时, 返回指定下标的子节点对象.
      * @param [IN] idx {size_t} 下标值
-     * @return {const redis_reply*} 如果下标越界或者不存在子节点, 返回空置
+     * @return {const redisReply*} 如果下标越界或者不存在子节点, 返回空置
      * @author chen.tengfei
      * @date 2017-04-23
      */
-    const redis_reply* get_element(size_t idx) const;
+    const redisReply* get_element(size_t idx) const;
 
     /**
      * @description
@@ -125,11 +125,11 @@ public:
      * @description
      *   设置当前redis_reply节点的数据类型
      * @param [IN] type {t_redis_reply} 节点的数据类型
-     * @return {redis_reply&} 当前节点的this指针
+     * @return {redisReply&} 当前节点的this指针
      * @author chen.tengfei
      * @date 2017-04-23
      */
-    redis_reply& set_type(t_redis_reply type);
+    redisReply& set_type(t_redis_reply type);
 
     /**
      * @description
@@ -137,24 +137,24 @@ public:
      *   注意: 调用本函数前必须先调用 set_type 函数指定正确的数据类型, 否则可能
      *         会造成存储数据混乱
      * @param [IN] buff {const std::string&} 
-     * @return {redis_reply&} 当前节点的this指针
+     * @return {redisReply&} 当前节点的this指针
      * @author chen.tengfei
      * @date 2017-04-23
      */
-    redis_reply& put(const std::string& buff);
-    redis_reply& put(const char* buff, int len);
+    redisReply& put(const std::string& buff);
+    redisReply& put(const char* buff, int len);
 
     /**
      * @description
      *   向当前节点存放数据. 当前节点为 REDIS_REPLY_ARRAY 类型时使用.
      *   注意: 调用本函数前必须先调用 set_type 函数指定正确的数据类型, 否则可能
      *         会造成存储数据混乱
-     * @param [IN] rr {const redis_reply*} 
-     * @return {redis_reply&} 当前节点的this指针
+     * @param [IN] rr {const redisReply*} 
+     * @return {redisReply&} 当前节点的this指针
      * @author chen.tengfei
      * @date 2017-04-23
      */
-    redis_reply& put(const redis_reply* rr);
+    redisReply& put(const redisReply* rr);
 
 private:
     void clear();
@@ -167,7 +167,7 @@ private:
     // Used for both REDIS_REPLY_ERROR and REDIS_REPLY_STRING
     std::string m_str;
     // elements vector for REDIS_REPLY_ARRAY
-    std::vector<const redis_reply*> m_element;
+    std::vector<const redisReply*> m_element;
 };
 
 #endif /* __REDIS_REPLY_H__ */

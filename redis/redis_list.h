@@ -7,10 +7,10 @@
 
 #include "redis_command.h"
 
-class redis_list : public redis_command
+class redis_list : virtual public redis_command
 {
 public:
-    redis_list(redis_client* client):redis_command(client){}
+    redis_list(const std::string& host, uint16_t port);
     ~redis_list(){}
 
 public:    

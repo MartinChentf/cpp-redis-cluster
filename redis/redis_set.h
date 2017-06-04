@@ -6,10 +6,10 @@
 
 #include "redis_command.h"
 
-class redis_set : public redis_command
+class redis_set : virtual public redis_command
 {
 public:
-    redis_set(redis_client* client):redis_command(client){}
+    redis_set(const std::string& host, uint16_t port);
     ~redis_set(){}
 
 public:

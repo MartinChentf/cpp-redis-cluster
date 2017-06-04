@@ -1,6 +1,11 @@
 #include "redis_set.h"
 #include "redis_helper.h"
 
+redis_set::redis_set(const std::string & host, uint16_t port)
+: redis_command(host, port)
+{
+}
+
 long long redis_set::sadd(const std::string& key,
                           const std::vector<std::string>& member)
 {
@@ -11,8 +16,7 @@ long long redis_set::sadd(const std::string& key,
         argv.push_back(member[i]);
     }
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     return get_integer64();
 }
@@ -23,8 +27,7 @@ long long redis_set::scard(const std::string& key)
     argv.push_back("SCARD");
     argv.push_back(key.c_str());
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     return get_integer64();
 }
@@ -57,10 +60,7 @@ bool redis_set::set_operation(const char* op,
         argv.push_back(keys[i]);
     }
 
-    build_request(argv);
-    if (keys.size()) {
-        hash_slots(keys[0]);
-    }
+    sendCommand(argv);
 
     return get_array_or_nil(result) >= 0;
 }
@@ -95,8 +95,7 @@ redis_set::set_operation_with_store(const char* op,
         argv.push_back(keys[i]);
     }
 
-    build_request(argv);
-    hash_slots(dest);
+    sendCommand(argv);
 
     return get_integer64();
 }
@@ -108,8 +107,7 @@ int redis_set::sismember(const std::string& key, const std::string& member)
     argv.push_back(key.c_str());
     argv.push_back(member.c_str());
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     return get_integer32();
 }
@@ -121,8 +119,7 @@ int redis_set::smembers(const std::string& key,
     argv.push_back("SMEMBERS");
     argv.push_back(key.c_str());
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     return get_array_or_nil(result);
 }
@@ -136,8 +133,7 @@ int redis_set::smove(const std::string& src, const std::string& dest,
     argv.push_back(dest.c_str());
     argv.push_back(member.c_str());
 
-    build_request(argv);
-    hash_slots(src);
+    sendCommand(argv);
 
     return get_integer32();
 }
@@ -148,8 +144,7 @@ int redis_set::spop(const std::string& key, std::string& result)
     argv.push_back("SPOP");
     argv.push_back(key.c_str());
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     return get_string_or_nil(result);
 }
@@ -162,8 +157,7 @@ int redis_set::spop(const std::string& key,
     argv.push_back(key.c_str());
     argv.push_back(TO_STRING(count));
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     return get_array_or_nil(result);
 }
@@ -174,8 +168,7 @@ int redis_set::srandmember(const std::string& key, std::string& result)
     argv.push_back("SRANDMEMBER");
     argv.push_back(key.c_str());
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     return get_string_or_nil(result);
 }
@@ -188,8 +181,7 @@ int redis_set::srandmember(const std::string& key,
     argv.push_back(key.c_str());
     argv.push_back(TO_STRING(count));
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     return get_array_or_nil(result);
 }
@@ -204,8 +196,7 @@ long long redis_set::srem(const std::string& key,
         argv.push_back(member[i]);
     }
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     return get_integer64();
 }

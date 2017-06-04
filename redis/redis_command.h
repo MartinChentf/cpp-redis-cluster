@@ -1,24 +1,19 @@
 #ifndef __REDIS_COMMAND_H__
 #define __REDIS_COMMAND_H__
 
+#include <stdint.h>
 #include <string>
 #include <vector>
 
-class redis_client;
-class redis_reply;
+#include "Connection.h"
 
-class redis_command
+class redisReply;
+
+class redis_command : public Connection
 {
 public:
-    redis_command(redis_client* client);
+    redis_command(const std::string& host, uint16_t port);
     virtual ~redis_command(){}
-
-    void set_client(redis_client* client);
-
-protected:
-    void build_request(const std::vector<std::string>& argv);
-    void hash_slots(std::string key);
-    redis_reply* run();
 
 /******************************************************************************/
     bool check_status(const char* expection = "OK");
@@ -44,16 +39,18 @@ protected:
     void scan_keys(const char* cmd, const std::string* key, int cursor,
                    const char * pattern, int count);
 
+protected:
+    // 覆盖基类中的 sendCommand 函数
+    bool sendCommand(const std::vector<std::string>& argv);
+
 private:
     // 合成command命令, 方便日志输出
     void generate_cmdstr(const std::vector<std::string>& argv);
-    // 分析redis_reply对象, 方便日志输出
-    std::string parse_reply(const redis_reply* reply);
+    // 分析 redisReply 对象, 方便日志输出
+    std::string parse_reply(const redisReply* reply);
 
 private:
-    redis_client* m_client;
     std::string m_command;
-    std::string m_request_buf;
 };
 
 #endif /* __REDIS_COMMAND_H__ */

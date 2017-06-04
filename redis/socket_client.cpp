@@ -9,10 +9,10 @@
 
 #include "socket_client.h"
 
-socket_client::socket_client()
+socket_client::socket_client(const std::string& sHost, uint16_t sPort)
 : m_sockid(INVALID_SOCKET)
-, m_host("")
-, m_port(0)
+, m_host(sHost)
+, m_port(sPort)
 , m_read_count(0)
 , m_read_limit(0)
 , m_write_count(0)
@@ -21,13 +21,10 @@ socket_client::socket_client()
     memset(m_write_buff, 0, WRITE_BUFF_LEN);
 }
 
-int socket_client::connect_socket(const char * host, int port)
+int socket_client::connect_socket()
 {
     int sockfd = 0;
     struct sockaddr_in addr;
-
-    m_host = host;
-    m_port = port;
 
     if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         return -1;
@@ -37,8 +34,8 @@ int socket_client::connect_socket(const char * host, int port)
 
     bzero(&addr,sizeof(addr));
     addr.sin_family = AF_INET;
-    addr.sin_port = htons((uint16_t)port);
-    addr.sin_addr.s_addr = inet_addr(host);
+    addr.sin_port = htons(m_port);
+    addr.sin_addr.s_addr = inet_addr(m_host.c_str());
     if(connect(sockfd, (struct sockaddr*)&addr, sizeof(addr)) < 0)
     {
         close_socket();
@@ -64,7 +61,7 @@ bool socket_client::check_connect()
 {
     if (!VALID_SOCKET(m_sockid))
     {
-        if (connect_socket(m_host.c_str(), m_port) < 0)
+        if (connect_socket() < 0)
         {
             return false;
         }

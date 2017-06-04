@@ -1,9 +1,10 @@
+#if 0
 #include <sys/time.h>
 #include <string.h>
 #include <stdlib.h>
 #include <iostream>
 
-#include "redis_client.h"
+#include "RedisClient.h"
 #include "redis_log.h"
 #include "redis_helper.h"
 #include "socket_client.h"
@@ -55,7 +56,7 @@ static unsigned int keyHashSlot(const char *key, size_t keylen) {
     return crc16(key+s+1,e-s-1) & 0x3FFF; // 0x3FFF == 16383
 }
 
-redis_client::redis_client(const std::string host, uint16_t port)
+redis_cluster::redis_cluster(const std::string host, uint16_t port)
 : m_binitialization(false)
 , m_host(host)
 , m_port(port)
@@ -65,11 +66,11 @@ redis_client::redis_client(const std::string host, uint16_t port)
     init();
 }
 
-redis_client::~redis_client()
+redis_cluster::~redis_cluster()
 {
     clear();
 }
-bool redis_client::init()
+bool redis_cluster::init()
 {
     if (list_node()) {
         m_binitialization = true;
@@ -82,7 +83,7 @@ bool redis_client::init()
     }
 }
 
-void redis_client::clear()
+void redis_cluster::clear()
 {
     if (!m_cluster_mode) {
         if (m_socket) {
@@ -112,7 +113,7 @@ void redis_client::clear()
     }
 }
 
-bool redis_client::list_node()
+bool redis_cluster::list_node()
 {
     socket_client* socket = connect_node(m_host, m_port);
     if (NULL == socket) {
@@ -120,7 +121,7 @@ bool redis_client::list_node()
     }
     m_socket = socket;
 
-    redis_reply* reply = run(INFO_CLUSTER);
+    redisReply* reply = run(INFO_CLUSTER);
     if (reply && reply->get_type() == REDIS_REPLY_STRING) {
         std::string str = reply->get_string();
         int pos = str.find(":");
@@ -155,7 +156,7 @@ bool redis_client::list_node()
     return true;
 }
 
-socket_client* redis_client::connect_node(const std::string& host, uint16_t port)
+socket_client* redis_cluster::connect_node(const std::string& host, uint16_t port)
 {
     socket_client* socket = new socket_client();
     if (socket->connect_socket(host.c_str(), port) < 0) {
@@ -168,7 +169,7 @@ socket_client* redis_client::connect_node(const std::string& host, uint16_t port
     }
 }
 
-std::string redis_client::parse_reply(const redis_reply* reply)
+std::string redis_cluster::parse_reply(const redisReply* reply)
 {
     if (reply == NULL) {
         return "Reply is NULL";
@@ -196,7 +197,7 @@ std::string redis_client::parse_reply(const redis_reply* reply)
     }
 }
 
-bool redis_client::parse_cluster_slots(redis_reply * reply)
+bool redis_cluster::parse_cluster_slots(redisReply * reply)
 {
     if (NULL == reply) {
         return false;
@@ -209,7 +210,7 @@ bool redis_client::parse_cluster_slots(redis_reply * reply)
     }
 
     for (size_t i = 0; i < reply->get_size(); i ++) {
-        const redis_reply* elem_slots = reply->get_element(i);
+        const redisReply* elem_slots = reply->get_element(i);
         if (elem_slots->get_type() != REDIS_REPLY_ARRAY
             || elem_slots->get_size() < 3) {
             ERROR("Reply Error: reply-type is't array or size(%d) < 3. %s",
@@ -226,7 +227,7 @@ bool redis_client::parse_cluster_slots(redis_reply * reply)
         // one slits region
         for (size_t idx = 0; idx < elem_slots->get_size(); idx ++) {
             if (idx == 0) { // begin of slots
-                const redis_reply* elem_slots_begin = elem_slots->get_element(idx);
+                const redisReply* elem_slots_begin = elem_slots->get_element(idx);
                 if (elem_slots_begin->get_type() != REDIS_REPLY_INTEGER) {
                     ERROR("Reply Type Error: reply-type isn't integer. %s",
                           parse_reply(reply).c_str());
@@ -235,7 +236,7 @@ bool redis_client::parse_cluster_slots(redis_reply * reply)
                 slots->begin = (int)(elem_slots_begin->get_integer());
             }
             else if (idx == 1) { // end of slots
-                const redis_reply* elem_slots_end = elem_slots->get_element(idx);
+                const redisReply* elem_slots_end = elem_slots->get_element(idx);
                 if (elem_slots_end->get_type() != REDIS_REPLY_INTEGER) {
                     ERROR("Reply Type Error: reply-type isn't integer. %s",
                           parse_reply(reply).c_str());
@@ -250,7 +251,7 @@ bool redis_client::parse_cluster_slots(redis_reply * reply)
                 }
             }
             else { // cluster node
-                const redis_reply* elem_node = elem_slots->get_element(idx);
+                const redisReply* elem_node = elem_slots->get_element(idx);
                 if (elem_node->get_type() != REDIS_REPLY_ARRAY ||
                     elem_node->get_size() != 3) {
                     ERROR("Reply Error: reply-type is't array or size(%d) != 3. %s",
@@ -258,8 +259,8 @@ bool redis_client::parse_cluster_slots(redis_reply * reply)
                     return false;
                 }
 
-                const redis_reply* elem_ip = elem_node->get_element(0);
-                const redis_reply* elem_port = elem_node->get_element(1);
+                const redisReply* elem_ip = elem_node->get_element(0);
+                const redisReply* elem_port = elem_node->get_element(1);
 
                 if (elem_ip == NULL || elem_port == NULL ||
                     elem_ip->get_type() != REDIS_REPLY_STRING || 
@@ -298,8 +299,8 @@ bool redis_client::parse_cluster_slots(redis_reply * reply)
     return true;
 }
 
-redis_client::t_cluster_node*
-redis_client::create_cluster_node(const std::string host,
+redis_cluster::t_cluster_node*
+redis_cluster::create_cluster_node(const std::string host,
                                   uint16_t port,
                                   bool master /*= false*/,
                                   socket_client * socket /*= NULL*/)
@@ -314,7 +315,7 @@ redis_client::create_cluster_node(const std::string host,
     return node;
 }
 
-void redis_client::redirect(int slot)
+void redis_cluster::redirect(int slot)
 {
     if (!m_cluster_mode) {
         return;
@@ -339,7 +340,7 @@ void redis_client::redirect(int slot)
     }
 }
 
-unsigned int redis_client::get_key_slot(const std::string& key)
+unsigned int redis_cluster::get_key_slot(const std::string& key)
 {
     if (!key.empty())
     {
@@ -354,7 +355,7 @@ unsigned int redis_client::get_key_slot(const std::string& key)
     }
 }
 
-void redis_client::set_hash_slot(const std::string & key)
+void redis_cluster::set_hash_slot(const std::string & key)
 {
     // 非集群模式不需要设置哈希槽
     if (!m_cluster_mode) {
@@ -364,7 +365,7 @@ void redis_client::set_hash_slot(const std::string & key)
     redirect(slot);
 }
 
-redis_reply* redis_client::run(const std::string& request)
+redisReply* redis_cluster::run(const std::string& request)
 {
     if (m_socket == NULL) {
         ERROR("m_socket is NULL");
@@ -381,7 +382,7 @@ redis_reply* redis_client::run(const std::string& request)
     return get_redis_object();
 }
 
-redis_reply* redis_client::process_line_item(t_redis_reply type)
+redisReply* redis_cluster::process_line_item(t_redis_reply type)
 {
     if (m_socket == NULL) {
         ERROR("m_socket is NULL");
@@ -394,29 +395,29 @@ redis_reply* redis_client::process_line_item(t_redis_reply type)
         return NULL;
     }
 
-    redis_reply* rr = new redis_reply();
+    redisReply* rr = new redisReply();
     rr->set_type(type);
     rr->put(buff);
 
     return rr;
 }
 
-redis_reply* redis_client::get_redis_error()
+redisReply* redis_cluster::get_redis_error()
 {
     return process_line_item(REDIS_REPLY_ERROR);
 }
 
-redis_reply* redis_client::get_redis_status()
+redisReply* redis_cluster::get_redis_status()
 {
     return process_line_item(REDIS_REPLY_STATUS);
 }
 
-redis_reply* redis_client::get_redis_integer()
+redisReply* redis_cluster::get_redis_integer()
 {
     return process_line_item(REDIS_REPLY_INTEGER);
 }
 
-redis_reply* redis_client::get_redis_string()
+redisReply* redis_cluster::get_redis_string()
 {
     if (m_socket == NULL) {
         ERROR("m_socket is NULL");
@@ -429,10 +430,10 @@ redis_reply* redis_client::get_redis_string()
         return NULL;
     }
 
-    redis_reply* rr = NULL;
+    redisReply* rr = NULL;
     int len = atoi(str_buff.c_str());
     if (len < 0) {
-        rr = new redis_reply();
+        rr = new redisReply();
         rr->set_type(REDIS_REPLY_NIL);
     }
     else {
@@ -442,7 +443,7 @@ redis_reply* redis_client::get_redis_string()
             return NULL;
         }
         buff[len] = 0;
-        rr = new redis_reply();
+        rr = new redisReply();
         rr->set_type(REDIS_REPLY_STRING);
         rr->put(buff, len);
 
@@ -452,7 +453,7 @@ redis_reply* redis_client::get_redis_string()
     return rr;
 }
 
-redis_reply* redis_client::get_redis_array()
+redisReply* redis_cluster::get_redis_array()
 {
     if (m_socket == NULL) {
         ERROR("m_socket is NULL");
@@ -465,17 +466,17 @@ redis_reply* redis_client::get_redis_array()
         return NULL;
     }
 
-    redis_reply* rr = NULL;
+    redisReply* rr = NULL;
     int count = atoi(str_buff.c_str());
     if (count <= 0) {
-        rr = new redis_reply();
+        rr = new redisReply();
         rr->set_type(REDIS_REPLY_NIL);
     }
     else {
-        rr = new redis_reply();
+        rr = new redisReply();
     	rr->set_type(REDIS_REPLY_ARRAY);
         for (int i = 0; i < count; i++) {
-            redis_reply* element = get_redis_object();
+            redisReply* element = get_redis_object();
             if (element == NULL) {
                 SAFE_DELETE(rr);  // 释放整个数组, 防止内存泄漏
                 return NULL;
@@ -486,7 +487,7 @@ redis_reply* redis_client::get_redis_array()
     return rr;
 }
 
-redis_reply* redis_client::get_redis_object()
+redisReply* redis_cluster::get_redis_object()
 {
     if (m_socket == NULL) {
         ERROR("m_socket is NULL");
@@ -509,4 +510,5 @@ redis_reply* redis_client::get_redis_object()
             return NULL;
     }
 }
+#endif /* 2017-06-04 15:57:19 chen.tengfei */
 

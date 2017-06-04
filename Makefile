@@ -8,7 +8,7 @@ export LINK = g++
 # Compile Option
 OPTIMIZATION?=-O1
 DEBUG?=-g -ggdb
-WARNINGS=-Wall -W -Wwrite-strings
+WARNINGS=-Wall -W -Wwrite-strings -Wshadow
 export CPPFLAGS= $(OPTIMIZATION) $(DEBUG) $(WARNINGS)
 
 # Directory

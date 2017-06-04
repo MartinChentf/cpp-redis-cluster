@@ -7,10 +7,12 @@
 
 TEST_F(redis_helper_test, to_string)
 {
-    EXPECT_EQ(std::string("123456"), redis_helper::to_string(123456));    // int
+    EXPECT_EQ(std::string("123456"), redis_helper::to_string(123456));  // int
     EXPECT_EQ(std::string("12.34"), redis_helper::to_string(12.34));    // double
-    EXPECT_EQ(std::string("1234567890"), redis_helper::to_string(1234567890L));  // long
-    EXPECT_EQ(std::string("1234567890"), redis_helper::to_string(1234567890UL));  // unsigned long
+    EXPECT_EQ(std::string("1234567890"), redis_helper::to_string(1234567890L)); // long
+    EXPECT_EQ(std::string("1234567890"), redis_helper::to_string(1234567890UL));// unsigned long
+    EXPECT_EQ(std::string("name:martin"),
+        redis_helper::to_string(std::make_pair("name", "martin"))); // std::pair
 }
 
 TEST_F(redis_helper_test, join_vector)

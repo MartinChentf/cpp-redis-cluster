@@ -4,6 +4,11 @@
 #include "redis_helper.h"
 #include "redis_log.h"
 
+redis_zset::redis_zset(const std::string & host, uint16_t port)
+: redis_command(host, port)
+{
+}
+
 long long redis_zset::zadd(const std::string& key,
     const std::vector< std::pair<std::string, double> >& member_score,
     int nx_or_xx /*= 0*/, bool is_change /*= false*/)
@@ -28,8 +33,7 @@ long long redis_zset::zadd(const std::string& key,
         argv.push_back(member_score[i].first);
     }
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     return get_integer64();
 }
@@ -65,8 +69,7 @@ bool redis_zset::zadd_incr(const std::string& key, double score,
     argv.push_back(TO_STRING(score));
     argv.push_back(member.c_str());
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     return get_string(result);
 }
@@ -77,8 +80,7 @@ long long redis_zset::zcard(const std::string& key)
     argv.push_back("ZCARD");
     argv.push_back(key.c_str());
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     return get_integer64();
 }
@@ -97,8 +99,7 @@ long long redis_zset::zcount(const std::string& key, const std::string& min,
     argv.push_back(min.c_str());
     argv.push_back(max.c_str());
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     return get_integer64();
 }
@@ -113,8 +114,7 @@ bool redis_zset::zincrby(const std::string& key, double increment,
     argv.push_back(TO_STRING(increment));
     argv.push_back(member.c_str());
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     return get_string(result);
 }
@@ -145,8 +145,7 @@ long long redis_zset::zstore(const char* cmd, const std::string& dest,
         argv.push_back(aggregate);
     }
 
-    build_request(argv);
-    hash_slots(dest);
+    sendCommand(argv);
 
     return get_integer64();
 }
@@ -177,8 +176,7 @@ long long redis_zset::zlexcount(const std::string& key,
     argv.push_back(min.c_str());
     argv.push_back(max.c_str());
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     return get_integer64();
 }
@@ -192,8 +190,7 @@ int redis_zset::zrange(const std::string& key, int start, int stop,
     argv.push_back(TO_STRING(start));
     argv.push_back(TO_STRING(stop));
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     return get_array_or_nil(result);
 }
@@ -209,8 +206,7 @@ int redis_zset::zrange_with_scores(const std::string& key,
     argv.push_back(TO_STRING(stop));
     argv.push_back("WITHSCORES");
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     std::vector<std::string> elem_score;
     int count = get_array_or_nil(elem_score);
@@ -253,8 +249,7 @@ int redis_zset::zrangeby(const char* cmd, const std::string& key,
         argv.push_back("WITHSCORES");
     }
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     return get_array_or_nil(result);
 }
@@ -316,8 +311,7 @@ int redis_zset::zrank(const std::string& key, const std::string& member)
     argv.push_back(key.c_str());
     argv.push_back(member.c_str());
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     return get_integer32();
 }
@@ -333,8 +327,7 @@ long long redis_zset::zrem(const std::string& key,
         argv.push_back(member[i]);
     }
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     return get_integer64();
 }
@@ -348,8 +341,7 @@ int redis_zset::zremrangebylex(const std::string& key, const std::string& min,
     argv.push_back(min.c_str());
     argv.push_back(max.c_str());
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     return get_integer32();
 }
@@ -362,8 +354,7 @@ int redis_zset::zremrangebyrank(const std::string& key, int start,int stop)
     argv.push_back(TO_STRING(start));
     argv.push_back(TO_STRING(stop));
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     return get_integer32();
 }
@@ -377,8 +368,7 @@ int redis_zset::zremrangebyscore(const std::string& key, const std::string& min,
     argv.push_back(min.c_str());
     argv.push_back(max.c_str());
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     return get_integer32();
 }
@@ -397,8 +387,7 @@ int redis_zset::zrevrange(const std::string& key, int start, int stop,
     argv.push_back(TO_STRING(start));
     argv.push_back(TO_STRING(stop));
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     return get_array_or_nil(result);
 }
@@ -413,8 +402,7 @@ int redis_zset::zrevrange_with_scores(const std::string& key, int start,
     argv.push_back(TO_STRING(stop));
     argv.push_back("WITHSCORES");
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     std::vector<std::string> elem_score;
     int count = get_array_or_nil(elem_score);
@@ -474,8 +462,7 @@ int redis_zset::zrevrank(const std::string& key, const std::string& member)
     argv.push_back(key.c_str());
     argv.push_back(member.c_str());
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     return get_integer32();
 }
@@ -501,8 +488,7 @@ int redis_zset::zscore(const std::string& key, const std::string& member,
     argv.push_back(key.c_str());
     argv.push_back(member.c_str());
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     return get_string_or_nil(score);
 }

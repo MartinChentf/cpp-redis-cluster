@@ -1,6 +1,7 @@
 #ifndef __SOCKET_CLIENT_H__
 #define __SOCKET_CLIENT_H__
 
+#include <stdint.h>
 #include <string>
 
 #define VALID_SOCKET(sock_id) ((sock_id) > 0)
@@ -11,11 +12,11 @@
 class socket_client
 {
 public:
-    socket_client();
+    socket_client(const std::string& sHost, uint16_t sPort);
     ~socket_client() { close_socket(); }
 
 public:
-    int connect_socket(const char* host, int port);
+    int connect_socket();
     int close_socket();
 
     char read_byte();
@@ -24,6 +25,9 @@ public:
 
     int write(const void* buff, int len);
     void flush();
+
+    std::string host() { return m_host; }
+    uint16_t port() { return m_port; }
 
 private:
     bool check_connect();
@@ -37,7 +41,7 @@ private:
 private:
     int m_sockid;
     std::string m_host;
-    int m_port;
+    uint16_t m_port;
 
     char m_read_buff[READ_BUFF_LEN];
     int m_read_count;

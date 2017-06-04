@@ -3,10 +3,7 @@
 
 #include "gtest/gtest.h"
 
-class redis_client;
-class redis_string;
-class redis_list;
-class redis_key;
+class redis;
 
 class redis_list_test : public testing::Test
 {
@@ -19,12 +16,7 @@ protected:
     virtual void TearDown();
 
 protected:    
-    static redis_string*    m_pStr;
-    static redis_list*      m_pList;
-    static redis_key*       m_pKey;
-
-private:
-    static redis_client* m_pClient;
+    static redis* m_pRedis;
 };
 
 #endif /* __GT_REDIS_LIST_H__ */

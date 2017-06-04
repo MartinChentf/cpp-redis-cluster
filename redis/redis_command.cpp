@@ -1,34 +1,18 @@
-#include <stdio.h>
-#include <string.h>
+//#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "redis_command.h"
-#include "redis_client.h"
 #include "redis_helper.h"
 #include "redis_log.h"
-#include "redis_reply.h"
+#include "redisReply.h"
 
-redis_command::redis_command(redis_client * client)
-: m_client(client)
+redis_command::redis_command(const std::string & host, uint16_t port)
+: Connection(host, port)
 , m_command("")
-, m_request_buf("")
 {}
 
-void redis_command::set_client(redis_client * client)
-{
-    if (client != NULL) {
-        m_client = client;
-    }
-}
-
-void redis_command::hash_slots(std::string key)
-{
-    if (m_client != NULL) {
-        m_client->set_hash_slot(key);
-    }
-}
-
-std::string redis_command::parse_reply(const redis_reply* reply)
+std::string redis_command::parse_reply(const redisReply* reply)
 {
     if (reply == NULL) {
         return "Reply is NULL";
@@ -58,7 +42,7 @@ std::string redis_command::parse_reply(const redis_reply* reply)
 
 bool redis_command::check_status(const char * expection /*= "OK"*/)
 {
-    const redis_reply* reply = run();
+    const redisReply* reply = receiveReply();
     if (reply == NULL || reply->get_type() != REDIS_REPLY_STATUS) {
         ERROR("Execute command fail! [%s], %s",
             m_command.c_str(), parse_reply(reply).c_str());
@@ -87,7 +71,7 @@ bool redis_command::check_status(const char * expection /*= "OK"*/)
 
 int redis_command::check_status_or_nil(const char * expection /*= "OK"*/)
 {
-    redis_reply* reply = run();
+    redisReply* reply = receiveReply();
     if (reply == NULL
         || (reply->get_type() != REDIS_REPLY_STATUS
             && reply->get_type() != REDIS_REPLY_NIL)) {
@@ -130,7 +114,7 @@ bool redis_command::get_string(std::string & result)
 
 bool redis_command::get_string(std::string * result)
 {
-    redis_reply* reply = run();
+    redisReply* reply = receiveReply();
     if (reply == NULL || reply->get_type() != REDIS_REPLY_STRING) {
         ERROR("Execute command fail! [%s], %s",
             m_command.c_str(), parse_reply(reply).c_str());
@@ -147,7 +131,7 @@ bool redis_command::get_string(std::string * result)
 
 int redis_command::get_string_or_nil(std::string& result)
 {
-    redis_reply* reply = run();
+    redisReply* reply = receiveReply();
     if (reply == NULL
         || (reply->get_type() != REDIS_REPLY_STRING
             && reply->get_type() != REDIS_REPLY_NIL)) {
@@ -174,7 +158,7 @@ long long redis_command::get_integer64(bool * success /*= NULL*/)
 {
     long long llret = -1;
 
-    redis_reply* reply = run();
+    redisReply* reply = receiveReply();
     if (reply == NULL || reply->get_type() != REDIS_REPLY_INTEGER) {
         ERROR("Execute command fail! [%s], %s",
             m_command.c_str(), parse_reply(reply).c_str());
@@ -213,7 +197,7 @@ long long redis_command::get_integer64_or_nil(bool * success /*= NULL*/)
 {
     long long llret = -1;
 
-    redis_reply* reply = run();
+    redisReply* reply = receiveReply();
     if (reply == NULL
         || (reply->get_type() != REDIS_REPLY_INTEGER
             && reply->get_type() != REDIS_REPLY_NIL)) {
@@ -246,7 +230,7 @@ int redis_command::get_integer32_or_nil(bool * success /*= NULL*/)
 
 int redis_command::get_array(std::vector<std::string*>& result)
 {
-    redis_reply* reply = run();
+    redisReply* reply = receiveReply();
     if (reply == NULL || reply->get_type() != REDIS_REPLY_ARRAY) {
         ERROR("Execute command fail! [%s], %s",
             m_command.c_str(), parse_reply(reply).c_str());
@@ -257,7 +241,7 @@ int redis_command::get_array(std::vector<std::string*>& result)
 
     size_t count = reply->get_size();
     for (size_t i = 0; i < count; i ++) {
-        const redis_reply* elem = reply->get_element(i);
+        const redisReply* elem = reply->get_element(i);
         if (elem->get_type() == REDIS_REPLY_STRING) {
             result.push_back(new std::string(elem->get_string()));
         }
@@ -271,7 +255,7 @@ int redis_command::get_array(std::vector<std::string*>& result)
 
 int redis_command::get_array(std::vector<std::string>& result)
 {
-    redis_reply* reply = run();
+    redisReply* reply = receiveReply();
     if (reply == NULL || reply->get_type() != REDIS_REPLY_ARRAY) {
         ERROR("Execute command fail! [%s], %s",
             m_command.c_str(), parse_reply(reply).c_str());
@@ -282,7 +266,7 @@ int redis_command::get_array(std::vector<std::string>& result)
 
     size_t count = reply->get_size();
     for (size_t i = 0; i < count; i ++) {
-        const redis_reply* elem = reply->get_element(i);
+        const redisReply* elem = reply->get_element(i);
         if (elem->get_type() == REDIS_REPLY_STRING) {
             result.push_back(elem->get_string());
         }
@@ -296,7 +280,7 @@ int redis_command::get_array(std::vector<std::string>& result)
 
 int redis_command::get_array_or_nil(std::vector<std::string>& result)
 {
-    redis_reply* reply = run();
+    redisReply* reply = receiveReply();
     if (reply == NULL
         || (reply->get_type() != REDIS_REPLY_ARRAY
             && reply->get_type() != REDIS_REPLY_NIL)) {
@@ -316,7 +300,7 @@ int redis_command::get_array_or_nil(std::vector<std::string>& result)
 
     size_t count = reply->get_size();
     for (size_t i = 0; i < count; i ++) {
-        const redis_reply* elem = reply->get_element(i);
+        const redisReply* elem = reply->get_element(i);
         if (elem->get_type() == REDIS_REPLY_STRING) {
             result.push_back(elem->get_string());
         }
@@ -331,7 +315,7 @@ int redis_command::get_array_or_nil(std::vector<std::string>& result)
 int redis_command::get_cursor_array(std::vector<std::string>* result)
 {
     int cursor = -1;
-    redis_reply* reply = run();
+    redisReply* reply = receiveReply();
 
     if (reply == NULL || reply->get_type() != REDIS_REPLY_ARRAY) {
         ERROR("Execute command fail! [%s], %s",
@@ -352,9 +336,9 @@ int redis_command::get_cursor_array(std::vector<std::string>* result)
         cursor = atoi(reply->get_element(0)->get_string().c_str());
     }
     if (result) {
-        const redis_reply* array = reply->get_element(1);
+        const redisReply* array = reply->get_element(1);
         for (size_t i = 0; i < array->get_size(); i ++) {
-            const redis_reply* elem = array->get_element(i);
+            const redisReply* elem = array->get_element(i);
             if (elem->get_type() == REDIS_REPLY_STRING) {
                 result->push_back(elem->get_string());
             }
@@ -365,30 +349,6 @@ int redis_command::get_cursor_array(std::vector<std::string>* result)
     }
     SAFE_DELETE(reply);
     return cursor;
-}
-
-redis_reply* redis_command::run()
-{
-    return m_client->run(m_request_buf);
-}
-
-void redis_command::build_request(const std::vector<std::string>& argv)
-{
-    m_request_buf.clear();
-
-    m_request_buf += "*";
-    m_request_buf += TO_STRING(argv.size());
-    m_request_buf += "\r\n";
-
-    for (size_t i = 0; i < argv.size(); i++) {
-        m_request_buf += "$";
-        m_request_buf += TO_STRING(argv[i].size());
-        m_request_buf += "\r\n";
-        m_request_buf += argv[i];
-        m_request_buf += "\r\n";
-    }
-
-    generate_cmdstr(argv);
 }
 
 void redis_command::generate_cmdstr(const std::vector<std::string>& argv)
@@ -425,9 +385,12 @@ void redis_command::scan_keys(const char* cmd, const std::string* key,
         argv.push_back(TO_STRING(count));
     }
 
-    build_request(argv);
-    if (key) {
-        hash_slots(*key);
-    }
+    sendCommand(argv);
+}
+
+bool redis_command::sendCommand(const std::vector<std::string>& argv)
+{
+    generate_cmdstr(argv);
+    return Connection::sendCommand(argv);
 }
 

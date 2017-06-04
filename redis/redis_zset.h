@@ -6,10 +6,10 @@
 
 #include "redis_command.h"
 
-class redis_zset : public redis_command
+class redis_zset : virtual public redis_command
 {
 public:
-    redis_zset(redis_client* client):redis_command(client){}
+    redis_zset(const std::string& host, uint16_t port);
     ~redis_zset(){}
 
 public:

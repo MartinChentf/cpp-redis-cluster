@@ -2,6 +2,11 @@
 #include "redis_log.h"
 #include "redis_helper.h"
 
+redis_hash::redis_hash(const std::string & host, uint16_t port)
+: redis_command(host, port)
+{
+}
+
 long long redis_hash::hdel(const std::string& key,
                            const std::vector<std::string>& fields)
 {
@@ -12,8 +17,7 @@ long long redis_hash::hdel(const std::string& key,
         argv.push_back(fields[i]);
     }
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     return get_integer64();
 }
@@ -25,8 +29,7 @@ int redis_hash::hexists(const std::string& key, const std::string& field)
     argv.push_back(key.c_str());
     argv.push_back(field.c_str());
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     return get_integer32();
 }
@@ -39,8 +42,7 @@ int redis_hash::hget(const std::string& key, const std::string& field,
     argv.push_back(key.c_str());
     argv.push_back(field.c_str());
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     return get_string_or_nil(result);
 }
@@ -52,8 +54,7 @@ int redis_hash::hgetall(const std::string& key,
     argv.push_back("HGETALL");
     argv.push_back(key.c_str());
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     std::vector<std::string> key_val;
     int iret = get_array_or_nil(key_val);
@@ -81,8 +82,7 @@ bool redis_hash::hincrby(const std::string& key, const std::string& field,
     argv.push_back(field.c_str());
     argv.push_back(TO_STRING(increment));
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     return get_integer64(result);
 }
@@ -98,8 +98,7 @@ bool redis_hash::hincrbyfloat(const std::string& key,
     argv.push_back(field.c_str());
     argv.push_back(TO_STRING(increment));
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     return get_string(result);
 }
@@ -110,8 +109,7 @@ bool redis_hash::hkeys(const std::string& key, std::vector<std::string>& result)
     argv.push_back("HKEYS");
     argv.push_back(key.c_str());
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     return get_array_or_nil(result) >= 0;
 }
@@ -122,8 +120,7 @@ long long redis_hash::hlen(const std::string& key)
     argv.push_back("HLEN");
     argv.push_back(key.c_str());
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     return get_integer64();
 }
@@ -139,8 +136,7 @@ bool redis_hash::hmget(const std::string& key,
         argv.push_back(fields[i]);
     }
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     return get_array(result) >= 0;
 }
@@ -158,8 +154,7 @@ bool redis_hash::hmset(const std::string& key,
         ++cit;
     }
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     return check_status();
 }
@@ -191,8 +186,7 @@ int redis_hash::hset(const std::string& key, const std::string& field,
     argv.push_back(field.c_str());
     argv.push_back(value.c_str());
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     return get_integer32();
 }
@@ -206,8 +200,7 @@ int redis_hash::hsetnx(const std::string& key, const std::string& field,
     argv.push_back(field.c_str());
     argv.push_back(value.c_str());
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     return get_integer32();
 }
@@ -219,8 +212,7 @@ long long redis_hash::hstrlen(const std::string& key, const std::string& field)
     argv.push_back(key.c_str());
     argv.push_back(field.c_str());
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     return get_integer64();
 }
@@ -231,8 +223,7 @@ bool redis_hash::hvals(const std::string& key, std::vector<std::string>& result)
     argv.push_back("HVALS");
     argv.push_back(key.c_str());
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     return get_array_or_nil(result) >= 0;
 }

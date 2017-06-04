@@ -3,10 +3,10 @@
 
 #include "redis_command.h"
 
-class redis_server : public redis_command
+class redis_server : virtual public redis_command
 {
 public:
-    redis_server(redis_client* client):redis_command(client){}
+    redis_server(const std::string& host, uint16_t port);
     ~redis_server(){}
 
 public:

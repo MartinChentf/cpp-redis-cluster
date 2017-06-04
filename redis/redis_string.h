@@ -7,21 +7,17 @@
 
 #include "redis_command.h"
 
-class redis_string : public redis_command
+enum BITOP { AND, OR, NOT, XOR };
+#define CONVERT2STR(OP) #OP
+#define BITOP_AND   CONVERT2STR(AND)
+#define BITOP_OR    CONVERT2STR(OR)
+#define BITOP_NOT   CONVERT2STR(NOT)
+#define BITOP_XOR   CONVERT2STR(XOR)
+
+class redis_string : virtual public redis_command
 {
 public:
-    enum BITOP {
-        AND,
-        OR,
-        NOT,
-        XOR,
-
-        SIZE_BITOP
-    };
-    static const char* BITOP_STR[SIZE_BITOP];
-
-public:
-    redis_string(redis_client* client):redis_command(client){}
+    redis_string(const std::string& host, uint16_t port);
     ~redis_string(){}
 
 public:
@@ -176,8 +172,8 @@ public:
      *  >=0: 被置为1的bit位数
      *   -1: 出错
      */
-    long long bitconut(const std::string& key);
-    long long bitconut(const std::string& key, int start, int end);
+    long long bitcount(const std::string& key);
+    long long bitcount(const std::string& key, int start, int end);
 
     /**
      * @description

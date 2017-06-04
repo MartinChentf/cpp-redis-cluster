@@ -1,15 +1,29 @@
-#ifndef __REDIS_H__
-#define __REDIS_H__
+/**
+ * Copyright 2017-2022 chen.tengfei <chentf1836@163.com>
+ * All rights reserved.
+ *
+ * @file   redis_cluster.h
+ * @brief 
+ * @version 1.0
+ * @bug none
+ * @warning none
+ * @other none
+ * @author chen.tengfei
+ * @data   2017-05-20 15:10:06
+ */
+#if 0
+#ifndef __REDIS_CLUSTER_H__
+#define __REDIS_CLUSTER_H__
 
 #include <stdint.h>
 #include <string>
 #include <map>
 #include <list>
 
-#include "redis_reply.h"
+#include "redisReply.h"
 class socket_client;
 
-class redis_client
+class redis_cluster
 {
 public:
     typedef struct cluster_node {
@@ -32,12 +46,12 @@ public:
     typedef t_slots_list::iterator t_slots_list_iter;
 
 public:
-    redis_client(const std::string host, uint16_t port);
-    ~redis_client();
+    redis_cluster(const std::string host, uint16_t port);
+    ~redis_cluster();
 
     /**
      * @description
-     *   当前redis_client是否连接的是redis集群
+     *   当前 RedisClient 是否连接的是redis集群
      * @return {bool} true-集群; false-非集群
      * @author chen.tengfei
      * @date 2017-04-20
@@ -49,15 +63,15 @@ public:
      *   执行请求的命令, 并返回经过解析的redis_server的应答
      * @param [IN] request {const std::string&}
      *   请求命令, 命令格式遵循Redis协议规范
-     * @return {redis_reply*} 解析后的redis_server的应答, 返回值由调用方负责释放
+     * @return {redisReply*} 解析后的redis_server的应答, 返回值由调用方负责释放
      * @author chen.tengfei
      * @date 2017-04-20
      */
-    redis_reply* run(const std::string& request);
+    redisReply* run(const std::string& request);
 
     /**
      * @description
-     *   根据key值计算哈希槽, 使redis_client重定向到哈希槽所在的redis_server
+     *   根据key值计算哈希槽, 使 RedisClient 重定向到哈希槽所在的redis_server
      * @param [IN] key {const std::string&} 
      * @return {void} 
      * @author chen.tengfei
@@ -71,8 +85,8 @@ private:
     bool list_node();
     // 连接到指定redis_server节点, 失败或错误返回空
     socket_client* connect_node(const std::string& host, uint16_t port);
-    std::string parse_reply(const redis_reply* reply);
-    bool parse_cluster_slots(redis_reply* reply);
+    std::string parse_reply(const redisReply* reply);
+    bool parse_cluster_slots(redisReply* reply);
     t_cluster_node* create_cluster_node(const std::string host,
         uint16_t port, bool master = false, socket_client* socket = NULL);
 
@@ -80,13 +94,13 @@ private:
     unsigned int get_key_slot(const std::string& key);
     void redirect(int slot);
 
-    redis_reply* process_line_item(t_redis_reply type);
-    redis_reply* get_redis_object();
-    redis_reply* get_redis_error();
-    redis_reply* get_redis_status();
-    redis_reply* get_redis_integer();
-    redis_reply* get_redis_string();
-    redis_reply* get_redis_array();
+    redisReply* process_line_item(t_redis_reply type);
+    redisReply* get_redis_object();
+    redisReply* get_redis_error();
+    redisReply* get_redis_status();
+    redisReply* get_redis_integer();
+    redisReply* get_redis_string();
+    redisReply* get_redis_array();
 
 private:
     bool m_binitialization;
@@ -103,4 +117,5 @@ private: // for cluster mode
     t_slots_list m_slots;       // slots of master
 };
 
-#endif /* __REDIS_H__ */
+#endif /* __REDIS_CLUSTER_H__ */
+#endif /* 2017-06-04 15:56:59 chen.tengfei */

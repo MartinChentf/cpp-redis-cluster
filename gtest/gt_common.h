@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string>
+#include <vector>
 
 #define LINE_MAX_CHARS 1000
 
@@ -55,11 +56,9 @@ private:
     void read_config(const char* config_filename);
 
 public:
-    std::string m_host;
-    uint16_t m_port;
+    std::vector< std::pair<std::string, uint16_t> > m_single;
 
-    std::string m_cluster_host;
-    uint16_t m_cluster_port;
+    std::vector< std::pair<std::string, uint16_t> > m_cluster;
 };
 
 class gt_component
@@ -79,19 +78,11 @@ public:
         return m_instance;
     }
 
-    std::string get_host() {
-        return m_config.m_host;
-    }
-    uint16_t get_port() {
-        return m_config.m_port;
-    }
+    std::string get_host(int pos);
+    uint16_t get_port(int pos);
 
-    std::string get_cluster_host() {
-        return m_config.m_cluster_host;
-    }
-    uint16_t get_cluster_port() {
-        return m_config.m_cluster_port;
-    }
+    std::string get_cluster_host(int pos);
+    uint16_t get_cluster_port(int pos);
 
 private:
     gt_config m_config;

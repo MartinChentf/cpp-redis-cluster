@@ -2,8 +2,12 @@
 #include "redis_helper.h"
 #include "redis_log.h"
 
-const char* redis_string::BITOP_STR[redis_string::SIZE_BITOP]
-    = { "AND", "OR", "NOT", "XOR" };
+const char* BITOP_STR[] = { BITOP_AND, BITOP_OR, BITOP_NOT, BITOP_XOR };
+
+redis_string::redis_string(const std::string & host, uint16_t port)
+: redis_command(host, port)
+{
+}
 
 int redis_string::get(const std::string& key, std::string& result)
 {
@@ -11,8 +15,7 @@ int redis_string::get(const std::string& key, std::string& result)
     argv.push_back("GET");
     argv.push_back(key.c_str());
 
-    build_request(argv);
-    hash_slots(key);    
+    sendCommand(argv);
 
     return get_string_or_nil(result);
 }
@@ -26,8 +29,7 @@ int redis_string::getSet(const std::string& key,
     argv.push_back(key.c_str());
     argv.push_back(value.c_str());
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     return get_string_or_nil(result);
 }
@@ -74,8 +76,7 @@ bool redis_string::set_string(const std::string& key,const std::string& value,
     if (nx_xx != NULL) {
         argv.push_back(nx_xx);
     }
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     return (check_status_or_nil() > 0 ? true : false);
 }
@@ -89,8 +90,7 @@ bool redis_string::getrange(const std::string& key,int start,int end,
     argv.push_back(TO_STRING(start));
     argv.push_back(TO_STRING(end));
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     return get_string(result);
 }
@@ -105,8 +105,7 @@ bool redis_string::setrange(const std::string& key, int offset,
     argv.push_back(TO_STRING(offset));
     argv.push_back(value.c_str());
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     return get_integer64(length);
 }
@@ -118,8 +117,7 @@ int redis_string::getbit(const std::string& key,int offset)
     argv.push_back(key.c_str());
     argv.push_back(TO_STRING(offset));
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     return get_integer32();
 }
@@ -132,18 +130,17 @@ int redis_string::setbit(const std::string& key, int offset, bool value)
     argv.push_back(TO_STRING(offset));
     argv.push_back(TO_STRING(value?1:0));
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     return get_integer32();
 }
 
-long long redis_string::bitconut(const std::string& key)
+long long redis_string::bitcount(const std::string& key)
 {
-    return bitconut(key, 0, -1);
+    return bitcount(key, 0, -1);
 }
 
-long long redis_string::bitconut(const std::string& key, int start, int end)
+long long redis_string::bitcount(const std::string& key, int start, int end)
 {
     std::vector<std::string> argv;
     argv.push_back("BITCOUNT");
@@ -151,8 +148,7 @@ long long redis_string::bitconut(const std::string& key, int start, int end)
     argv.push_back(TO_STRING(start));
     argv.push_back(TO_STRING(end));
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     return get_integer64();
 }
@@ -168,8 +164,7 @@ long long redis_string::bitop(BITOP op, const std::string& dest_key,
         argv.push_back(src_keys[i]);
     }
 
-    build_request(argv);
-    hash_slots(dest_key);
+    sendCommand(argv);
 
     return get_integer64();
 }
@@ -193,8 +188,7 @@ long long redis_string::bitpos(const std::string& key,bool value,
     argv.push_back(TO_STRING(start));
     argv.push_back(TO_STRING(end));
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     return get_integer64();
 }
@@ -208,10 +202,7 @@ bool redis_string::mget(const std::vector<std::string>& keys,
         argv.push_back(keys[i]);
     }
 
-    build_request(argv);
-    if (!keys.empty()) {
-        hash_slots(keys[0]);
-    }
+    sendCommand(argv);
 
     return get_array(result) >= 0;
 }
@@ -226,7 +217,7 @@ bool redis_string::mset(const std::map<std::string, std::string>& key_values)
         argv.push_back(cit->second);
         ++cit;
     }
-    build_request(argv);
+    sendCommand(argv);
     return check_status("OK");
 }
 
@@ -241,10 +232,7 @@ bool redis_string::msetnx(const std::map<std::string, std::string>& key_values)
         argv.push_back(it->second);
     }
 
-    build_request(argv);
-    if (!key_values.empty()) {
-        hash_slots(key_values.begin()->first);
-    }
+    sendCommand(argv);
 
     return (get_integer64() >= 1 ? true : false);
 }
@@ -270,8 +258,7 @@ bool redis_string::incrbyfloat(const std::string & key,
     argv.push_back(key.c_str());
     argv.push_back(TO_STRING(increment));
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     return get_string(result);
 }
@@ -299,8 +286,7 @@ bool redis_string::incoper(const char * cmd,const std::string & key,
         argv.push_back(TO_STRING(*inc));
     }
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     return get_integer64(result);
 }
@@ -313,8 +299,7 @@ bool redis_string::append(const std::string & key,const std::string & value,
     argv.push_back(key.c_str());
     argv.push_back(value.c_str());
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     return get_integer64(length);
 }
@@ -325,8 +310,7 @@ bool redis_string::strlen(const std::string & key,long long & length)
     argv.push_back("STRLEN");
     argv.push_back(key.c_str());
 
-    build_request(argv);
-    hash_slots(key);
+    sendCommand(argv);
 
     return get_integer64(length);
 }
