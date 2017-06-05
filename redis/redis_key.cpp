@@ -238,7 +238,7 @@ bool redis_key::rename(const std::string& key, const std::string& new_key)
     return check_status();
 }
 
-bool redis_key::renamenx(const std::string& key, const std::string& new_key)
+int redis_key::renamenx(const std::string& key, const std::string& new_key)
 {
     std::vector<std::string> argv;
     argv.push_back("RENAMENX");
@@ -247,7 +247,7 @@ bool redis_key::renamenx(const std::string& key, const std::string& new_key)
 
     sendCommand(argv);
 
-    return check_status();
+    return get_integer32();
 }
 
 bool redis_key::restore(const std::string& key, unsigned long long TTL,
@@ -350,9 +350,7 @@ std::string redis_key::type(const std::string & key)
 
     sendCommand(argv);
 
-    std::string result;
-    get_string(result);
-    return result;
+    return get_status();
 }
 
 /**

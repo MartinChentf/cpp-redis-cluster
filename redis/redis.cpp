@@ -785,7 +785,7 @@ bool redis::rename(const std::string& key, const std::string& new_key)
     return m_client->rename(key, new_key);
 }
 
-bool redis::renamenx(const std::string& key, const std::string& new_key)
+int redis::renamenx(const std::string& key, const std::string& new_key)
 {
     return m_client->renamenx(key, new_key);
 }

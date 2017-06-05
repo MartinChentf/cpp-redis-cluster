@@ -18,6 +18,7 @@ public:
 /******************************************************************************/
     bool check_status(const char* expection = "OK");
     int check_status_or_nil(const char* expection = "OK");
+    std::string get_status();
 
     bool get_string(std::string& result);
     bool get_string(std::string* result);

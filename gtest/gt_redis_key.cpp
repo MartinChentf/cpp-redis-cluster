@@ -217,7 +217,7 @@ TEST_F(redis_key_test, migrate)
     redis_key_test::m_pRedis->migrate(gt_component::Instance().get_host(1),
         gt_component::Instance().get_port(1), "foo", 0, 1000);
 
-    EXPECT_EQ(0, redis_key_test::m_pRedis->get("foo", result));
+    EXPECT_EQ(0, redis_key_test::m_pRedis->exists("foo"));
     EXPECT_EQ(1, pRedis->get("foo", result));
     EXPECT_EQ("hello", result);
 
@@ -296,7 +296,7 @@ TEST_F(redis_key_test, migrate_keys)
     keysParam->keys(vkeys);
 
     redis_key_test::m_pRedis->migrate(gt_component::Instance().get_host(1),
-        gt_component::Instance().get_port(1), "", 0, 10000, keysParam);
+        gt_component::Instance().get_port(1), "", 0, 1000, keysParam);
 
     std::vector<std::string*> values;
     EXPECT_EQ(true, redis_key_test::m_pRedis->mget(vkeys, values));
@@ -329,7 +329,7 @@ TEST_F(redis_key_test, move)
     EXPECT_EQ(1, redis_key_test::m_pRedis->move("foo", 1));
 
     std::string result;
-    EXPECT_EQ(0, redis_key_test::m_pRedis->get("foo", result));
+    EXPECT_EQ(0, redis_key_test::m_pRedis->exists("foo"));
     redis_key_test::m_pRedis->select(1);
     EXPECT_EQ(1, redis_key_test::m_pRedis->get("foo", result));
     EXPECT_EQ("hello", result);
@@ -385,6 +385,226 @@ TEST_F(redis_key_test, object_idletime)
     redis_key_test::m_pRedis->del("foo");    
 }
 
+TEST_F(redis_key_test, persist)
+{
+    /**
+     * 取消指定key的生存时间, 生存时间到期后key还存在
+     */
+    redis_key_test::m_pRedis->set("foo", "hello");
+    redis_key_test::m_pRedis->expire("foo", 3); // 设置生存时间
+    sleep(2);
+    EXPECT_EQ(1, redis_key_test::m_pRedis->persist("foo"));
+    sleep(2);
+    EXPECT_EQ(1, redis_key_test::m_pRedis->exists("foo"));
+
+    /**
+     * key没有设置生存时间的情况
+     */
+    EXPECT_EQ(0, redis_key_test::m_pRedis->persist("foo"));
+
+    /**
+     * key不存在的情况
+     */
+    redis_key_test::m_pRedis->del("foo");
+    EXPECT_EQ(0, redis_key_test::m_pRedis->persist("foo"));
+}
+
+TEST_F(redis_key_test, pexpire)
+{
+    // 设置生存时间
+    redis_key_test::m_pRedis->set("foo", "hello");
+    EXPECT_EQ(1, redis_key_test::m_pRedis->pexpire("foo", 3000));
+    sleep(2);
+    EXPECT_EQ(1, redis_key_test::m_pRedis->exists("foo"));
+    sleep(2);
+    EXPECT_EQ(0, redis_key_test::m_pRedis->exists("foo"));
+
+    // 生存时间非正数
+    redis_key_test::m_pRedis->set("foo", "hello");
+    EXPECT_EQ(1, redis_key_test::m_pRedis->exists("foo"));
+    EXPECT_EQ(1, redis_key_test::m_pRedis->pexpire("foo", -3000));
+    EXPECT_EQ(0, redis_key_test::m_pRedis->exists("foo"));
+
+    // key不存在
+    redis_key_test::m_pRedis->del("foo");
+    EXPECT_EQ(0, redis_key_test::m_pRedis->pexpire("foo", 3));
+}
+
+TEST_F(redis_key_test, pexpireat)
+{
+    // 设置时间戳
+    redis_key_test::m_pRedis->set("foo", "hello");
+    unsigned long long milliTimestamp = time(0) * 1000 + 3000;
+    EXPECT_EQ(1, redis_key_test::m_pRedis->pexpireat("foo", milliTimestamp));
+    sleep(2);
+    EXPECT_EQ(1, redis_key_test::m_pRedis->exists("foo"));
+    sleep(2);
+    EXPECT_EQ(0, redis_key_test::m_pRedis->exists("foo"));
+
+    // 时间戳表示过去的时刻
+    redis_key_test::m_pRedis->set("foo", "hello");
+    milliTimestamp = time(0) * 1000 - 3000;
+    EXPECT_EQ(1, redis_key_test::m_pRedis->exists("foo"));
+    EXPECT_EQ(1, redis_key_test::m_pRedis->pexpireat("foo", milliTimestamp));
+    EXPECT_EQ(0, redis_key_test::m_pRedis->exists("foo"));
+
+    // key不存在
+    redis_key_test::m_pRedis->del("foo");
+    milliTimestamp = time(0) * 1000 + 3000;
+    EXPECT_EQ(0, redis_key_test::m_pRedis->pexpireat("foo", milliTimestamp));
+}
+
+TEST_F(redis_key_test, pttl)
+{
+    /**
+     * key 不存在
+     */
+    long pttl = redis_key_test::m_pRedis->pttl("foo");
+    EXPECT_EQ(-2, pttl);
+
+    /**
+     * key 存在但是没有关联过期时间
+     */
+    redis_key_test::m_pRedis->set("foo", "hello");
+    pttl = redis_key_test::m_pRedis->pttl("foo");
+    EXPECT_EQ(-1, pttl);
+
+    /**
+     * key 存在但是过期时间已被取消
+     */
+    redis_key_test::m_pRedis->pexpire("foo", 4000);
+    redis_key_test::m_pRedis->persist("foo");
+    pttl = redis_key_test::m_pRedis->pttl("foo");
+    EXPECT_EQ(-1, pttl);
+
+    /**
+     * 返回 key 剩余的生存时间
+     */
+    redis_key_test::m_pRedis->pexpire("foo", 4000);
+    pttl = redis_key_test::m_pRedis->pttl("foo");
+    EXPECT_TRUE(pttl >= 0 && pttl <= 4000);
+
+    redis_key_test::m_pRedis->del("foo");
+}
+
+TEST_F(redis_key_test, randomkey)
+{
+    /**
+     * 当前数据库为空
+     */
+    std::string key;
+    redis_key_test::m_pRedis->flushall(); // 清空数据库
+    EXPECT_EQ(0, redis_key_test::m_pRedis->randomkey(key));
+
+    /**
+     * 随机返回数据库中的key
+     */
+    redis_key_test::m_pRedis->set("foo", "bar");
+    EXPECT_EQ(1, redis_key_test::m_pRedis->randomkey(key));
+    EXPECT_EQ("foo", key);
+
+    redis_key_test::m_pRedis->set("bar", "foo");
+    EXPECT_EQ(1, redis_key_test::m_pRedis->randomkey(key));
+    EXPECT_TRUE(key.compare("foo") == 0 || key.compare("bar") == 0);
+
+    redis_key_test::m_pRedis->del("foo");
+    redis_key_test::m_pRedis->del("bar");
+}
+
+TEST_F(redis_key_test, rename)
+{
+    /**
+     * key 不存在
+     */
+    EXPECT_EQ(false, redis_key_test::m_pRedis->rename("foo", "bar"));
+
+    /**
+     * 重命名数据库中的key
+     */
+    redis_key_test::m_pRedis->set("foo", "bar");
+    EXPECT_EQ(true, redis_key_test::m_pRedis->rename("foo", "bar"));
+
+    EXPECT_EQ(0, redis_key_test::m_pRedis->exists("foo"));
+    std::string result;
+    redis_key_test::m_pRedis->get("bar", result);
+    EXPECT_EQ("bar", result);
+
+    /**
+     * new_key 存在
+     */
+    redis_key_test::m_pRedis->set("foo", "foo");
+    EXPECT_EQ(true, redis_key_test::m_pRedis->rename("foo", "bar"));
+    redis_key_test::m_pRedis->get("bar", result);
+    EXPECT_EQ("foo", result);
+    
+    redis_key_test::m_pRedis->del("bar");
+}
+
+TEST_F(redis_key_test, renamenx)
+{
+    /**
+     * key 不存在
+     */
+    EXPECT_EQ(-1, redis_key_test::m_pRedis->renamenx("foo", "bar"));
+
+    /**
+     * 重命名数据库中的key
+     */
+    redis_key_test::m_pRedis->set("foo", "bar");
+    EXPECT_EQ(1, redis_key_test::m_pRedis->renamenx("foo", "bar"));
+
+    EXPECT_EQ(0, redis_key_test::m_pRedis->exists("foo"));
+    std::string result;
+    redis_key_test::m_pRedis->get("bar", result);
+    EXPECT_EQ("bar", result);
+
+    /**
+     * new_key 存在
+     */
+    redis_key_test::m_pRedis->set("foo", "foo");
+    EXPECT_EQ(0, redis_key_test::m_pRedis->renamenx("foo", "bar"));
+    redis_key_test::m_pRedis->get("foo", result);
+    EXPECT_EQ("foo", result);
+    redis_key_test::m_pRedis->get("bar", result);
+    EXPECT_EQ("bar", result);
+
+    redis_key_test::m_pRedis->del("foo");
+    redis_key_test::m_pRedis->del("bar");
+}
+
+TEST_F(redis_key_test, restore)
+{
+    std::string serialValue;
+    redis_key_test::m_pRedis->set("foo", "hello");
+    EXPECT_EQ(1, redis_key_test::m_pRedis->dump("foo", serialValue));
+    EXPECT_EQ(0, memcmp("\0\x5hello\a\0\x9C@\n\x85m\xFE\xF5\x10",
+                        serialValue.c_str(), 17));
+
+    /**
+     * key 已存在
+     */
+    EXPECT_EQ(false, redis_key_test::m_pRedis->restore("foo", 0, serialValue));
+
+    /**
+     * key 不存在
+     */
+    EXPECT_EQ(true, redis_key_test::m_pRedis->restore("bar", 0, serialValue));
+    std::string result;
+    redis_key_test::m_pRedis->get("bar", result);
+    EXPECT_EQ("hello", result);
+
+    /**
+     * 使用 REPLACE 模式
+     */
+    redis_key_test::m_pRedis->set("bar", "world");
+    EXPECT_EQ(true, redis_key_test::m_pRedis->restore("bar", 0, serialValue, true));
+    redis_key_test::m_pRedis->get("bar", result);
+    EXPECT_EQ("hello", result);
+
+    redis_key_test::m_pRedis->del("foo");
+    redis_key_test::m_pRedis->del("bar");
+}
+
 TEST_F(redis_key_test, scan)
 {
     std::vector<std::string> result;
@@ -403,5 +623,83 @@ TEST_F(redis_key_test, scan)
     EXPECT_EQ(20, result.size());
 
     redis_key_test::m_pRedis->del(result);
+}
+
+TEST_F(redis_key_test, sort)
+{
+    WARN("TODO...");
+}
+
+TEST_F(redis_key_test, touch)
+{
+    redis_key_test::m_pRedis->set("foo", "bar");
+    sleep(5);
+    long long idletime = redis_key_test::m_pRedis->object_idletime("foo");
+    EXPECT_TRUE(idletime >= 5);
+
+    EXPECT_EQ(1, redis_key_test::m_pRedis->touch("foo"));
+    idletime = redis_key_test::m_pRedis->object_idletime("foo");
+    EXPECT_TRUE(idletime < 5);
+
+    redis_key_test::m_pRedis->del("foo");
+}
+
+TEST_F(redis_key_test, ttl)
+{
+    /**
+     * key 不存在
+     */
+    long ttl = redis_key_test::m_pRedis->ttl("foo");
+    EXPECT_EQ(-2, ttl);
+
+    /**
+     * key 存在但是没有关联过期时间
+     */
+    redis_key_test::m_pRedis->set("foo", "hello");
+    ttl = redis_key_test::m_pRedis->ttl("foo");
+    EXPECT_EQ(-1, ttl);
+
+    /**
+     * key 存在但是过期时间已被取消
+     */
+    redis_key_test::m_pRedis->pexpire("foo", 4);
+    redis_key_test::m_pRedis->persist("foo");
+    ttl = redis_key_test::m_pRedis->ttl("foo");
+    EXPECT_EQ(-1, ttl);
+
+    /**
+     * 返回 key 剩余的生存时间
+     */
+    redis_key_test::m_pRedis->pexpire("foo", 4);
+    ttl = redis_key_test::m_pRedis->ttl("foo");
+    EXPECT_TRUE(ttl >= 0 && ttl <= 4);
+
+    redis_key_test::m_pRedis->del("foo");
+}
+
+TEST_F(redis_key_test, type)
+{
+    /**
+     * key 不存在
+     */
+    std::string type = redis_key_test::m_pRedis->type("foo");
+    EXPECT_EQ("none", type);
+
+    /**
+     * key 为string类型
+     */
+    redis_key_test::m_pRedis->set("foo", "bar");
+    type = redis_key_test::m_pRedis->type("foo");
+    EXPECT_EQ("string", type);
+
+    /**
+     * key 为list类型
+     */
+    redis_key_test::m_pRedis->del("foo");
+    redis_key_test::m_pRedis->hset("foo", "bar", "hello");
+    type = redis_key_test::m_pRedis->type("foo");
+    EXPECT_EQ("hash", type);
+
+    redis_key_test::m_pRedis->del("foo");
 }
 

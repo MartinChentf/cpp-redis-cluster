@@ -247,7 +247,7 @@ public:
      * @param [IN] key {const std::string&} 给定的key
      * @return {long long} 返回剩余生存时间, 返回值如下:
      *   >=0: 剩余生存时间
-     *    -1: key存在但是已经过期
+     *    -1: key存在但是没有关联过期时间
      *    -2: key不存在
      * @author chen.tengfei
      * @date 2017-05-09
@@ -286,13 +286,14 @@ public:
      *   当new_key不存在时, 将key重命名为new_key. 如果key不存在, 则失败.
      * @param [IN] key {const std::string&} 给定的key
      * @param [IN] new_key {const std::string&} 新的键名
-     * @return {bool} 返回操作结果, 返回值如下:
-     *    true: 操作成功
-     *   false: 操作失败
+     * @return {int} 返回操作结果, 返回值如下:
+     *    1: key 成功命名为 new_key
+     *    0: new_key 已经存在
+     *   -1: key 不存在
      * @author chen.tengfei
      * @date 2017-05-09
      */
-    bool renamenx(const std::string& key, const std::string& new_key);
+    int renamenx(const std::string& key, const std::string& new_key);
 
     /**
      * @description

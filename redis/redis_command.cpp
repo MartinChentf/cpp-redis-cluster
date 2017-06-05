@@ -1,6 +1,4 @@
-//#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 #include "redis_command.h"
 #include "redis_helper.h"
@@ -56,7 +54,7 @@ bool redis_command::check_status(const char * expection /*= "OK"*/)
         SAFE_DELETE(reply);
         return false;
     }
-    else if (expection == NULL || strcasecmp(status.c_str(), expection) == 0) {
+    else if (expection == NULL || status.compare(expection) == 0) {
         DEBUG("Execute command success! [%s]", m_command.c_str());
         SAFE_DELETE(reply);
         return true;
@@ -94,7 +92,7 @@ int redis_command::check_status_or_nil(const char * expection /*= "OK"*/)
         SAFE_DELETE(reply);
         return false;
     }
-    else if (expection == NULL || strcasecmp(status.c_str(), expection) == 0) {
+    else if (expection == NULL || status.compare(expection) == 0) {
         DEBUG("Execute command success! [%s]", m_command.c_str());
         SAFE_DELETE(reply);
         return 1;
@@ -105,6 +103,28 @@ int redis_command::check_status_or_nil(const char * expection /*= "OK"*/)
         SAFE_DELETE(reply);
         return -1;
     }
+}
+
+std::string redis_command::get_status()
+{
+    const redisReply* reply = receiveReply();
+    if (reply == NULL || reply->get_type() != REDIS_REPLY_STATUS) {
+        ERROR("Execute command fail! [%s], %s",
+            m_command.c_str(), parse_reply(reply).c_str());
+        SAFE_DELETE(reply);
+        return "";
+    }
+
+    const std::string status = reply->get_status();
+    if (status.empty()) {
+        WARN("Execute command fail! , status is empty");
+        SAFE_DELETE(reply);
+        return "";
+    }
+    DEBUG("Execute command success! [%s]", m_command.c_str());
+    SAFE_DELETE(reply);
+
+    return status;
 }
 
 bool redis_command::get_string(std::string & result)
