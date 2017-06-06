@@ -627,7 +627,51 @@ TEST_F(redis_key_test, scan)
 
 TEST_F(redis_key_test, sort)
 {
-    WARN("TODO...");
+    std::vector<std::string> result;
+    std::vector<std::string> values;
+    values.push_back("23");
+    values.push_back("15");
+    values.push_back("110");
+    values.push_back("7");
+    redis_key_test::m_pRedis->rpush("sort-input", values);
+
+    /**
+     * °´ÕÕÊýÖµË³ÐòÅÅÐò
+     */
+    redis_key_test::m_pRedis->sort("sort-input", result);
+    EXPECT_EQ("7,15,23,110", redis_helper::join(result, ","));
+    result.clear();
+
+    /**
+     * °´ÕÕ×ÖÄ¸Ë³ÐòÅÅÐò
+     */
+    SortParams alpha;
+    redis_key_test::m_pRedis->sort("sort-input", result, &alpha.alpha());
+    EXPECT_EQ("110,15,23,7", redis_helper::join(result, ","));
+    result.clear();
+
+    /**
+     * Í¨¹ýÍâ²¿ key ÅÅÐò
+     */
+    redis_key_test::m_pRedis->hset("h-7", "field", "5");
+    redis_key_test::m_pRedis->hset("h-15", "field", "1");
+    redis_key_test::m_pRedis->hset("h-23", "field", "9");
+    redis_key_test::m_pRedis->hset("h-110", "field", "3");
+
+    SortParams param;
+    redis_key_test::m_pRedis->sort("sort-input", result, &param.by("h-*->field"));
+    EXPECT_EQ("15,110,7,23", redis_helper::join(result, ","));
+    result.clear();
+    
+    redis_key_test::m_pRedis->sort("sort-input", result, &param.get("h-*->field"));
+    EXPECT_EQ("1,3,5,9", redis_helper::join(result, ","));
+    result.clear();
+
+    redis_key_test::m_pRedis->del("sort-input");
+    redis_key_test::m_pRedis->del("h-7");
+    redis_key_test::m_pRedis->del("h-15");
+    redis_key_test::m_pRedis->del("h-23");
+    redis_key_test::m_pRedis->del("h-110");
 }
 
 TEST_F(redis_key_test, touch)

@@ -803,13 +803,13 @@ int redis::scan(int cursor, std::vector<std::string>& result,
 }
 
 int redis::sort(const std::string& key, const std::string& dest,
-         sort_params* params /*= NULL*/)
+         SortParams* params /*= NULL*/)
 {
     return m_client->sort(key, dest, params);
 }
 
 int redis::sort(const std::string& key, std::vector<std::string>& result,
-         sort_params* params /*= NULL*/)
+         SortParams* params /*= NULL*/)
 {
     return m_client->sort(key, result, params);
 }
@@ -851,6 +851,31 @@ bool redis::flushall()
 /***************************
  *  connection command
  ***************************/
+bool redis::auth(const std::string password)
+{
+    return m_client->auth(password);
+}
+
+std::string redis::echo(const std::string message)
+{
+    return m_client->echo(message);
+}
+
+std::string redis::ping(const std::string* message)
+{
+    return m_client->ping(message);
+}
+
+bool redis::ping()
+{
+    return m_client->ping();
+}
+
+bool redis::quit()
+{
+    return m_client->quit();
+}
+
 bool redis::select(int index)
 {
     return m_client->select(index);

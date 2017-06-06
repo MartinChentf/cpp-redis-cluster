@@ -276,14 +276,14 @@ int redis_key::scan(int cursor, std::vector<std::string>& result,
 }
 
 int redis_key::sort(const std::string& key, const std::string& dest,
-                    sort_params* params /*= NULL*/)
+                    SortParams* params /*= NULL*/)
 {
     std::vector<std::string> argv;
     argv.push_back("SORT");
     argv.push_back(key);
     if (params) {
-        argv.insert(argv.end(), params->get_params().begin(),
-            params->get_params().end());
+        argv.insert(argv.end(), params->getParams().begin(),
+            params->getParams().end());
     }
     argv.push_back("STORE");
     argv.push_back(dest);
@@ -294,14 +294,14 @@ int redis_key::sort(const std::string& key, const std::string& dest,
 }
 
 int redis_key::sort(const std::string& key, std::vector<std::string>& result,
-                    sort_params* params /*= NULL*/)
+                    SortParams* params /*= NULL*/)
 {
     std::vector<std::string> argv;
     argv.push_back("SORT");
     argv.push_back(key);
     if (params) {
-        argv.insert(argv.end(), params->get_params().begin(),
-            params->get_params().end());
+        argv.insert(argv.end(), params->getParams().begin(),
+            params->getParams().end());
     }
 
     sendCommand(argv);
@@ -356,28 +356,28 @@ std::string redis_key::type(const std::string & key)
 /**
  * sort_params¿‡∂®“Â
  */
-sort_params& sort_params::by(const std::string& pattern)
+SortParams& SortParams::by(const std::string& pattern)
 {
     params.push_back("BY");
     params.push_back(pattern);
     return *this;
 }
 
-sort_params& sort_params::nosort()
+SortParams& SortParams::nosort()
 {
     params.push_back("BY");
     params.push_back("NOSORT");
     return *this;
 }
 
-sort_params& sort_params::get(const std::string& pattern)
+SortParams& SortParams::get(const std::string& pattern)
 {
     params.push_back("GET");
     params.push_back(pattern);
     return *this;
 }
 
-sort_params& sort_params::limit(int offset, int count)
+SortParams& SortParams::limit(int offset, int count)
 {
     params.push_back("LIMIT");
     params.push_back(TO_STRING(offset));
@@ -385,19 +385,19 @@ sort_params& sort_params::limit(int offset, int count)
     return *this;
 }
 
-sort_params& sort_params::asc()
+SortParams& SortParams::asc()
 {
     params.push_back("ASC");
     return *this;
 }
 
-sort_params& sort_params::desc()
+SortParams& SortParams::desc()
 {
     params.push_back("DESC");
     return *this;
 }
 
-sort_params& sort_params::alpha()
+SortParams& SortParams::alpha()
 {
     params.push_back("ALPHA");
     return *this;
