@@ -6,13 +6,7 @@
 #include <map>
 
 #include "redis_command.h"
-
-enum BITOP { AND, OR, NOT, XOR };
-#define CONVERT2STR(OP) #OP
-#define BITOP_AND   CONVERT2STR(AND)
-#define BITOP_OR    CONVERT2STR(OR)
-#define BITOP_NOT   CONVERT2STR(NOT)
-#define BITOP_XOR   CONVERT2STR(XOR)
+#include "ProtocolCommand.h"
 
 class redis_string : virtual public redis_command
 {

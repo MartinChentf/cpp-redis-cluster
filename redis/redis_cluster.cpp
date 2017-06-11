@@ -6,7 +6,7 @@
 
 #include "RedisClient.h"
 #include "redis_log.h"
-#include "redis_helper.h"
+#include "Util.h"
 #include "socket_client.h"
 
 static const char* const INFO_CLUSTER =

@@ -1,5 +1,5 @@
 #include "redis_connection.h"
-#include "redis_helper.h"
+#include "Util.h"
 
 redis_connection::redis_connection(const std::string& host, uint16_t port)
 : redis_command(host, port)

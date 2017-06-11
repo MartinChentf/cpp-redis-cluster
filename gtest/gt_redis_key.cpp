@@ -6,7 +6,7 @@
 #include "gt_redis_key.h"
 #include "gt_common.h"
 
-#include "redis_helper.h"
+#include "Util.h"
 #include "redis_log.h"
 #include "redis.h"
 
@@ -66,7 +66,7 @@ TEST_F(redis_key_test, del)
     EXPECT_EQ(5, redis_key_test::m_pRedis->del(keys_del));
     EXPECT_EQ(true, redis_key_test::m_pRedis->mget(keys, results));
     EXPECT_EQ(",2,4,6,8,10",
-              redis_helper::join(results, ","));
+              Util::join(results, ","));
     results.clear();
 
     // 未删除key
@@ -80,7 +80,7 @@ TEST_F(redis_key_test, del)
     other_keys.push_back("{foo}:4");
     EXPECT_EQ(2, redis_key_test::m_pRedis->del(other_keys));
     EXPECT_EQ(true, redis_key_test::m_pRedis->mget(keys, results));
-    EXPECT_EQ(",,,,,6,8,10", redis_helper::join(results, ","));
+    EXPECT_EQ(",,,,,6,8,10", Util::join(results, ","));
     results.clear();
 
     redis_key_test::m_pRedis->del(keys);
@@ -493,7 +493,7 @@ TEST_F(redis_key_test, randomkey)
      * 当前数据库为空
      */
     std::string key;
-    redis_key_test::m_pRedis->flushall(); // 清空数据库
+    redis_key_test::m_pRedis->flushAll(); // 清空数据库
     EXPECT_EQ(0, redis_key_test::m_pRedis->randomkey(key));
 
     /**
@@ -639,7 +639,7 @@ TEST_F(redis_key_test, sort)
      * 按照数值顺序排序
      */
     redis_key_test::m_pRedis->sort("sort-input", result);
-    EXPECT_EQ("7,15,23,110", redis_helper::join(result, ","));
+    EXPECT_EQ("7,15,23,110", Util::join(result, ","));
     result.clear();
 
     /**
@@ -647,7 +647,7 @@ TEST_F(redis_key_test, sort)
      */
     SortParams alpha;
     redis_key_test::m_pRedis->sort("sort-input", result, &alpha.alpha());
-    EXPECT_EQ("110,15,23,7", redis_helper::join(result, ","));
+    EXPECT_EQ("110,15,23,7", Util::join(result, ","));
     result.clear();
 
     /**
@@ -660,11 +660,11 @@ TEST_F(redis_key_test, sort)
 
     SortParams param;
     redis_key_test::m_pRedis->sort("sort-input", result, &param.by("h-*->field"));
-    EXPECT_EQ("15,110,7,23", redis_helper::join(result, ","));
+    EXPECT_EQ("15,110,7,23", Util::join(result, ","));
     result.clear();
     
     redis_key_test::m_pRedis->sort("sort-input", result, &param.get("h-*->field"));
-    EXPECT_EQ("1,3,5,9", redis_helper::join(result, ","));
+    EXPECT_EQ("1,3,5,9", Util::join(result, ","));
     result.clear();
 
     redis_key_test::m_pRedis->del("sort-input");

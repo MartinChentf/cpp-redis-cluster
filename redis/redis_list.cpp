@@ -1,5 +1,5 @@
 #include "redis_list.h"
-#include "redis_helper.h"
+#include "Util.h"
 
 redis_list::redis_list(const std::string & host, uint16_t port)
 : redis_command(host, port)

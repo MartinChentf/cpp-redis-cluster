@@ -5,7 +5,7 @@
 #include "gt_redis_zset.h"
 #include "gt_common.h"
 
-#include "redis_helper.h"
+#include "Util.h"
 #include "redis.h"
 
 #define PUSH_BACK_PAIR(vector, first, second) \
@@ -84,22 +84,22 @@ TEST_F(redis_zset_test, zrange)
 
     // 获取有序集所有成员
     EXPECT_EQ(4, redis_zset_test::m_pRedis->zrange("foo", 0, -1, result));
-    EXPECT_EQ("one, two, three, four", redis_helper::join(result, ", "));
+    EXPECT_EQ("one, two, three, four", Util::join(result, ", "));
     result.clear();
 
     // 获取有序集部分成员
     EXPECT_EQ(2, redis_zset_test::m_pRedis->zrange("foo", 1, 2, result));
-    EXPECT_EQ("two, three", redis_helper::join(result, ", "));
+    EXPECT_EQ("two, three", Util::join(result, ", "));
     result.clear();
 
     // start > stop
     EXPECT_EQ(0, redis_zset_test::m_pRedis->zrange("foo", 3, 1, result));
-    EXPECT_EQ("", redis_helper::join(result, ", "));
+    EXPECT_EQ("", Util::join(result, ", "));
     result.clear();
 
     // stop大于集合元素个数
     EXPECT_EQ(3, redis_zset_test::m_pRedis->zrange("foo", 1, 10, result));
-    EXPECT_EQ("two, three, four", redis_helper::join(result, ", "));
+    EXPECT_EQ("two, three, four", Util::join(result, ", "));
     result.clear();
 
     // key的类型错误
@@ -113,12 +113,12 @@ TEST_F(redis_zset_test, zrange_with_scores)
 
     // 获取有序集所有成员/分数
     EXPECT_EQ(4, redis_zset_test::m_pRedis->zrange_with_scores("foo", 0, -1, result));
-    EXPECT_EQ("one:1, two:2, three:3, four:4", redis_helper::join(result, ", "));
+    EXPECT_EQ("one:1, two:2, three:3, four:4", Util::join(result, ", "));
     result.clear();
 
     // 获取有序集部分成员/分数
     EXPECT_EQ(3, redis_zset_test::m_pRedis->zrange_with_scores("foo", 1, 3, result));
-    EXPECT_EQ("two:2, three:3, four:4", redis_helper::join(result, ", "));
+    EXPECT_EQ("two:2, three:3, four:4", Util::join(result, ", "));
     result.clear();
 
     // key的类型错误
@@ -137,7 +137,7 @@ TEST_F(redis_zset_test, zadd)
     EXPECT_EQ(2, redis_zset_test::m_pRedis->zadd("foo", member_score));
     EXPECT_EQ(6, redis_zset_test::m_pRedis->zrange_with_scores("foo", 0, -1, result));
     EXPECT_EQ("one:1, two:2, three:3, four:4, five:5, six:6",
-              redis_helper::join(result, ", "));
+              Util::join(result, ", "));
     result.clear();
 
     // 更新分数值
@@ -147,7 +147,7 @@ TEST_F(redis_zset_test, zadd)
     EXPECT_EQ(0, redis_zset_test::m_pRedis->zadd("foo", member_score)); // 没有增加新成员
     EXPECT_EQ(6, redis_zset_test::m_pRedis->zrange_with_scores("foo", 0, -1, result));
     EXPECT_EQ("one:1, two:2, three:3, four:4, five:55, six:66",
-              redis_helper::join(result, ", "));
+              Util::join(result, ", "));
     result.clear();
 
     // key的类型错误
@@ -166,7 +166,7 @@ TEST_F(redis_zset_test, zadd_xx)
     EXPECT_EQ(0, redis_zset_test::m_pRedis->zadd_xx("foo", member_score));
     EXPECT_EQ(4, redis_zset_test::m_pRedis->zrange_with_scores("foo", 0, -1, result));
     EXPECT_EQ("one:1, three:3, four:4, two:20",
-              redis_helper::join(result, ", "));
+              Util::join(result, ", "));
     result.clear();
 
     // key的类型错误
@@ -185,7 +185,7 @@ TEST_F(redis_zset_test, zadd_nx)
     EXPECT_EQ(1, redis_zset_test::m_pRedis->zadd_nx("foo", member_score));
     EXPECT_EQ(5, redis_zset_test::m_pRedis->zrange_with_scores("foo", 0, -1, result));
     EXPECT_EQ("one:1, two:2, three:3, four:4, five:5",
-              redis_helper::join(result, ", "));
+              Util::join(result, ", "));
     result.clear();
 
     // key的类型错误
@@ -204,7 +204,7 @@ TEST_F(redis_zset_test, zadd_ch)
     EXPECT_EQ(2, redis_zset_test::m_pRedis->zadd_ch("foo", member_score));
     EXPECT_EQ(5, redis_zset_test::m_pRedis->zrange_with_scores("foo", 0, -1, result));
     EXPECT_EQ("one:1, three:3, four:4, five:5, two:20",
-              redis_helper::join(result, ", "));
+              Util::join(result, ", "));
     result.clear();
 
     // key的类型错误
@@ -289,7 +289,7 @@ TEST_F(redis_zset_test, zinterstore_SUM)
 
     EXPECT_EQ(2, redis_zset_test::m_pRedis->zinterstore("{foo}:2", keys, &weights));
     EXPECT_EQ(2, redis_zset_test::m_pRedis->zrange_with_scores("{foo}:2", 0, -1, result));
-    EXPECT_EQ("two:4, four:12", redis_helper::join(result, ", "));
+    EXPECT_EQ("two:4, four:12", Util::join(result, ", "));
     result.clear();
 
     // key的类型错误
@@ -308,7 +308,7 @@ TEST_F(redis_zset_test, zinterstore_MIN)
 
     EXPECT_EQ(2, redis_zset_test::m_pRedis->zinterstore("{foo}:2", keys, &weights, "MIN"));
     EXPECT_EQ(2, redis_zset_test::m_pRedis->zrange_with_scores("{foo}:2", 0, -1, result));
-    EXPECT_EQ("two:2, four:4", redis_helper::join(result, ", "));
+    EXPECT_EQ("two:2, four:4", Util::join(result, ", "));
     result.clear();
 
     redis_zset_test::zstoreTearDown();
@@ -323,7 +323,7 @@ TEST_F(redis_zset_test, zinterstore_MAX)
 
     EXPECT_EQ(2, redis_zset_test::m_pRedis->zinterstore("{foo}:2", keys, &weights, "MAX"));
     EXPECT_EQ(2, redis_zset_test::m_pRedis->zrange_with_scores("{foo}:2", 0, -1, result));
-    EXPECT_EQ("two:2, four:8", redis_helper::join(result, ", "));
+    EXPECT_EQ("two:2, four:8", Util::join(result, ", "));
     result.clear();
 
     redis_zset_test::zstoreTearDown();
@@ -338,7 +338,7 @@ TEST_F(redis_zset_test, zunionstore_SUM)
 
     EXPECT_EQ(5, redis_zset_test::m_pRedis->zunionstore("{foo}:2", keys, &weights));
     EXPECT_EQ(5, redis_zset_test::m_pRedis->zrange_with_scores("{foo}:2", 0, -1, result));
-    EXPECT_EQ("one:1, three:3, two:4, four:12, six:18", redis_helper::join(result, ", "));
+    EXPECT_EQ("one:1, three:3, two:4, four:12, six:18", Util::join(result, ", "));
     result.clear();
 
     // key的类型错误
@@ -357,7 +357,7 @@ TEST_F(redis_zset_test, zunionstore_MIN)
 
     EXPECT_EQ(5, redis_zset_test::m_pRedis->zunionstore("{foo}:2", keys, &weights, "MIN"));
     EXPECT_EQ(5, redis_zset_test::m_pRedis->zrange_with_scores("{foo}:2", 0, -1, result));
-    EXPECT_EQ("one:1, two:2, three:3, four:4, six:18", redis_helper::join(result, ", "));
+    EXPECT_EQ("one:1, two:2, three:3, four:4, six:18", Util::join(result, ", "));
     result.clear();
 
     redis_zset_test::zstoreTearDown();
@@ -372,7 +372,7 @@ TEST_F(redis_zset_test, zunionstore_MAX)
 
     EXPECT_EQ(5, redis_zset_test::m_pRedis->zunionstore("{foo}:2", keys, &weights, "MAX"));
     EXPECT_EQ(5, redis_zset_test::m_pRedis->zrange_with_scores("{foo}:2", 0, -1, result));
-    EXPECT_EQ("one:1, two:2, three:3, four:8, six:18", redis_helper::join(result, ", "));
+    EXPECT_EQ("one:1, two:2, three:3, four:8, six:18", Util::join(result, ", "));
     result.clear();
 
     redis_zset_test::zstoreTearDown();
@@ -403,15 +403,15 @@ TEST_F(redis_zset_test, zrangebylex)
 
     // 返回指定区间内元素个数
     EXPECT_EQ(3, redis_zset_test::m_pRedis->zrangebylex("foo", "(four", "[two", result));
-    EXPECT_EQ("one, three, two", redis_helper::join(result, ", "));
+    EXPECT_EQ("one, three, two", Util::join(result, ", "));
     result.clear();
 
     EXPECT_EQ(4, redis_zset_test::m_pRedis->zrangebylex("foo", "-", "+", result));
-    EXPECT_EQ("four, one, three, two", redis_helper::join(result, ", "));
+    EXPECT_EQ("four, one, three, two", Util::join(result, ", "));
     result.clear();
 
     EXPECT_EQ(2, redis_zset_test::m_pRedis->zrangebylex("foo", "-", "+", result, 1, 2));
-    EXPECT_EQ("one, three", redis_helper::join(result, ", "));
+    EXPECT_EQ("one, three", Util::join(result, ", "));
     result.clear();
 
     // key不存在
@@ -428,15 +428,15 @@ TEST_F(redis_zset_test, zrangebyscore)
     std::vector<std::string> result;
 
     EXPECT_EQ(3, redis_zset_test::m_pRedis->zrangebyscore("foo", 1, 3, result));
-    EXPECT_EQ("one, two, three", redis_helper::join(result, ", "));
+    EXPECT_EQ("one, two, three", Util::join(result, ", "));
     result.clear();
 
     EXPECT_EQ(2, redis_zset_test::m_pRedis->zrangebyscore("foo", "-inf", "(3", result));
-    EXPECT_EQ("one, two", redis_helper::join(result, ", "));
+    EXPECT_EQ("one, two", Util::join(result, ", "));
     result.clear();
 
     EXPECT_EQ(1, redis_zset_test::m_pRedis->zrangebyscore("foo", "-inf", "+inf", result, 3, 2));
-    EXPECT_EQ("four", redis_helper::join(result, ", "));
+    EXPECT_EQ("four", Util::join(result, ", "));
     result.clear();
 
     // key的类型错误
@@ -449,15 +449,15 @@ TEST_F(redis_zset_test, zrangebyscore_with_scores)
     std::vector< std::pair<std::string, double> > result;
 
     EXPECT_EQ(3, redis_zset_test::m_pRedis->zrangebyscore_with_scores("foo", 1, 3, result));
-    EXPECT_EQ("one:1, two:2, three:3", redis_helper::join(result, ", "));
+    EXPECT_EQ("one:1, two:2, three:3", Util::join(result, ", "));
     result.clear();
 
     EXPECT_EQ(2, redis_zset_test::m_pRedis->zrangebyscore_with_scores("foo", "-inf", "(3", result));
-    EXPECT_EQ("one:1, two:2", redis_helper::join(result, ", "));
+    EXPECT_EQ("one:1, two:2", Util::join(result, ", "));
     result.clear();
 
     EXPECT_EQ(1, redis_zset_test::m_pRedis->zrangebyscore_with_scores("foo", "-inf", "+inf", result, 3, 2));
-    EXPECT_EQ("four:4", redis_helper::join(result, ", "));
+    EXPECT_EQ("four:4", Util::join(result, ", "));
     result.clear();
 
     // key的类型错误
@@ -511,13 +511,13 @@ TEST_F(redis_zset_test, zremrangebylex)
     redis_zset_test::allMemberSameScoreSetUp();
     EXPECT_EQ(3, redis_zset_test::m_pRedis->zremrangebylex("foo", "(four", "[two"));
     EXPECT_EQ(1, redis_zset_test::m_pRedis->zrange("foo", 0, -1, result));    
-    EXPECT_EQ("four", redis_helper::join(result, ", "));
+    EXPECT_EQ("four", Util::join(result, ", "));
     result.clear();
 
     redis_zset_test::allMemberSameScoreSetUp();
     EXPECT_EQ(4, redis_zset_test::m_pRedis->zremrangebylex("foo", "-", "+"));
     EXPECT_EQ(0, redis_zset_test::m_pRedis->zrange("foo", 0, -1, result));    
-    EXPECT_EQ("", redis_helper::join(result, ", "));
+    EXPECT_EQ("", Util::join(result, ", "));
     result.clear();
 
     // key的类型错误
@@ -532,14 +532,14 @@ TEST_F(redis_zset_test, zremrangebyrank)
     // 移除指定区间内的元素(stop大于集合基数)
     EXPECT_EQ(2, redis_zset_test::m_pRedis->zremrangebyrank("foo", 2, 4));
     EXPECT_EQ(2, redis_zset_test::m_pRedis->zrange_with_scores("foo", 0, -1, result));    
-    EXPECT_EQ("one:1, two:2", redis_helper::join(result, ", "));
+    EXPECT_EQ("one:1, two:2", Util::join(result, ", "));
     result.clear();
 
     // start > stop
     redis_zset_test::initializeSetUp();
     EXPECT_EQ(0, redis_zset_test::m_pRedis->zremrangebyrank("foo", 4, 2));
     EXPECT_EQ(4, redis_zset_test::m_pRedis->zrange_with_scores("foo", 0, -1, result));    
-    EXPECT_EQ("one:1, two:2, three:3, four:4", redis_helper::join(result, ", "));
+    EXPECT_EQ("one:1, two:2, three:3, four:4", Util::join(result, ", "));
     result.clear();
 
     // key的类型错误
@@ -553,13 +553,13 @@ TEST_F(redis_zset_test, zremrangebyscore)
 
     EXPECT_EQ(2, redis_zset_test::m_pRedis->zremrangebyscore("foo", 1.5, 3));
     EXPECT_EQ(2, redis_zset_test::m_pRedis->zrange_with_scores("foo", 0, -1, result));    
-    EXPECT_EQ("one:1, four:4", redis_helper::join(result, ", "));
+    EXPECT_EQ("one:1, four:4", Util::join(result, ", "));
     result.clear();
 
     redis_zset_test::initializeSetUp();
     EXPECT_EQ(3, redis_zset_test::m_pRedis->zremrangebyscore("foo", "(1.5", "+inf"));
     EXPECT_EQ(1, redis_zset_test::m_pRedis->zrange_with_scores("foo", 0, -1, result));    
-    EXPECT_EQ("one:1", redis_helper::join(result, ", "));
+    EXPECT_EQ("one:1", Util::join(result, ", "));
     result.clear();
 
     redis_zset_test::m_pRedis->set("foo", "hello");
@@ -572,22 +572,22 @@ TEST_F(redis_zset_test, zrevrange)
 
     // 获取有序集所有成员
     EXPECT_EQ(4, redis_zset_test::m_pRedis->zrevrange("foo", 0, -1, result));
-    EXPECT_EQ("four, three, two, one", redis_helper::join(result, ", "));
+    EXPECT_EQ("four, three, two, one", Util::join(result, ", "));
     result.clear();
 
     // 获取有序集部分成员
     EXPECT_EQ(2, redis_zset_test::m_pRedis->zrevrange("foo", 1, 2, result));
-    EXPECT_EQ("three, two", redis_helper::join(result, ", "));
+    EXPECT_EQ("three, two", Util::join(result, ", "));
     result.clear();
 
     // start > stop
     EXPECT_EQ(0, redis_zset_test::m_pRedis->zrevrange("foo", 3, 1, result));
-    EXPECT_EQ("", redis_helper::join(result, ", "));
+    EXPECT_EQ("", Util::join(result, ", "));
     result.clear();
 
     // stop大于集合元素个数
     EXPECT_EQ(3, redis_zset_test::m_pRedis->zrevrange("foo", 1, 10, result));
-    EXPECT_EQ("three, two, one", redis_helper::join(result, ", "));
+    EXPECT_EQ("three, two, one", Util::join(result, ", "));
     result.clear();
 
     // key的类型错误
@@ -613,8 +613,8 @@ TEST_F(redis_zset_test, zscan)
     } while (cursor > 0);
     EXPECT_EQ(30, result.size());
     std::string strTest = "one:1, two:2, three:3, four:4, "
-        + redis_helper::join(member_score, ", ");
-    EXPECT_EQ(strTest, redis_helper::join(result, ", "));
+        + Util::join(member_score, ", ");
+    EXPECT_EQ(strTest, Util::join(result, ", "));
     result.clear();
 
     // 使用参数模式
@@ -622,7 +622,7 @@ TEST_F(redis_zset_test, zscan)
     do {
         cursor = redis_zset_test::m_pRedis->zscan("foo", cursor, result, "*e");
     } while (cursor > 0);
-    EXPECT_EQ("one:1, three:3, ee:9", redis_helper::join(result, ", "));
+    EXPECT_EQ("one:1, three:3, ee:9", Util::join(result, ", "));
     result.clear();
 
     // key的类型错误

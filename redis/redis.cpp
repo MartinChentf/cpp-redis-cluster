@@ -843,9 +843,9 @@ bool redis::bgrewriteaof()
     return m_client->bgrewriteaof();
 }
 
-bool redis::flushall()
+bool redis::flushAll()
 {
-    return m_client->flushall();
+    return m_client->flushAll();
 }
 
 /***************************

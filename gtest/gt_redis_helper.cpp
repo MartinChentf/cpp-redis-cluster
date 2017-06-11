@@ -3,16 +3,16 @@
 #include <map>
 
 #include "gt_redis_helper.h"
-#include "redis_helper.h"
+#include "Util.h"
 
 TEST_F(redis_helper_test, to_string)
 {
-    EXPECT_EQ(std::string("123456"), redis_helper::to_string(123456));  // int
-    EXPECT_EQ(std::string("12.34"), redis_helper::to_string(12.34));    // double
-    EXPECT_EQ(std::string("1234567890"), redis_helper::to_string(1234567890L)); // long
-    EXPECT_EQ(std::string("1234567890"), redis_helper::to_string(1234567890UL));// unsigned long
+    EXPECT_EQ(std::string("123456"), Util::to_string(123456));  // int
+    EXPECT_EQ(std::string("12.34"), Util::to_string(12.34));    // double
+    EXPECT_EQ(std::string("1234567890"), Util::to_string(1234567890L)); // long
+    EXPECT_EQ(std::string("1234567890"), Util::to_string(1234567890UL));// unsigned long
     EXPECT_EQ(std::string("name:martin"),
-        redis_helper::to_string(std::make_pair("name", "martin"))); // std::pair
+        Util::to_string(std::make_pair("name", "martin"))); // std::pair
 }
 
 TEST_F(redis_helper_test, join_vector)
@@ -22,8 +22,8 @@ TEST_F(redis_helper_test, join_vector)
     list.push_back("redis");
     list.push_back("client!");
 
-    EXPECT_EQ(std::string("hello redis client!"), redis_helper::join(list));
-    EXPECT_EQ(std::string("hello-redis-client!"), redis_helper::join(list, "-"));
+    EXPECT_EQ(std::string("hello redis client!"), Util::join(list));
+    EXPECT_EQ(std::string("hello-redis-client!"), Util::join(list, "-"));
 }
 
 TEST_F(redis_helper_test, join_map)
@@ -33,5 +33,5 @@ TEST_F(redis_helper_test, join_map)
     map["foo2"] = 22;
     map["foo3"] = 33;
 
-    EXPECT_EQ(std::string("foo1:11,foo2:22,foo3:33"), redis_helper::join(map, ":", ","));
+    EXPECT_EQ(std::string("foo1:11,foo2:22,foo3:33"), Util::join(map, ":", ","));
 }

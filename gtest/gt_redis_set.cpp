@@ -5,7 +5,7 @@
 #include "gt_redis_set.h"
 #include "gt_common.h"
 
-#include "redis_helper.h"
+#include "Util.h"
 #include "redis_log.h"
 #include "redis.h"
 
@@ -139,7 +139,7 @@ TEST_F(redis_set_test, sdiff)
     // 第一个key不存在
     redis_set_test::m_pRedis->del("foo");
     EXPECT_EQ(true, redis_set_test::m_pRedis->sdiff(keys, result));
-    EXPECT_EQ("", redis_helper::join(result, ", "));
+    EXPECT_EQ("", Util::join(result, ", "));
     result.clear();
 
     // key的类型错误
@@ -163,13 +163,13 @@ TEST_F(redis_set_test, sinter)
 
     // 返回集合之间交集
     EXPECT_EQ(true, redis_set_test::m_pRedis->sinter(keys, result));
-    EXPECT_EQ("two", redis_helper::join(result, ", "));
+    EXPECT_EQ("two", Util::join(result, ", "));
     result.clear();
 
     // 有的key为空
     redis_set_test::m_pRedis->del("{foo}:1");
     EXPECT_EQ(true, redis_set_test::m_pRedis->sinter(keys, result));
-    EXPECT_EQ("", redis_helper::join(result, ", "));
+    EXPECT_EQ("", Util::join(result, ", "));
     result.clear();
 
     // key的类型错误
@@ -261,7 +261,7 @@ TEST_F(redis_set_test, sinterstore)
     // 返回集合之间交集
     EXPECT_EQ(1, redis_set_test::m_pRedis->sinterstore("{foo}:2", keys));
     EXPECT_EQ(1, redis_set_test::m_pRedis->smembers("{foo}:2", result));
-    EXPECT_EQ("two", redis_helper::join(result, ", "));
+    EXPECT_EQ("two", Util::join(result, ", "));
     result.clear();
 
     // 有的key为空
@@ -450,7 +450,7 @@ TEST_F(redis_set_test, sscan)
         cursor = redis_set_test::m_pRedis->sscan("foo", cursor, result);
     } while (cursor > 0);
     EXPECT_EQ(29, result.size());
-    std::string strTest = "one, two, three, " + redis_helper::join(result, ", ");
+    std::string strTest = "one, two, three, " + Util::join(result, ", ");
     EXPECT_EQ(true, contain_with(strTest, result));
     result.clear();
 
@@ -460,7 +460,7 @@ TEST_F(redis_set_test, sscan)
         cursor = redis_set_test::m_pRedis->sscan("foo", cursor, result, "*e*");
     } while (cursor > 0);
     EXPECT_EQ(3, result.size());
-    DEBUG("%s", redis_helper::join(result, ", ").c_str());
+    DEBUG("%s", Util::join(result, ", ").c_str());
     EXPECT_EQ(true, contain_with("one, three, ee", result));
     result.clear();
 

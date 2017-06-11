@@ -1,5 +1,5 @@
 #include "redis_string.h"
-#include "redis_helper.h"
+#include "Util.h"
 #include "redis_log.h"
 
 const char* BITOP_STR[] = { BITOP_AND, BITOP_OR, BITOP_NOT, BITOP_XOR };

@@ -405,7 +405,7 @@ public:
 };
 
 /**
- * 保存sort命令参数
+ * 保存 sort 命令参数
  */
 class SortParams
 {
@@ -483,6 +483,9 @@ private:
     std::vector<std::string> params;
 };
 
+/**
+ * 保存 migrate 命令参数
+ */
 class MigrateParams
 {
 public:

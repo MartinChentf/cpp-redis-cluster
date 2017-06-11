@@ -4,7 +4,7 @@
 #include "gt_redis_list.h"
 #include "gt_common.h"
 
-#include "redis_helper.h"
+#include "Util.h"
 #include "redis.h"
 
 redis* redis_list_test::m_pRedis = NULL;
@@ -42,22 +42,22 @@ TEST_F(redis_list_test, lrange)
 
     // 返回全部元素
     EXPECT_EQ(true, redis_list_test::m_pRedis->lrange("foo", 0, -1, result));
-    EXPECT_EQ("three, two, one", redis_helper::join(result, ", "));
+    EXPECT_EQ("three, two, one", Util::join(result, ", "));
     result.clear();
 
     // 返回部分元素
     EXPECT_EQ(true, redis_list_test::m_pRedis->lrange("foo", 1, 2, result));
-    EXPECT_EQ("two, one", redis_helper::join(result, ", "));
+    EXPECT_EQ("two, one", Util::join(result, ", "));
     result.clear();
 
     // start > stop
     EXPECT_EQ(true, redis_list_test::m_pRedis->lrange("foo", 2, 0, result));
-    EXPECT_EQ("", redis_helper::join(result, ", "));
+    EXPECT_EQ("", Util::join(result, ", "));
     result.clear();
 
     // stop大于实际列表末尾元素下标
     EXPECT_EQ(true, redis_list_test::m_pRedis->lrange("foo", 1, 10, result));
-    EXPECT_EQ("two, one", redis_helper::join(result, ", "));
+    EXPECT_EQ("two, one", Util::join(result, ", "));
     result.clear();
 
     // key类型错误的情况
@@ -75,7 +75,7 @@ TEST_F(redis_list_test, lpush)
     // 在列表头部插入新元素
     EXPECT_EQ(5, redis_list_test::m_pRedis->lpush("foo", values));
     EXPECT_EQ(true, redis_list_test::m_pRedis->lrange("foo", 0, -1, result));
-    EXPECT_EQ("five, four, three, two, one", redis_helper::join(result, ", "));
+    EXPECT_EQ("five, four, three, two, one", Util::join(result, ", "));
     
     // key类型错误的情况
     redis_list_test::m_pRedis->set("foo", "hello");
@@ -89,7 +89,7 @@ TEST_F(redis_list_test, lpushx)
     // key存在的情况
     EXPECT_EQ(4, redis_list_test::m_pRedis->lpushx("foo", "four"));
     EXPECT_EQ(true, redis_list_test::m_pRedis->lrange("foo", 0, -1, result));
-    EXPECT_EQ("four, three, two, one", redis_helper::join(result, ", "));
+    EXPECT_EQ("four, three, two, one", Util::join(result, ", "));
 
     // key不存在的情况
     redis_list_test::m_pRedis->del("foo");
@@ -131,13 +131,13 @@ TEST_F(redis_list_test, linsert)
     // 插入指定元素之前
     EXPECT_EQ(4, redis_list_test::m_pRedis->linsert("foo", true, "two", "four"));
     EXPECT_EQ(true, redis_list_test::m_pRedis->lrange("foo", 0, -1, result));
-    EXPECT_EQ("three, four, two, one", redis_helper::join(result, ", "));
+    EXPECT_EQ("three, four, two, one", Util::join(result, ", "));
     result.clear();
 
     // 插入指定元素之后
     EXPECT_EQ(5, redis_list_test::m_pRedis->linsert("foo", false, "two", "five"));
     EXPECT_EQ(true, redis_list_test::m_pRedis->lrange("foo", 0, -1, result));
-    EXPECT_EQ("three, four, two, five, one", redis_helper::join(result, ", "));
+    EXPECT_EQ("three, four, two, five, one", Util::join(result, ", "));
     result.clear();
 
     // 指定元素不存在的情况
@@ -195,7 +195,7 @@ TEST_F(redis_list_test, lrem_from_head)
     // 从头部开始移除
     EXPECT_EQ(2, redis_list_test::m_pRedis->lrem("foo", 2, "two"));
     EXPECT_EQ(true, redis_list_test::m_pRedis->lrange("foo", 0, -1, result));
-    EXPECT_EQ("one, three, two, one", redis_helper::join(result, ", "));
+    EXPECT_EQ("one, three, two, one", Util::join(result, ", "));
 
     // vaule不存在的情况
     EXPECT_EQ(0, redis_list_test::m_pRedis->lrem("foo", 2, "four"));
@@ -221,7 +221,7 @@ TEST_F(redis_list_test, lrem_from_tail)
     // 从尾部开始移除
     EXPECT_EQ(2, redis_list_test::m_pRedis->lrem("foo", -2, "two"));
     EXPECT_EQ(true, redis_list_test::m_pRedis->lrange("foo", 0, -1, result));
-    EXPECT_EQ("two, one, three, one", redis_helper::join(result, ", "));
+    EXPECT_EQ("two, one, three, one", Util::join(result, ", "));
 }
 
 TEST_F(redis_list_test, lrem_all)
@@ -236,7 +236,7 @@ TEST_F(redis_list_test, lrem_all)
     // 移除所有
     EXPECT_EQ(3, redis_list_test::m_pRedis->lrem("foo", 0, "two"));
     EXPECT_EQ(true, redis_list_test::m_pRedis->lrange("foo", 0, -1, result));
-    EXPECT_EQ("one, three, one", redis_helper::join(result, ", "));
+    EXPECT_EQ("one, three, one", Util::join(result, ", "));
 }
 
 TEST_F(redis_list_test, lset)
@@ -246,7 +246,7 @@ TEST_F(redis_list_test, lset)
     // 设置新值
     EXPECT_EQ(true, redis_list_test::m_pRedis->lset("foo", 1, "four"));
     EXPECT_EQ(true, redis_list_test::m_pRedis->lrange("foo", 0, -1, result));
-    EXPECT_EQ("three, four, one", redis_helper::join(result, ", "));
+    EXPECT_EQ("three, four, one", Util::join(result, ", "));
 
     // index越界的情况
     EXPECT_EQ(false, redis_list_test::m_pRedis->lset("foo", 3, "four"));
@@ -272,7 +272,7 @@ TEST_F(redis_list_test, ltrim)
 
     EXPECT_EQ(true, redis_list_test::m_pRedis->ltrim("foo", 2, 5));
     EXPECT_EQ(true, redis_list_test::m_pRedis->lrange("foo", 0, -1, result));
-    EXPECT_EQ("five, four, three, two", redis_helper::join(result, ", "));
+    EXPECT_EQ("five, four, three, two", Util::join(result, ", "));
 
     // key不存在的情况
     redis_list_test::m_pRedis->del("foo");
@@ -296,7 +296,7 @@ TEST_F(redis_list_test, ltrim_start_gt_stop)
     // start > stop
     EXPECT_EQ(true, redis_list_test::m_pRedis->ltrim("foo", 6, 3));
     EXPECT_EQ(true, redis_list_test::m_pRedis->lrange("foo", 0, -1, result));
-    EXPECT_EQ("", redis_helper::join(result, ", "));
+    EXPECT_EQ("", Util::join(result, ", "));
 }
 
 TEST_F(redis_list_test, ltrim_stop_gt_end)
@@ -312,7 +312,7 @@ TEST_F(redis_list_test, ltrim_stop_gt_end)
     // stop大于列表下标
     EXPECT_EQ(true, redis_list_test::m_pRedis->ltrim("foo", 2, 10));
     EXPECT_EQ(true, redis_list_test::m_pRedis->lrange("foo", 0, -1, result));
-    EXPECT_EQ("five, four, three, two, one", redis_helper::join(result, ", "));
+    EXPECT_EQ("five, four, three, two, one", Util::join(result, ", "));
 }
 
 TEST_F(redis_list_test, rpop)
@@ -341,10 +341,10 @@ TEST_F(redis_list_test, rpoplpush)
     EXPECT_EQ(1, redis_list_test::m_pRedis->rpoplpush("foo", "{foo}1", result));
     EXPECT_EQ("one", result);
     EXPECT_EQ(true, redis_list_test::m_pRedis->lrange("foo", 0, -1, vaules));
-    EXPECT_EQ("three, two", redis_helper::join(vaules, ", "));
+    EXPECT_EQ("three, two", Util::join(vaules, ", "));
     vaules.clear();
     EXPECT_EQ(true, redis_list_test::m_pRedis->lrange("foo", 0, -1, vaules));
-    EXPECT_EQ("three, two", redis_helper::join(vaules, ", "));
+    EXPECT_EQ("three, two", Util::join(vaules, ", "));
     vaules.clear();
 
     // src不存在的情况
@@ -365,7 +365,7 @@ TEST_F(redis_list_test, rpoplpush_src_same_with_dest)
     EXPECT_EQ(1, redis_list_test::m_pRedis->rpoplpush("foo", "foo", result));
     EXPECT_EQ("one", result);
     EXPECT_EQ(true, redis_list_test::m_pRedis->lrange("foo", 0, -1, vaules));
-    EXPECT_EQ("one, three, two", redis_helper::join(vaules, ", "));
+    EXPECT_EQ("one, three, two", Util::join(vaules, ", "));
 
     // dest类型错误的情况
     redis_list_test::m_pRedis->set("{foo}1", "hello");
@@ -384,7 +384,7 @@ TEST_F(redis_list_test, rpush)
     // 在列表末尾插入新元素
     EXPECT_EQ(5, redis_list_test::m_pRedis->rpush("foo", values));
     EXPECT_EQ(true, redis_list_test::m_pRedis->lrange("foo", 0, -1, result));
-    EXPECT_EQ("three, two, one, four, five", redis_helper::join(result, ", "));
+    EXPECT_EQ("three, two, one, four, five", Util::join(result, ", "));
 
     // key类型错误的情况
     redis_list_test::m_pRedis->set("foo", "hello");
@@ -398,7 +398,7 @@ TEST_F(redis_list_test, rpushx)
     // key存在的情况
     EXPECT_EQ(4, redis_list_test::m_pRedis->rpushx("foo", "four"));
     EXPECT_EQ(true, redis_list_test::m_pRedis->lrange("foo", 0, -1, result));
-    EXPECT_EQ("three, two, one, four", redis_helper::join(result, ", "));
+    EXPECT_EQ("three, two, one, four", Util::join(result, ", "));
 
     // key不存在的情况
     redis_list_test::m_pRedis->del("foo");
@@ -464,10 +464,10 @@ TEST_F(redis_list_test, brpoplpush_non_block)
     EXPECT_EQ(1, redis_list_test::m_pRedis->brpoplpush("foo", "{foo}:1", 2, result));
     EXPECT_EQ("one", result);
     EXPECT_EQ(true, redis_list_test::m_pRedis->lrange("foo", 0, -1, vaules));
-    EXPECT_EQ("three, two", redis_helper::join(vaules, ", "));
+    EXPECT_EQ("three, two", Util::join(vaules, ", "));
     vaules.clear();
     EXPECT_EQ(true, redis_list_test::m_pRedis->lrange("{foo}:1", 0, -1, vaules));
-    EXPECT_EQ("one", redis_helper::join(vaules, ", "));
+    EXPECT_EQ("one", Util::join(vaules, ", "));
     vaules.clear();
 
     // src不存在的情况
@@ -493,7 +493,7 @@ TEST_F(redis_list_test, brpoplpush_src_same_with_dest)
     EXPECT_EQ(1, redis_list_test::m_pRedis->brpoplpush("foo", "foo", 2, result));
     EXPECT_EQ("one", result);
     EXPECT_EQ(true, redis_list_test::m_pRedis->lrange("foo", 0, -1, vaules));
-    EXPECT_EQ("one, three, two", redis_helper::join(vaules, ", "));
+    EXPECT_EQ("one, three, two", Util::join(vaules, ", "));
 
     // dest类型错误的情况
     redis_list_test::m_pRedis->set("{foo}:1", "hello");
@@ -570,7 +570,7 @@ TEST_F(redis_list_test, brpoplpush_with_block)
     EXPECT_EQ(1, redis_list_test::m_pRedis->brpoplpush("foo", "foo", 0, result));
     EXPECT_EQ("one", result);
     EXPECT_EQ(true, redis_list_test::m_pRedis->lrange("foo", 0, -1, vaules));
-    EXPECT_EQ("one", redis_helper::join(vaules, ", "));
+    EXPECT_EQ("one", Util::join(vaules, ", "));
 
     pthread_join(id, NULL);
 }

@@ -20,6 +20,7 @@ public:
     int check_status_or_nil(const char* expection = "OK");
     std::string get_status();
 
+    std::string get_string(bool* success = NULL);
     bool get_string(std::string& result);
     bool get_string(std::string* result);
     int get_string_or_nil(std::string& result);

@@ -2,7 +2,7 @@
 
 #include "Protocol.h"
 #include "redis_log.h"
-#include "redis_helper.h"
+#include "Util.h"
 #include "socket_client.h"
 
 bool Protocol::sendCommand(socket_client* socket, const std::vector<std::string>& argv)

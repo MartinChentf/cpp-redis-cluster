@@ -1,6 +1,6 @@
 #include "redis_hash.h"
 #include "redis_log.h"
-#include "redis_helper.h"
+#include "Util.h"
 
 redis_hash::redis_hash(const std::string & host, uint16_t port)
 : redis_command(host, port)

@@ -1,7 +1,7 @@
 #include <stdlib.h>
 
 #include "redis_zset.h"
-#include "redis_helper.h"
+#include "Util.h"
 #include "redis_log.h"
 
 redis_zset::redis_zset(const std::string & host, uint16_t port)

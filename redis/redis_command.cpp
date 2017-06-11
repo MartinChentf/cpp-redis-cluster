@@ -1,7 +1,7 @@
 #include <stdlib.h>
 
 #include "redis_command.h"
-#include "redis_helper.h"
+#include "Util.h"
 #include "redis_log.h"
 #include "redisReply.h"
 
@@ -125,6 +125,13 @@ std::string redis_command::get_status()
     SAFE_DELETE(reply);
 
     return status;
+}
+
+std::string redis_command::get_string(bool * success /*= NULL*/)
+{
+    std::string result;
+    SAFE_ASSIGN_FUNC(success, get_string(result));
+    return result;
 }
 
 bool redis_command::get_string(std::string & result)

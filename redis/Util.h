@@ -1,12 +1,25 @@
-#ifndef __REDIS_HELPER_H__
-#define __REDIS_HELPER_H__
+/**
+ * Copyright 2017-2022 chen.tengfei <chentf1836@163.com>
+ * All rights reserved.
+ *
+ * @file   Util.h
+ * @brief 
+ * @version 1.0
+ * @bug none
+ * @warning none
+ * @other none
+ * @author chen.tengfei
+ * @data   2017-06-11 23:16:27
+ */
+#ifndef __UTIL_H__
+#define __UTIL_H__
 
 #include <sstream>
 #include <string>
 #include <vector>
 #include <map>
 
-class redis_helper
+class Util
 {
 public:
 
@@ -82,14 +95,40 @@ public:
 
         return str;
     }
+
+    /**
+     * @description
+     *   把一个字符串分割成字符串数组.
+     * @param [IN] str {const std::string&} 被分割的字符串.
+     * @param [IN] separator {const std::string&} 分隔符.
+     * @param [OUT] list {std::vector<std::string>&} 分割后的字符串数组
+     * @return {void} 
+     * @author chen.tengfei
+     * @date 2017-06-11
+     */
+    static void split(const std::string& str, const std::string& separator,
+        std::vector<std::string>& list);
 };
 
-#define SAFE_ASSIGN(p, val) if (p) (*p) = (val)
+#define SAFE_ASSIGN(p, val) do {                                                \
+    if (p)                                                                      \
+        (*p) = (val);                                                           \
+} while (0)
 
-#define SAFE_ASSIGN_FUNC(p, func) if (p) (*p) = (func); else (void)(func)
+#define SAFE_ASSIGN_FUNC(p, func) do {                                          \
+    if (p)                                                                      \
+        (*p) = (func);                                                          \
+    else                                                                        \
+        (void)(func);                                                           \
+} while (0)
 
-#define SAFE_DELETE(p) if (p) { delete (p); (p) = NULL; }
+#define SAFE_DELETE(p) do {                                                     \
+    if (p) {                                                                    \
+        delete (p);                                                             \
+        (p) = NULL;                                                             \
+    }                                                                           \
+} while (0)
 
-#define TO_STRING(a) redis_helper::to_string(a)
+#define TO_STRING(a) Util::to_string(a)
 
-#endif /* __REDIS_HELPER_H__ */
+#endif /* __UTIL_H__ */

@@ -2,7 +2,7 @@
 #include "gt_redis_hash.h"
 #include "gt_common.h"
 
-#include "redis_helper.h"
+#include "Util.h"
 #include "redis.h"
 
 redis* redis_hash_test::m_pRedis = NULL;
@@ -41,7 +41,7 @@ TEST_F(redis_hash_test, hgetall)
     std::map<std::string,std::string> result;
 
     EXPECT_EQ(5, redis_hash_test::m_pRedis->hgetall("foo", result));
-    EXPECT_EQ("f1:a,f2:b,f3:c,f4:d,f5:e", redis_helper::join(result, ":", ","));
+    EXPECT_EQ("f1:a,f2:b,f3:c,f4:d,f5:e", Util::join(result, ":", ","));
 
     // key类型错误
     redis_hash_test::m_pRedis->set("foo", "hello");
@@ -59,14 +59,14 @@ TEST_F(redis_hash_test, hmset)
     // 1. 更新field值/增加新的field
     EXPECT_EQ(true, redis_hash_test::m_pRedis->hmset("foo", field_value));
     redis_hash_test::m_pRedis->hgetall("foo", result);
-    EXPECT_EQ("f1:aaa,f2:b,f3:c,f4:d,f5:e,f6:f", redis_helper::join(result, ":", ","));
+    EXPECT_EQ("f1:aaa,f2:b,f3:c,f4:d,f5:e,f6:f", Util::join(result, ":", ","));
     result.clear();
 
     // 2. key不存在的情况
     redis_hash_test::m_pRedis->del("foo");
     EXPECT_EQ(true, redis_hash_test::m_pRedis->hmset("foo", field_value));
     redis_hash_test::m_pRedis->hgetall("foo", result);
-    EXPECT_EQ("f1:aaa,f6:f", redis_helper::join(result, ":", ","));
+    EXPECT_EQ("f1:aaa,f6:f", Util::join(result, ":", ","));
     result.clear();
 
     // 3. key类型错误的情况
@@ -87,7 +87,7 @@ TEST_F(redis_hash_test, hdel)
     // 查看删除后字段
     std::map<std::string,std::string> result;
     redis_hash_test::m_pRedis->hgetall("foo", result);
-    EXPECT_EQ("f2:b,f4:d", redis_helper::join(result, ":", ","));
+    EXPECT_EQ("f2:b,f4:d", Util::join(result, ":", ","));
 }
 
 TEST_F(redis_hash_test, hexists)
@@ -221,13 +221,13 @@ TEST_F(redis_hash_test, hkeys)
 
     // 1. key存在的情况
     EXPECT_EQ(true, redis_hash_test::m_pRedis->hkeys("foo", result));
-    EXPECT_EQ("f1,f2,f3,f4,f5", redis_helper::join(result, ","));
+    EXPECT_EQ("f1,f2,f3,f4,f5", Util::join(result, ","));
     result.clear();
 
     // 2. key不存在的情况
     redis_hash_test::m_pRedis->del("foo");
     EXPECT_EQ(true, redis_hash_test::m_pRedis->hkeys("foo", result));
-    EXPECT_EQ("", redis_helper::join(result, ","));
+    EXPECT_EQ("", Util::join(result, ","));
 
     // 3. key类型错误的情况
     redis_hash_test::m_pRedis->set("foo", "hello");
@@ -240,13 +240,13 @@ TEST_F(redis_hash_test, hvals)
 
     // 1. key存在的情况
     EXPECT_EQ(true, redis_hash_test::m_pRedis->hvals("foo", result));
-    EXPECT_EQ("a,b,c,d,e", redis_helper::join(result, ","));
+    EXPECT_EQ("a,b,c,d,e", Util::join(result, ","));
     result.clear();
 
     // 2. key不存在的情况
     redis_hash_test::m_pRedis->del("foo");
     EXPECT_EQ(true, redis_hash_test::m_pRedis->hvals("foo", result));
-    EXPECT_EQ("", redis_helper::join(result, ","));
+    EXPECT_EQ("", Util::join(result, ","));
 
     // 3. key类型错误的情况
     redis_hash_test::m_pRedis->set("foo", "hello");
@@ -329,7 +329,7 @@ TEST_F(redis_hash_test, hscan)
     // 2. 使用模式参数
     redis_hash_test::m_pRedis->hset("foo", "f12", "ab");
     EXPECT_EQ(0, redis_hash_test::m_pRedis->hscan("foo", 0, result, "*2"));
-    EXPECT_EQ("f12:ab,f2:b,f22:v", redis_helper::join(result, ":", ","));
+    EXPECT_EQ("f12:ab,f2:b,f22:v", Util::join(result, ":", ","));
     result.clear();
 
     // 3. key类型错误的情况
