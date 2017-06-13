@@ -5,7 +5,7 @@ void Util::split(const std::string& str, const std::string& separator,
 {
     size_t cur = 0;
     size_t last = 0;
-    while (pos != std::string::npos) {
+    while (cur != std::string::npos) {
         cur = str.find(separator);
         list.push_back(str.substr(last, cur));
     }

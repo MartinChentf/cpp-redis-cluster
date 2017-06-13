@@ -2,9 +2,13 @@
 #define __REDIS_SERVER_H__
 
 #include <string>
+#include <vector>
+#include <map>
 
 #include "ProtocolCommand.h"
 #include "redis_command.h"
+
+class KillFilterParams;
 
 class redis_server : virtual public redis_command
 {
@@ -75,7 +79,7 @@ public:
      * @description
      *   返回所有连接到服务器的客户端信息和统计数据.     
      * @param [OUT] list {std::vector<std::map<std::string, std::string>*>*}
-     *   解析后的客户端信息和统计数据列表.
+     *   解析后的客户端信息和统计数据列表, 列表中的每个元素由调用者负责释放.
      * @return {std::string} 返回信息的格式如下:
      *   1. 每行对应一个已连接的客户端(以LF分隔)
      *   2. 每行字符串由一系列 属性=值(property=value)形式的域组成, 每个域之间以
@@ -86,6 +90,46 @@ public:
      */
     std::string clientList(
         std::vector<std::map<std::string, std::string>*>* list = NULL);
+
+    /**
+     * @description
+     *   暂停所有的客户端, 直到超时. 该命令执行以下操作:
+     *     1. 停止 normal 和 pub/sub 客户端上所有正在等待执行的挂起命令, 但是交
+     *        互式的 slave 客户端不会被暂停.
+     *     2. 调用该命令的客户端不会暂停, 并立即返回 OK.
+     *     3. 当超时时间已过, 所有的客户端将会被解除阻塞: 这将会触发在暂停期间累
+     *        积在每一个客户端的查询缓冲区(query buffer)中的所有命令的执行过程.
+     * @param [IN] timeout {long long} 指定的超时时间.
+     * @return {bool} 返回true.
+     * @author chen.tengfei
+     * @date 2017-06-13
+     */
+    bool clientPause(long long timeout);
+
+    /**
+     * @description
+     *   设置 redis服务器回复客户端的模式. 模式如下:
+     *   ON: 默认模式, 服务器为每一个命令返回一个回复;
+     *   OFF: 该模式下, 服务器不会回复任何客户端命令;
+     *   SKIP: 跳过紧接着的下一条命令的回复.
+     * @param [IN] reply {CLIENT_REPLY} 
+     * @return {int} 返回执行状态:
+     *    1: 参数为 ON
+     *    0: 参数为 OFF或SKIP
+     * @author chen.tengfei
+     * @date 2017-06-13
+     */
+    int clientReply(CLIENT_REPLY reply);
+
+    /**
+     * @description
+     *   为当前的连接设置名字, 设置的名字可由 CLIENT LIST 命令查看.
+     * @param [IN] connName {const std::string&} 
+     * @return {bool} 设置成功返回true.
+     * @author chen.tengfei
+     * @date 2017-06-13
+     */
+    bool clientSetname(const std::string& connName);
 
     /**
      * @description
@@ -147,7 +191,7 @@ public:
      * @author chen.tengfei
      * @date 2017-06-08
      */
-    KillFilterParams& addr(const std::string& addr);
+    KillFilterParams& ADDR(const std::string& addr);
 
     /**
      * @description
@@ -158,7 +202,7 @@ public:
      * @author chen.tengfei
      * @date 2017-06-08
      */
-    KillFilterParams& id(int id);
+    KillFilterParams& ID(int id);
 
     /**
      * @description
@@ -173,7 +217,7 @@ public:
      * @author chen.tengfei
      * @date 2017-06-08
      */
-    KillFilterParams& type(CLIENT_TYPE type);
+    KillFilterParams& TYPE(CLIENT_TYPE type);
 
     /**
      * @description
@@ -184,7 +228,7 @@ public:
      * @author chen.tengfei
      * @date 2017-06-08
      */
-    KillFilterParams& skipme(bool yes = true);
+    KillFilterParams& SKIPMME(bool yes = true);
 
 private:
     std::vector<std::string> params;

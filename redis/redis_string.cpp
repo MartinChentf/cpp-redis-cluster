@@ -2,7 +2,13 @@
 #include "Util.h"
 #include "redis_log.h"
 
-const char* BITOP_STR[] = { BITOP_AND, BITOP_OR, BITOP_NOT, BITOP_XOR };
+const char* BITOP_STR[] =
+{
+    STRING(AND),
+    STRING(OR),
+    STRING(NOT),
+    STRING(XOR)
+};
 
 redis_string::redis_string(const std::string & host, uint16_t port)
 : redis_command(host, port)

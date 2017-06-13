@@ -843,9 +843,65 @@ bool redis::bgrewriteaof()
     return m_client->bgrewriteaof();
 }
 
+std::string redis::bgsave()
+{
+    return m_client->bgsave();
+}
+
+bool redis::clientGetname(std::string & name)
+{
+    return m_client->clientGetname(name);
+}
+
+bool redis::clientKill(const std::string & addr)
+{
+    return m_client->clientKill(addr);
+}
+
+int redis::clientKill(KillFilterParams params)
+{
+    return m_client->clientKill(params);
+}
+
+std::string redis::clientList(
+    std::vector<std::map<std::string,std::string>*>* list /*= NULL*/)
+{
+    return m_client->clientList(list);
+}
+
+bool redis::clientPause(long long timeout)
+{
+    return m_client->clientPause(timeout);
+}
+
+int redis::clientReply(CLIENT_REPLY reply)
+{
+    return m_client->clientReply(reply);
+}
+
+bool redis::clientSetname(const std::string & connName)
+{
+    return m_client->clientSetname(connName);
+}
+
 bool redis::flushAll()
 {
     return m_client->flushAll();
+}
+
+bool redis::flushDB()
+{
+    return m_client->flushDB();
+}
+
+long long redis::lastsave()
+{
+    return m_client->lastsave();
+}
+
+bool redis::save()
+{
+    return m_client->save();
 }
 
 /***************************

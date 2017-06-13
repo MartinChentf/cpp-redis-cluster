@@ -4,6 +4,8 @@
 #include <vector>
 #include <string>
 
+#include "ProtocolCommand.h"
+
 typedef enum {
     REDIS_REPLY_UNKOWN,     // 0
     REDIS_REPLY_STRING,     // 1
@@ -16,13 +18,13 @@ typedef enum {
 
 static const char * const REPLY_TYPE[] =
 {
-    "REDIS_REPLY_UNKOWN",   // 0
-    "REDIS_REPLY_STRING",   // 1
-    "REDIS_REPLY_ARRAY",    // 2
-    "REDIS_REPLY_INTEGER",  // 3
-    "REDIS_REPLY_NIL",      // 4
-    "REDIS_REPLY_STATUS",   // 5
-    "REDIS_REPLY_ERROR"     // 6
+    STRING(REDIS_REPLY_UNKOWN),    // 0
+    STRING(REDIS_REPLY_STRING),    // 1
+    STRING(REDIS_REPLY_ARRAY),     // 2
+    STRING(REDIS_REPLY_INTEGER)    // 3,
+    STRING(REDIS_REPLY_NIL),       // 4
+    STRING(REDIS_REPLY_STATUS),    // 5
+    STRING(REDIS_REPLY_ERROR)      // 6
 };
 
 /**
