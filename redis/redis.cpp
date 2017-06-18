@@ -29,6 +29,12 @@ int redis::getSet(const std::string& key, const std::string& value,
     return m_client->getSet(key, value, result);
 }
 
+bool redis::set(const std::string& key, const std::string& value,
+    SET_PARAM ex_px, long long timeout, SET_PARAM nx_xx)
+{
+    return m_client->set(key, value, ex_px, timeout, nx_xx);
+}
+
 bool redis::set(const std::string& key, const std::string& value)
 {
     return m_client->set(key, value);

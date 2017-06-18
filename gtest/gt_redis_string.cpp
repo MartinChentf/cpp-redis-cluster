@@ -34,6 +34,26 @@ TEST_F(redis_string_test, set_and_get) {
     redis_string_test::m_pRedis->del("foo");
 }
 
+TEST_F(redis_string_test, set_with_param) {
+    std::string result;
+
+    // key不存在时设置, 并设置超时时间
+    redis_string_test::m_pRedis->del("foo");
+    EXPECT_EQ(true, redis_string_test::m_pRedis->set("foo", "hello", EX, 3, NX));
+    EXPECT_EQ(1, redis_string_test::m_pRedis->get("foo", result));
+    EXPECT_EQ("hello", result);
+    sleep(4);
+    EXPECT_EQ(0, redis_string_test::m_pRedis->exists("foo"));
+
+    // key存在时设置, 并设置超时时间
+    redis_string_test::m_pRedis->set("foo", "hello");
+    EXPECT_EQ(true, redis_string_test::m_pRedis->set("foo", "world", PX, 3000, XX));
+    EXPECT_EQ(1, redis_string_test::m_pRedis->get("foo", result));
+    EXPECT_EQ("world", result);
+    sleep(4);
+    EXPECT_EQ(0, redis_string_test::m_pRedis->exists("foo"));
+}
+
 TEST_F(redis_string_test, getset) {
     std::string result;
     redis_string_test::m_pRedis->set("foo", "hello");

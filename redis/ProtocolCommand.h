@@ -22,5 +22,7 @@ enum CLIENT_TYPE { NORMAL, MASTER, SLAVE, PUBSUB };
 
 enum CLIENT_REPLY { ON, OFF, SKIP };
 
+enum SET_PARAM { EX, PX, NONE, NX, XX };
+
 #endif /* __PROTOCOL_COMMAND_H__ */
 

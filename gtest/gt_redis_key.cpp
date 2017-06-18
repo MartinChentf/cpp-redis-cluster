@@ -209,6 +209,7 @@ TEST_F(redis_key_test, migrate)
     // 连接另一个 server
     redis* pRedis = new redis(gt_component::Instance().get_host(1),
                              gt_component::Instance().get_port(1));
+    //pRedis->auth(gt_component::Instance().get_passwd(1));
 
     std::string result;
     // 把指定key迁移到目标实例
@@ -231,6 +232,7 @@ TEST_F(redis_key_test, migrate_copy)
     // 连接另一个 server
     redis* pRedis = new redis(gt_component::Instance().get_host(1),
                              gt_component::Instance().get_port(1));
+    //pRedis->auth(gt_component::Instance().get_passwd(1));
 
     std::string result;
     // 使用 COPY 选项
@@ -257,6 +259,7 @@ TEST_F(redis_key_test, migrate_replace)
     // 连接另一个 server
     redis* pRedis = new redis(gt_component::Instance().get_host(1),
                              gt_component::Instance().get_port(1));
+    //pRedis->auth(gt_component::Instance().get_passwd(1));
 
     std::string result;
     // 使用 REPLACE 选项
@@ -283,6 +286,7 @@ TEST_F(redis_key_test, migrate_keys)
     // 连接另一个 server
     redis* pRedis = new redis(gt_component::Instance().get_host(1),
                              gt_component::Instance().get_port(1));
+    //pRedis->auth(gt_component::Instance().get_passwd(1));
 
     std::string result;
     // 使用 KEYS 选项

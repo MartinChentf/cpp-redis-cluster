@@ -10,6 +10,15 @@ const char* BITOP_STR[] =
     STRING(XOR)
 };
 
+const char* SET_PARAM_STR[] =
+{
+    STRING(EX),
+    STRING(PX),
+    STRING(NONE),
+    STRING(NX),
+    STRING(XX)
+};
+
 redis_string::redis_string(const std::string & host, uint16_t port)
 : redis_command(host, port)
 {
@@ -40,51 +49,51 @@ int redis_string::getSet(const std::string& key,
     return get_string_or_nil(result);
 }
 
-bool redis_string::set(const std::string& key, const std::string& value)
-{
-    return set_string(key, value, NULL, 0, NULL);
-}
-
-bool redis_string::setnx(const std::string& key, const std::string& value)
-{
-    return set_string(key, value, NULL, 0, "NX");
-}
-
-bool redis_string::setxx(const std::string& key, const std::string& value)
-{
-    return set_string(key, value, NULL, 0, "XX");
-}
-
-bool redis_string::setex(const std::string& key, long long second,
-                         const std::string& value)
-{
-    return set_string(key, value, "EX", second, NULL);
-}
-
-bool redis_string::psetex(const std::string& key, long long millisecond,
-                          const std::string& value)
-{
-    return set_string(key, value, "PX", millisecond, NULL);
-}
-
-bool redis_string::set_string(const std::string& key,const std::string& value,
-                        const char * ex_px,long long second,const char * nx_xx)
+bool redis_string::set(const std::string& key, const std::string& value,
+    SET_PARAM ex_px, long long timeout, SET_PARAM nx_xx)
 {
     std::vector<std::string> argv;
     argv.push_back("SET");
     argv.push_back(key.c_str());
     argv.push_back(value.c_str());
 
-    if (ex_px != NULL) {
-        argv.push_back(ex_px);
-        argv.push_back(TO_STRING(second));
+    if (ex_px < NONE) {
+        argv.push_back(SET_PARAM_STR[ex_px]);
+        argv.push_back(TO_STRING(timeout));
     }
-    if (nx_xx != NULL) {
-        argv.push_back(nx_xx);
+    if (nx_xx > NONE) {
+        argv.push_back(SET_PARAM_STR[nx_xx]);
     }
     sendCommand(argv);
 
     return (check_status_or_nil() > 0 ? true : false);
+}
+
+bool redis_string::set(const std::string& key, const std::string& value)
+{
+    return set(key, value, NONE, 0, NONE);
+}
+
+bool redis_string::setnx(const std::string& key, const std::string& value)
+{
+    return set(key, value, NONE, 0, NX);
+}
+
+bool redis_string::setxx(const std::string& key, const std::string& value)
+{
+    return set(key, value, NONE, 0, XX);
+}
+
+bool redis_string::setex(const std::string& key, long long second,
+                         const std::string& value)
+{
+    return set(key, value, EX, second, NONE);
+}
+
+bool redis_string::psetex(const std::string& key, long long millisecond,
+                          const std::string& value)
+{
+    return set(key, value, PX, millisecond, NONE);
 }
 
 bool redis_string::getrange(const std::string& key,int start,int end,

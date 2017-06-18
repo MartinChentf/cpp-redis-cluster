@@ -47,6 +47,13 @@ private:
     readini& operator=(const readini&);
 };
 
+typedef struct serverInfo
+{
+    std::string host;
+    uint16_t    port;
+    std::string passwd;
+} t_server_info;
+
 class gt_config
 {
 public:
@@ -56,9 +63,8 @@ private:
     void read_config(const char* config_filename);
 
 public:
-    std::vector< std::pair<std::string, uint16_t> > m_single;
-
-    std::vector< std::pair<std::string, uint16_t> > m_cluster;
+    std::vector<t_server_info> m_single;
+    std::vector<t_server_info> m_cluster;
 };
 
 class gt_component
@@ -80,9 +86,11 @@ public:
 
     std::string get_host(int pos);
     uint16_t get_port(int pos);
+    std::string get_passwd(int pos);
 
     std::string get_cluster_host(int pos);
     uint16_t get_cluster_port(int pos);
+    std::string get_cluster_passwd(int pos);
 
 private:
     gt_config m_config;

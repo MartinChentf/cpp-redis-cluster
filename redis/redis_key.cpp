@@ -354,7 +354,7 @@ std::string redis_key::type(const std::string & key)
 }
 
 /**
- * sort_params类定义
+ * SortParams 类定义
  */
 SortParams& SortParams::by(const std::string& pattern)
 {

@@ -62,6 +62,27 @@ public:
 
     /**
      * @description
+     *   将key关联到字符串value.
+     * @param [IN] key {const std::string&} 字符串对象的key
+     * @param [IN] value {const std::string&} key所关联的字符串值
+     * @param [IN] ex_px {SET_PARAM} 指定超时时间的单位, 取值如下:
+     *   EX: 超时时间以秒为单位
+     *   PX: 超时时间以毫秒为单位
+     * @param [IN] timeout {long long} 超时时间
+     * @param [IN] nx_xx {SET_PARAM} 取值如下:
+     *   NX: 如果key不存在，将key关联到字符串value
+     *   XX: 如果key存在，将key关联到字符串value
+     * @return {bool} 操作是否成功, 该操作不会失败. 返回值如下:
+     *    true: key被设置
+     *   false: key未被设置, 使用NX或XX参数时可能不会设置成功.
+     * @author chen.tengfei
+     * @date 2017-06-18
+     */
+    bool set(const std::string& key, const std::string& value,
+        SET_PARAM ex_px, long long timeout, SET_PARAM nx_xx);
+
+    /**
+     * @description
      *   将key关联到字符串value, 如果key存在, 将覆盖原来的值,
      *   并且忽略原始类型
      * @param [IN] key {const std::string&} 字符串对象的key

@@ -33,7 +33,8 @@ public:
      * @param [IN] password {const std::string} 在 redis 配置文件中指定的认证密码
      * @return {bool}
      *    true: 密码匹配, 服务端可以接收后续命令
-     *   false: 匹配失败, 客户端需要重试新的密码
+     *   false: 1) 客户端没有设置密码
+     *          2) 匹配失败, 客户端需要重试新的密码
      * @author chen.tengfei
      * @date 2017-06-06
      */
