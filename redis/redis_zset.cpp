@@ -15,7 +15,7 @@ long long redis_zset::zadd(const std::string& key,
 {
     std::vector<std::string> argv;
     argv.push_back("ZADD");
-    argv.push_back(key.c_str());
+    argv.push_back(key);
 
     if (nx_or_xx > 0) {
         argv.push_back("XX");
@@ -64,10 +64,10 @@ bool redis_zset::zadd_incr(const std::string& key, double score,
 {
     std::vector<std::string> argv;
     argv.push_back("ZADD");
-    argv.push_back(key.c_str());
+    argv.push_back(key);
     argv.push_back("INCR");
     argv.push_back(TO_STRING(score));
-    argv.push_back(member.c_str());
+    argv.push_back(member);
 
     sendCommand(argv);
 
@@ -78,7 +78,7 @@ long long redis_zset::zcard(const std::string& key)
 {
     std::vector<std::string> argv;
     argv.push_back("ZCARD");
-    argv.push_back(key.c_str());
+    argv.push_back(key);
 
     sendCommand(argv);
 
@@ -95,9 +95,9 @@ long long redis_zset::zcount(const std::string& key, const std::string& min,
 {
     std::vector<std::string> argv;
     argv.push_back("ZCOUNT");
-    argv.push_back(key.c_str());
-    argv.push_back(min.c_str());
-    argv.push_back(max.c_str());
+    argv.push_back(key);
+    argv.push_back(min);
+    argv.push_back(max);
 
     sendCommand(argv);
 
@@ -110,9 +110,9 @@ bool redis_zset::zincrby(const std::string& key, double increment,
 {
     std::vector<std::string> argv;
     argv.push_back("ZINCRBY");
-    argv.push_back(key.c_str());
+    argv.push_back(key);
     argv.push_back(TO_STRING(increment));
-    argv.push_back(member.c_str());
+    argv.push_back(member);
 
     sendCommand(argv);
 
@@ -126,7 +126,7 @@ long long redis_zset::zstore(const char* cmd, const std::string& dest,
 {
     std::vector<std::string> argv;
     argv.push_back(cmd);
-    argv.push_back(dest.c_str());
+    argv.push_back(dest);
     argv.push_back(TO_STRING(keys.size()));
 
     for (size_t i = 0; i < keys.size(); i++) {
@@ -172,9 +172,9 @@ long long redis_zset::zlexcount(const std::string& key,
 {
     std::vector<std::string> argv;
     argv.push_back("ZLEXCOUNT");
-    argv.push_back(key.c_str());
-    argv.push_back(min.c_str());
-    argv.push_back(max.c_str());
+    argv.push_back(key);
+    argv.push_back(min);
+    argv.push_back(max);
 
     sendCommand(argv);
 
@@ -186,7 +186,7 @@ int redis_zset::zrange(const std::string& key, int start, int stop,
 {
     std::vector<std::string> argv;
     argv.push_back("ZRANGE");
-    argv.push_back(key.c_str());
+    argv.push_back(key);
     argv.push_back(TO_STRING(start));
     argv.push_back(TO_STRING(stop));
 
@@ -201,7 +201,7 @@ int redis_zset::zrange_with_scores(const std::string& key,
 {
     std::vector<std::string> argv;
     argv.push_back("ZRANGE");
-    argv.push_back(key.c_str());
+    argv.push_back(key);
     argv.push_back(TO_STRING(start));
     argv.push_back(TO_STRING(stop));
     argv.push_back("WITHSCORES");
@@ -236,9 +236,9 @@ int redis_zset::zrangeby(const char* cmd, const std::string& key,
 {
     std::vector<std::string> argv;
     argv.push_back(cmd);
-    argv.push_back(key.c_str());
-    argv.push_back(min.c_str());
-    argv.push_back(max.c_str());
+    argv.push_back(key);
+    argv.push_back(min);
+    argv.push_back(max);
 
     if (offset >=0 && count > 0) {
         argv.push_back("LIMIT");
@@ -308,8 +308,8 @@ int redis_zset::zrank(const std::string& key, const std::string& member)
 {
     std::vector<std::string> argv;
     argv.push_back("ZRANK");
-    argv.push_back(key.c_str());
-    argv.push_back(member.c_str());
+    argv.push_back(key);
+    argv.push_back(member);
 
     sendCommand(argv);
 
@@ -321,7 +321,7 @@ long long redis_zset::zrem(const std::string& key,
 {
     std::vector<std::string> argv;
     argv.push_back("ZREM");
-    argv.push_back(key.c_str());
+    argv.push_back(key);
 
     for (size_t i = 0; i < member.size(); i++) {
         argv.push_back(member[i]);
@@ -337,9 +337,9 @@ int redis_zset::zremrangebylex(const std::string& key, const std::string& min,
 {
     std::vector<std::string> argv;
     argv.push_back("ZREMRANGEBYLEX");
-    argv.push_back(key.c_str());
-    argv.push_back(min.c_str());
-    argv.push_back(max.c_str());
+    argv.push_back(key);
+    argv.push_back(min);
+    argv.push_back(max);
 
     sendCommand(argv);
 
@@ -350,7 +350,7 @@ int redis_zset::zremrangebyrank(const std::string& key, int start,int stop)
 {
     std::vector<std::string> argv;
     argv.push_back("ZREMRANGEBYRANK");
-    argv.push_back(key.c_str());
+    argv.push_back(key);
     argv.push_back(TO_STRING(start));
     argv.push_back(TO_STRING(stop));
 
@@ -364,9 +364,9 @@ int redis_zset::zremrangebyscore(const std::string& key, const std::string& min,
 {
     std::vector<std::string> argv;
     argv.push_back("ZREMRANGEBYSCORE");
-    argv.push_back(key.c_str());
-    argv.push_back(min.c_str());
-    argv.push_back(max.c_str());
+    argv.push_back(key);
+    argv.push_back(min);
+    argv.push_back(max);
 
     sendCommand(argv);
 
@@ -383,7 +383,7 @@ int redis_zset::zrevrange(const std::string& key, int start, int stop,
 {
     std::vector<std::string> argv;
     argv.push_back("ZREVRANGE");
-    argv.push_back(key.c_str());
+    argv.push_back(key);
     argv.push_back(TO_STRING(start));
     argv.push_back(TO_STRING(stop));
 
@@ -397,7 +397,7 @@ int redis_zset::zrevrange_with_scores(const std::string& key, int start,
 {
     std::vector<std::string> argv;
     argv.push_back("ZREVRANGE");
-    argv.push_back(key.c_str());
+    argv.push_back(key);
     argv.push_back(TO_STRING(start));
     argv.push_back(TO_STRING(stop));
     argv.push_back("WITHSCORES");
@@ -459,8 +459,8 @@ int redis_zset::zrevrank(const std::string& key, const std::string& member)
 {
     std::vector<std::string> argv;
     argv.push_back("ZREVRANK");
-    argv.push_back(key.c_str());
-    argv.push_back(member.c_str());
+    argv.push_back(key);
+    argv.push_back(member);
 
     sendCommand(argv);
 
@@ -485,8 +485,8 @@ int redis_zset::zscore(const std::string& key, const std::string& member,
 {
     std::vector<std::string> argv;
     argv.push_back("ZSCORE");
-    argv.push_back(key.c_str());
-    argv.push_back(member.c_str());
+    argv.push_back(key);
+    argv.push_back(member);
 
     sendCommand(argv);
 

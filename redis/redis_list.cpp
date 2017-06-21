@@ -65,8 +65,8 @@ int redis_list::brpoplpush(const std::string& src, const std::string& dest,
 {
     std::vector<std::string> argv;
     argv.push_back("BRPOPLPUSH");
-    argv.push_back(src.c_str());
-    argv.push_back(dest.c_str());
+    argv.push_back(src);
+    argv.push_back(dest);
     argv.push_back(TO_STRING(timeout));
 
     sendCommand(argv);
@@ -78,7 +78,7 @@ int redis_list::lindex(const std::string& key, int index, std::string& result)
 {
     std::vector<std::string> argv;
     argv.push_back("LINDEX");
-    argv.push_back(key.c_str());
+    argv.push_back(key);
     argv.push_back(TO_STRING(index));
 
     sendCommand(argv);
@@ -91,10 +91,10 @@ long long redis_list::linsert(const std::string& key, bool is_before,
 {
     std::vector<std::string> argv;
     argv.push_back("LINSERT");
-    argv.push_back(key.c_str());
+    argv.push_back(key);
     argv.push_back(is_before ? "BEFORE" : "AFTER");
-    argv.push_back(pivot.c_str());
-    argv.push_back(value.c_str());
+    argv.push_back(pivot);
+    argv.push_back(value);
 
     sendCommand(argv);
 
@@ -105,7 +105,7 @@ long long redis_list::llen(const std::string& key)
 {
     std::vector<std::string> argv;
     argv.push_back("LLEN");
-    argv.push_back(key.c_str());
+    argv.push_back(key);
 
     sendCommand(argv);
 
@@ -116,7 +116,7 @@ int redis_list::lpop(const std::string& key, std::string& result)
 {
     std::vector<std::string> argv;
     argv.push_back("LPOP");
-    argv.push_back(key.c_str());
+    argv.push_back(key);
 
     sendCommand(argv);
 
@@ -128,7 +128,7 @@ long long redis_list::lpush(const std::string& key,
 {
     std::vector<std::string> argv;
     argv.push_back("LPUSH");
-    argv.push_back(key.c_str());
+    argv.push_back(key);
     for (size_t i = 0; i < values.size(); i++) {
         argv.push_back(values[i]);
     }
@@ -142,8 +142,8 @@ long long redis_list::lpushx(const std::string& key, const std::string& value)
 {
     std::vector<std::string> argv;
     argv.push_back("LPUSHX");
-    argv.push_back(key.c_str());
-    argv.push_back(value.c_str());
+    argv.push_back(key);
+    argv.push_back(value);
 
     sendCommand(argv);
 
@@ -155,7 +155,7 @@ bool redis_list::lrange(const std::string& key, int start, int stop,
 {
     std::vector<std::string> argv;
     argv.push_back("LRANGE");
-    argv.push_back(key.c_str());
+    argv.push_back(key);
     argv.push_back(TO_STRING(start));
     argv.push_back(TO_STRING(stop));
 
@@ -169,9 +169,9 @@ long long redis_list::lrem(const std::string& key, int count,
 {
     std::vector<std::string> argv;
     argv.push_back("LREM");
-    argv.push_back(key.c_str());
+    argv.push_back(key);
     argv.push_back(TO_STRING(count));
-    argv.push_back(value.c_str());
+    argv.push_back(value);
 
     sendCommand(argv);
 
@@ -183,9 +183,9 @@ bool redis_list::lset(const std::string& key, int index,
 {
     std::vector<std::string> argv;
     argv.push_back("LSET");
-    argv.push_back(key.c_str());
+    argv.push_back(key);
     argv.push_back(TO_STRING(index));
-    argv.push_back(value.c_str());
+    argv.push_back(value);
 
     sendCommand(argv);
 
@@ -196,7 +196,7 @@ bool redis_list::ltrim(const std::string& key, int start, int stop)
 {
     std::vector<std::string> argv;
     argv.push_back("LTRIM");
-    argv.push_back(key.c_str());
+    argv.push_back(key);
     argv.push_back(TO_STRING(start));
     argv.push_back(TO_STRING(stop));
 
@@ -209,7 +209,7 @@ int redis_list::rpop(const std::string& key, std::string& result)
 {
     std::vector<std::string> argv;
     argv.push_back("RPOP");
-    argv.push_back(key.c_str());
+    argv.push_back(key);
 
     sendCommand(argv);
 
@@ -221,8 +221,8 @@ int redis_list::rpoplpush(const std::string& src, const std::string& dest,
 {
     std::vector<std::string> argv;
     argv.push_back("RPOPLPUSH");
-    argv.push_back(src.c_str());
-    argv.push_back(dest.c_str());
+    argv.push_back(src);
+    argv.push_back(dest);
 
     sendCommand(argv);
 
@@ -234,7 +234,7 @@ long long redis_list::rpush(const std::string& key,
 {
     std::vector<std::string> argv;
     argv.push_back("RPUSH");
-    argv.push_back(key.c_str());
+    argv.push_back(key);
     for (size_t i = 0; i < values.size(); i++) {
         argv.push_back(values[i]);
     }
@@ -248,8 +248,8 @@ long long redis_list::rpushx(const std::string& key, const std::string& value)
 {
     std::vector<std::string> argv;
     argv.push_back("RPUSHX");
-    argv.push_back(key.c_str());
-    argv.push_back(value.c_str());
+    argv.push_back(key);
+    argv.push_back(value);
 
     sendCommand(argv);
 

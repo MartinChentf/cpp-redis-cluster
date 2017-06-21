@@ -11,7 +11,7 @@ long long redis_set::sadd(const std::string& key,
 {
     std::vector<std::string> argv;
     argv.push_back("SADD");
-    argv.push_back(key.c_str());
+    argv.push_back(key);
     for (size_t i = 0; i < member.size(); i++) {
         argv.push_back(member[i]);
     }
@@ -25,7 +25,7 @@ long long redis_set::scard(const std::string& key)
 {
     std::vector<std::string> argv;
     argv.push_back("SCARD");
-    argv.push_back(key.c_str());
+    argv.push_back(key);
 
     sendCommand(argv);
 
@@ -90,7 +90,7 @@ redis_set::set_operation_with_store(const char* op,
 {
     std::vector<std::string> argv;
     argv.push_back(op);
-    argv.push_back(dest.c_str());
+    argv.push_back(dest);
     for (size_t i = 0; i < keys.size(); i++) {
         argv.push_back(keys[i]);
     }
@@ -104,8 +104,8 @@ int redis_set::sismember(const std::string& key, const std::string& member)
 {
     std::vector<std::string> argv;
     argv.push_back("SISMEMBER");
-    argv.push_back(key.c_str());
-    argv.push_back(member.c_str());
+    argv.push_back(key);
+    argv.push_back(member);
 
     sendCommand(argv);
 
@@ -117,7 +117,7 @@ int redis_set::smembers(const std::string& key,
 {
     std::vector<std::string> argv;
     argv.push_back("SMEMBERS");
-    argv.push_back(key.c_str());
+    argv.push_back(key);
 
     sendCommand(argv);
 
@@ -129,9 +129,9 @@ int redis_set::smove(const std::string& src, const std::string& dest,
 {
     std::vector<std::string> argv;
     argv.push_back("SMOVE");
-    argv.push_back(src.c_str());
-    argv.push_back(dest.c_str());
-    argv.push_back(member.c_str());
+    argv.push_back(src);
+    argv.push_back(dest);
+    argv.push_back(member);
 
     sendCommand(argv);
 
@@ -142,7 +142,7 @@ int redis_set::spop(const std::string& key, std::string& result)
 {
     std::vector<std::string> argv;
     argv.push_back("SPOP");
-    argv.push_back(key.c_str());
+    argv.push_back(key);
 
     sendCommand(argv);
 
@@ -154,7 +154,7 @@ int redis_set::spop(const std::string& key,
 {
     std::vector<std::string> argv;
     argv.push_back("SPOP");
-    argv.push_back(key.c_str());
+    argv.push_back(key);
     argv.push_back(TO_STRING(count));
 
     sendCommand(argv);
@@ -166,7 +166,7 @@ int redis_set::srandmember(const std::string& key, std::string& result)
 {
     std::vector<std::string> argv;
     argv.push_back("SRANDMEMBER");
-    argv.push_back(key.c_str());
+    argv.push_back(key);
 
     sendCommand(argv);
 
@@ -178,7 +178,7 @@ int redis_set::srandmember(const std::string& key,
 {
     std::vector<std::string> argv;
     argv.push_back("SRANDMEMBER");
-    argv.push_back(key.c_str());
+    argv.push_back(key);
     argv.push_back(TO_STRING(count));
 
     sendCommand(argv);
@@ -191,7 +191,7 @@ long long redis_set::srem(const std::string& key,
 {
     std::vector<std::string> argv;
     argv.push_back("SREM");
-    argv.push_back(key.c_str());
+    argv.push_back(key);
     for (size_t i = 0; i < member.size(); i++) {
         argv.push_back(member[i]);
     }

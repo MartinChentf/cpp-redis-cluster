@@ -12,7 +12,7 @@ long long redis_hash::hdel(const std::string& key,
 {
     std::vector<std::string> argv;
     argv.push_back("HDEL");
-    argv.push_back(key.c_str());
+    argv.push_back(key);
     for (size_t i = 0; i < fields.size(); i++) {
         argv.push_back(fields[i]);
     }
@@ -26,8 +26,8 @@ int redis_hash::hexists(const std::string& key, const std::string& field)
 {
     std::vector<std::string> argv;
     argv.push_back("HEXISTS");
-    argv.push_back(key.c_str());
-    argv.push_back(field.c_str());
+    argv.push_back(key);
+    argv.push_back(field);
 
     sendCommand(argv);
 
@@ -39,8 +39,8 @@ int redis_hash::hget(const std::string& key, const std::string& field,
 {
     std::vector<std::string> argv;
     argv.push_back("HGET");
-    argv.push_back(key.c_str());
-    argv.push_back(field.c_str());
+    argv.push_back(key);
+    argv.push_back(field);
 
     sendCommand(argv);
 
@@ -52,7 +52,7 @@ int redis_hash::hgetall(const std::string& key,
 {
     std::vector<std::string> argv;
     argv.push_back("HGETALL");
-    argv.push_back(key.c_str());
+    argv.push_back(key);
 
     sendCommand(argv);
 
@@ -78,8 +78,8 @@ bool redis_hash::hincrby(const std::string& key, const std::string& field,
 {
     std::vector<std::string> argv;
     argv.push_back("HINCRBY");
-    argv.push_back(key.c_str());
-    argv.push_back(field.c_str());
+    argv.push_back(key);
+    argv.push_back(field);
     argv.push_back(TO_STRING(increment));
 
     sendCommand(argv);
@@ -94,8 +94,8 @@ bool redis_hash::hincrbyfloat(const std::string& key,
 {
     std::vector<std::string> argv;
     argv.push_back("HINCRBYFLOAT");
-    argv.push_back(key.c_str());
-    argv.push_back(field.c_str());
+    argv.push_back(key);
+    argv.push_back(field);
     argv.push_back(TO_STRING(increment));
 
     sendCommand(argv);
@@ -107,7 +107,7 @@ bool redis_hash::hkeys(const std::string& key, std::vector<std::string>& result)
 {
     std::vector<std::string> argv;
     argv.push_back("HKEYS");
-    argv.push_back(key.c_str());
+    argv.push_back(key);
 
     sendCommand(argv);
 
@@ -118,7 +118,7 @@ long long redis_hash::hlen(const std::string& key)
 {
     std::vector<std::string> argv;
     argv.push_back("HLEN");
-    argv.push_back(key.c_str());
+    argv.push_back(key);
 
     sendCommand(argv);
 
@@ -131,7 +131,7 @@ bool redis_hash::hmget(const std::string& key,
 {
     std::vector<std::string> argv;
     argv.push_back("HMGET");
-    argv.push_back(key.c_str());
+    argv.push_back(key);
     for (size_t i = 0; i < fields.size(); i++) {
         argv.push_back(fields[i]);
     }
@@ -146,7 +146,7 @@ bool redis_hash::hmset(const std::string& key,
 {
     std::vector<std::string> argv;
     argv.push_back("HMSET");
-    argv.push_back(key.c_str());
+    argv.push_back(key);
     std::map<std::string, std::string>::const_iterator cit = field_values.begin();
     while (cit != field_values.end()) {
         argv.push_back(cit->first);
@@ -182,9 +182,9 @@ int redis_hash::hset(const std::string& key, const std::string& field,
 {
     std::vector<std::string> argv;
     argv.push_back("HSET");
-    argv.push_back(key.c_str());
-    argv.push_back(field.c_str());
-    argv.push_back(value.c_str());
+    argv.push_back(key);
+    argv.push_back(field);
+    argv.push_back(value);
 
     sendCommand(argv);
 
@@ -196,9 +196,9 @@ int redis_hash::hsetnx(const std::string& key, const std::string& field,
 {
     std::vector<std::string> argv;
     argv.push_back("HSETNX");
-    argv.push_back(key.c_str());
-    argv.push_back(field.c_str());
-    argv.push_back(value.c_str());
+    argv.push_back(key);
+    argv.push_back(field);
+    argv.push_back(value);
 
     sendCommand(argv);
 
@@ -209,8 +209,8 @@ long long redis_hash::hstrlen(const std::string& key, const std::string& field)
 {
     std::vector<std::string> argv;
     argv.push_back("HSTRLEN");
-    argv.push_back(key.c_str());
-    argv.push_back(field.c_str());
+    argv.push_back(key);
+    argv.push_back(field);
 
     sendCommand(argv);
 
@@ -221,7 +221,7 @@ bool redis_hash::hvals(const std::string& key, std::vector<std::string>& result)
 {
     std::vector<std::string> argv;
     argv.push_back("HVALS");
-    argv.push_back(key.c_str());
+    argv.push_back(key);
 
     sendCommand(argv);
 

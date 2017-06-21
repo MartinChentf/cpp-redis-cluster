@@ -28,7 +28,7 @@ int redis_string::get(const std::string& key, std::string& result)
 {
     std::vector<std::string> argv;
     argv.push_back("GET");
-    argv.push_back(key.c_str());
+    argv.push_back(key);
 
     sendCommand(argv);
 
@@ -41,8 +41,8 @@ int redis_string::getSet(const std::string& key,
 {
     std::vector<std::string> argv;
     argv.push_back("GETSET");
-    argv.push_back(key.c_str());
-    argv.push_back(value.c_str());
+    argv.push_back(key);
+    argv.push_back(value);
 
     sendCommand(argv);
 
@@ -54,8 +54,8 @@ bool redis_string::set(const std::string& key, const std::string& value,
 {
     std::vector<std::string> argv;
     argv.push_back("SET");
-    argv.push_back(key.c_str());
-    argv.push_back(value.c_str());
+    argv.push_back(key);
+    argv.push_back(value);
 
     if (ex_px < NONE) {
         argv.push_back(SET_PARAM_STR[ex_px]);
@@ -101,7 +101,7 @@ bool redis_string::getrange(const std::string& key,int start,int end,
 {
     std::vector<std::string> argv;
     argv.push_back("GETRANGE");
-    argv.push_back(key.c_str());
+    argv.push_back(key);
     argv.push_back(TO_STRING(start));
     argv.push_back(TO_STRING(end));
 
@@ -116,9 +116,9 @@ bool redis_string::setrange(const std::string& key, int offset,
 {
     std::vector<std::string> argv;
     argv.push_back("SETRANGE");
-    argv.push_back(key.c_str());
+    argv.push_back(key);
     argv.push_back(TO_STRING(offset));
-    argv.push_back(value.c_str());
+    argv.push_back(value);
 
     sendCommand(argv);
 
@@ -129,7 +129,7 @@ int redis_string::getbit(const std::string& key,int offset)
 {
     std::vector<std::string> argv;
     argv.push_back("GETBIT");
-    argv.push_back(key.c_str());
+    argv.push_back(key);
     argv.push_back(TO_STRING(offset));
 
     sendCommand(argv);
@@ -141,7 +141,7 @@ int redis_string::setbit(const std::string& key, int offset, bool value)
 {
     std::vector<std::string> argv;
     argv.push_back("SETBIT");
-    argv.push_back(key.c_str());
+    argv.push_back(key);
     argv.push_back(TO_STRING(offset));
     argv.push_back(TO_STRING(value?1:0));
 
@@ -159,7 +159,7 @@ long long redis_string::bitcount(const std::string& key, int start, int end)
 {
     std::vector<std::string> argv;
     argv.push_back("BITCOUNT");
-    argv.push_back(key.c_str());
+    argv.push_back(key);
     argv.push_back(TO_STRING(start));
     argv.push_back(TO_STRING(end));
 
@@ -174,7 +174,7 @@ long long redis_string::bitop(BITOP op, const std::string& dest_key,
     std::vector<std::string> argv;
     argv.push_back("BITOP");
     argv.push_back(BITOP_STR[op]);
-    argv.push_back(dest_key.c_str());
+    argv.push_back(dest_key);
     for (size_t i = 0; i < src_keys.size(); i++) {
         argv.push_back(src_keys[i]);
     }
@@ -198,7 +198,7 @@ long long redis_string::bitpos(const std::string& key,bool value,
 {
     std::vector<std::string> argv;
     argv.push_back("BITPOS");
-    argv.push_back(key.c_str());
+    argv.push_back(key);
     argv.push_back(TO_STRING(value?1:0));
     argv.push_back(TO_STRING(start));
     argv.push_back(TO_STRING(end));
@@ -270,7 +270,7 @@ bool redis_string::incrbyfloat(const std::string & key,
 {
     std::vector<std::string> argv;
     argv.push_back("INCRBYFLOAT");
-    argv.push_back(key.c_str());
+    argv.push_back(key);
     argv.push_back(TO_STRING(increment));
 
     sendCommand(argv);
@@ -295,7 +295,7 @@ bool redis_string::incoper(const char * cmd,const std::string & key,
 {
     std::vector<std::string> argv;
     argv.push_back(cmd);
-    argv.push_back(key.c_str());
+    argv.push_back(key);
 
     if (inc != NULL) {
         argv.push_back(TO_STRING(*inc));
@@ -311,8 +311,8 @@ bool redis_string::append(const std::string & key,const std::string & value,
 {
     std::vector<std::string> argv;
     argv.push_back("APPEND");
-    argv.push_back(key.c_str());
-    argv.push_back(value.c_str());
+    argv.push_back(key);
+    argv.push_back(value);
 
     sendCommand(argv);
 
@@ -323,7 +323,7 @@ bool redis_string::strlen(const std::string & key,long long & length)
 {
     std::vector<std::string> argv;
     argv.push_back("STRLEN");
-    argv.push_back(key.c_str());
+    argv.push_back(key);
 
     sendCommand(argv);
 
