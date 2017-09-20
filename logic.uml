@@ -1998,19 +1998,21 @@
 <XPD:REF name="Associations[1]">puD9Q+rBvEeM9p/TZm3+LAAA</XPD:REF>
 <XPD:ATTR name="#Attributes" type="integer">3</XPD:ATTR>
 <XPD:OBJ name="Attributes[0]" type="UMLAttribute" guid="KlMO5gHRCUKzMcn0vYhImQAA">
-<XPD:ATTR name="Name" type="string">std</XPD:ATTR>
+<XPD:ATTR name="Name" type="string">m_host</XPD:ATTR>
 <XPD:ATTR name="Visibility" type="UMLVisibilityKind">vkPrivate</XPD:ATTR>
-<XPD:ATTR name="TypeExpression" type="string">:string m_host</XPD:ATTR>
+<XPD:ATTR name="TypeExpression" type="string">std::string</XPD:ATTR>
 <XPD:REF name="Owner">dYfm4j9vAku/4So47OBTzAAA</XPD:REF>
 </XPD:OBJ>
 <XPD:OBJ name="Attributes[1]" type="UMLAttribute" guid="OLeEDuBZ9UesYvUHcI9ALAAA">
-<XPD:ATTR name="Name" type="string">uint16_t m_port</XPD:ATTR>
+<XPD:ATTR name="Name" type="string">m_port</XPD:ATTR>
 <XPD:ATTR name="Visibility" type="UMLVisibilityKind">vkPrivate</XPD:ATTR>
+<XPD:ATTR name="TypeExpression" type="string">uint16_t</XPD:ATTR>
 <XPD:REF name="Owner">dYfm4j9vAku/4So47OBTzAAA</XPD:REF>
 </XPD:OBJ>
 <XPD:OBJ name="Attributes[2]" type="UMLAttribute" guid="b2TisImKFEWblf+VbNxOtAAA">
-<XPD:ATTR name="Name" type="string">socket_client* m_socket</XPD:ATTR>
+<XPD:ATTR name="Name" type="string">m_socket</XPD:ATTR>
 <XPD:ATTR name="Visibility" type="UMLVisibilityKind">vkPrivate</XPD:ATTR>
+<XPD:ATTR name="TypeExpression" type="string">socket_client*</XPD:ATTR>
 <XPD:REF name="Owner">dYfm4j9vAku/4So47OBTzAAA</XPD:REF>
 </XPD:OBJ>
 </XPD:OBJ>
