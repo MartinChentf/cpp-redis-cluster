@@ -1,5 +1,5 @@
 # redis
-Redis client for C++, 支持redis集群, 支持Redis 3.0.2 or greater
+Redis client for C++, support redis cluster, support Redis 3.0.2 or greater
 
 TODO
-1. zadd, zrangebyscore, zinterstore重构
+1. zadd, zrangebyscore, zinterstore rebuild
